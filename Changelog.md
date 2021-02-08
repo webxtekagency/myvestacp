@@ -1,3 +1,7 @@
+Version 0.9.8-26-40 [08-Feb-2021]
+==================================================
+* Few bugfixes
+
 Version 0.9.8-26-39 [12-Dec-2020]
 ==================================================
 * [Security] Fixing useless issue with tokens in "download backup" and "loginas" functions (thanks to HestiaCP for fixes)

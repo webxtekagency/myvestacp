@@ -69,7 +69,7 @@ fi
 
 if [ -f "$pool_file_73" ]; then
     rm $pool_file_73
-    service php7-3-fpm restart
+    service php7.3-fpm restart
 fi
 
 write_file=0

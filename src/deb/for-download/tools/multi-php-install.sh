@@ -240,6 +240,7 @@ if [ $debian_version -eq 10 ]; then
     a2dismod php7.2
     a2dismod php7.3
     a2dismod php7.4
+    a2dismod php8.0
     a2dismod mpm_prefork
     a2enmod mpm_event
     service apache2 restart

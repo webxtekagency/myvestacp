@@ -22,6 +22,7 @@ fi
 
 inst_repo=0
 debian_version=$(cat /etc/debian_version | tr "." "\n" | head -n1)
+memory=$(grep 'MemTotal' /proc/meminfo |tr ' ' '\n' |grep [0-9])
 
 if [ $# -gt 0 ]; then
     inst_repo=$1
@@ -251,7 +252,14 @@ if [ "$inst_80" -eq 1 ]; then
     wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-80-public.sh -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-80-public.sh
     chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-80.sh
     chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-80-public.sh
-    press_enter "=== Press enter to continue ==============================================================================="
+    echo "=== Patching php.ini for php8.0"
+    wget -nv https://c.myvestacp.com/tools/patches/php8.0.patch -O /root/php8.0.patch
+    patch /etc/php/8.0/fpm/php.ini < /root/php8.0.patch
+    if [ $memory -gt 9999999 ]; then
+        sed -i "s|opcache.memory_consumption=512|opcache.memory_consumption=2048|g" /etc/php/8.0/fpm/php.ini
+    fi
+    service php8.0-fpm restart
+    press_enter "=== PHP 8.0 installed, press enter to continue ==============================================================================="
 fi
 
 

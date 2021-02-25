@@ -1,3 +1,12 @@
+Version 0.9.8-26-42 [26-Feb-2021]
+==================================================
+* [Feature] Support for PHP 8.0, see: https://forum.myvestacp.com/viewtopic.php?f=18&t=52
+* [Bugfix] Making sure Apache is in mpm_event mode
+
+Version 0.9.8-26-41 [11-Feb-2021]
+==================================================
+* Few bugfixes
+
 Version 0.9.8-26-40 [08-Feb-2021]
 ==================================================
 * Few bugfixes

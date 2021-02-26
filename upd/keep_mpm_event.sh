@@ -14,8 +14,8 @@ if [ "$1" = 'background' ]; then
         echo "=== Cleaning restart.pipe"
         sed -i "/keep_mpm_event/d" /usr/local/vesta/data/queue/restart.pipe
         /usr/local/vesta/bin/v-delete-cron-restart-job
-        if [ ! -f "/usr/local/vesta/data/upgrades/keeping-mpm-event-checked" ]; then
-            touch /usr/local/vesta/data/upgrades/keeping-mpm-event-checked
+        if [ ! -f "/usr/local/vesta/data/upgrades/keeping-mpm-event-checked-2" ]; then
+            touch /usr/local/vesta/data/upgrades/keeping-mpm-event-checked-2
             echo "=== OK, mpm_event is not checked"
             check_grep=$(grep -c "WEB_SYSTEM='apache2'" /usr/local/vesta/conf/vesta.conf)
             if [ "$check_grep" -eq 1 ]; then
@@ -40,17 +40,19 @@ fi
 
 if [ "$switch_to_mpm_event" -eq 1 ]; then
     echo "=== OK, let's ensure mpm_event"
-    apt-get -y remove libapache2-mod-php7.4
-    a2dismod ruid2
-    a2dismod suexec
-    a2dismod php5.6
-    a2dismod php7.0
-    a2dismod php7.1
-    a2dismod php7.2
-    a2dismod php7.3
-    a2dismod php7.4
-    a2dismod mpm_prefork
-    a2enmod mpm_event
+    a2dismod ruid2 > /dev/null 2>&1
+    a2dismod suexec > /dev/null 2>&1
+    a2dismod php5.6 > /dev/null 2>&1
+    a2dismod php7.0 > /dev/null 2>&1
+    a2dismod php7.1 > /dev/null 2>&1
+    a2dismod php7.2 > /dev/null 2>&1
+    a2dismod php7.3 > /dev/null 2>&1
+    a2dismod php7.4 > /dev/null 2>&1
+    a2dismod php8.0 > /dev/null 2>&1
+    a2dismod mpm_prefork > /dev/null 2>&1
+    a2enmod mpm_event > /dev/null 2>&1
+    apt-get -y remove libapache2-mod-php7.4 > /dev/null 2>&1
+    apt-get -y remove libapache2-mod-php8.0 > /dev/null 2>&1
     service apache2 restart
     echo "=== Done!"
 fi

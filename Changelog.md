@@ -1,7 +1,7 @@
 Version 0.9.8-26-43 [15-Mar-2021]
 ==================================================
 * [Security] fix for: CSRF remote code execution in UploadHandler.php - CVE-2021-28379 (Credits to: Fady Osman @fady_othman)
-* [Security] fix for: Local privilege escalation from user account to admin account user via v-add-web-domain (Credits to: Two independent security researchers, Marti Guasch Jiménez and Francisco Andreu Sanz, working with the SSD Secure Disclosure program) (and also thanks to HestiaCP @hestiacp for fix)
+* [Security] fix for: Local privilege escalation from user account to admin account via v-add-web-domain (Credits to: Two independent security researchers, Marti Guasch Jiménez and Francisco Andreu Sanz, working with the SSD Secure Disclosure program) (and also thanks to HestiaCP @hestiacp for fix)
 * [Security] fix for: Local privilege escalation in v-generate-ssl-cert (potential user to admin or root escalation) (Credits to: Numan Türle @numanturle, thanks to HestiaCP @hestiacp for fix)
 * [Security] fix for: Local privilege escalation in /web/api/ via v-make-tmp-file (probably admin to root escalation) (Credits to: Numan Türle @numanturle, thanks to HestiaCP @hestiacp for fix)
 * [Security] fix for: Cross site scripting in /web/add/ip/ (admin to other admin XSS escalation) (Credits to: Numan Türle @numanturle, thanks to HestiaCP @hestiacp for fix)

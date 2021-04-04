@@ -1,7 +1,7 @@
 Version 0.9.8-26-44 [04-Apr-2021]
 ==================================================
 * [Security] Preventing denial-of-service in openssl library in vesta-nginx service (CVE-2021-3449)
-* [Security] Preventing admin to install non-vesta packages from vesta admin user interface (Credits to: Numan Türle @numanturle)
+* [Security] Preventing admin to install non-vesta packages from vesta admin panel user interface (Credits to: Numan Türle @numanturle)
 * [Bugfix] Preventing multiple execution of v-backup-users
 * [UserInterface] CSS fix for Apache status table (Credits to: Milos Spasic)
 

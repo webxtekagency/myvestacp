@@ -1,3 +1,10 @@
+Version 0.9.8-26-44 [04-Apr-2021]
+==================================================
+* [Security] Preventing denial-of-service in openssl library in vesta-nginx service (CVE-2021-3449)
+* [Security] Preventing admin to install non-vesta packages from vesta admin user interface (Credits to: Numan Türle @numanturle)
+* [Bugfix] Preventing multiple execution of v-backup-users
+* [UserInterface] CSS fix for Apache status table (Credits to: Milos Spasic)
+
 Version 0.9.8-26-43 [15-Mar-2021]
 ==================================================
 * [Security] fix for: CSRF remote code execution in UploadHandler.php - CVE-2021-28379 (Credits to: Fady Osman @fady_othman)

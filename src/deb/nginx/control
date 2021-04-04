@@ -1,7 +1,7 @@
 Source: vesta-nginx
 Package: vesta-nginx
 Priority: optional
-Version: 0.9.8-26
+Version: 0.9.8-26-44
 Section: admin
 Maintainer: Predrag Damnjanovic <predrag@myvestacp.com>
 Homepage: http://myvestacp.com

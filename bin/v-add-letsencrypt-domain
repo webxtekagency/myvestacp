@@ -357,7 +357,7 @@ if [ "$exitstatus" -ne '0' ]; then
     sed -i "/ $domain /d" $VESTA/data/queue/letsencrypt.pipe
     echo "[$(date)] : EXIT=$domain certificate installation failed" >> /usr/local/vesta/log/letsencrypt.log
     send_notice 'LETSENCRYPT' "$domain certificate installation failed"
-    check_result $? "SSL install" >/dev/null
+    check_result $exitstatus "SSL install" >/dev/null
 fi
 
 # Adding LE autorenew cronjob

@@ -345,6 +345,11 @@ ca_end=$(( pem_lines - crt_end + 1 ))
 echo "[$(date)] : ca_end=$ca_end" >> /usr/local/vesta/log/letsencrypt.log
 tail -n $ca_end $ssl_dir/$domain.pem > $ssl_dir/$domain.ca
 
+# Temporary fix for double "END CERTIFICATE"
+if [[ $(head -n 1 $ssl_dir/$domain.ca) = "-----END CERTIFICATE-----" ]]; then
+    sed -i '1,2d' $ssl_dir/$domain.ca
+fi
+
 # Adding SSL
 ssl_home=$(search_objects 'web' 'LETSENCRYPT' 'yes' 'SSL_HOME')
 $BIN/v-delete-web-domain-ssl $user $domain >/dev/null 2>&1

@@ -35,7 +35,7 @@ for user in $($BIN/v-list-users plain |cut -f 1); do
     
         fail_counter=$(get_web_counter "$user" "$domain" 'LETSENCRYPT_FAIL_COUNT')
 
-        if [[ "$fail_counter" -ge 8 ]]; then
+        if [[ "$fail_counter" -ge 7 ]]; then
             if [ "$hostname" = "$domain" ]; then
                 if [ -z "$SKIP_HOSTNAME_LETSENCRIPT_RENEWING_WARNING" ]; then
                     email=$(grep CONTACT $VESTA/data/users/admin/user.conf)
@@ -45,7 +45,7 @@ for user in $($BIN/v-list-users plain |cut -f 1); do
             fi
         fi
 
-        if [[ "$fail_counter" -ge 8 ]]; then
+        if [[ "$fail_counter" -ge 7 ]]; then
             # echo "$domain failed $fail_counter times for LetsEncrypt renewing, skipping"
             echo "[$(date)] : $domain failed $fail_counter times for LetsEncrypt renewing, skipping" >> /usr/local/vesta/log/letsencrypt_cron.log
             continue;

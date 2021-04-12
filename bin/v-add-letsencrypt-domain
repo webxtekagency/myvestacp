@@ -355,7 +355,7 @@ ssl_home=$(search_objects 'web' 'LETSENCRYPT' 'yes' 'SSL_HOME')
 $BIN/v-delete-web-domain-ssl $user $domain >/dev/null 2>&1
 echo "[$(date)] : v-add-web-domain-ssl $user $domain $ssl_dir $ssl_home" >> /usr/local/vesta/log/letsencrypt.log
 $BIN/v-add-web-domain-ssl $user $domain $ssl_dir $ssl_home
-$exitstatus=$?
+exitstatus=$?
 echo "[$(date)] : v-add-web-domain-ssl status: $exitstatus" >> /usr/local/vesta/log/letsencrypt.log
 if [ "$exitstatus" -ne '0' ]; then
     touch $VESTA/data/queue/letsencrypt.pipe

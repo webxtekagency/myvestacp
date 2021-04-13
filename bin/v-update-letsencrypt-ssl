@@ -35,11 +35,10 @@ for user in $($BIN/v-list-users plain |cut -f 1); do
     
         fail_counter=$(get_web_counter "$user" "$domain" 'LETSENCRYPT_FAIL_COUNT')
 
-        if [[ "$fail_counter" -ge 7 ]]; then
+        if [[ "$fail_counter" -eq 7 ]]; then
             if [ "$hostname" = "$domain" ]; then
-                if [ -z "$SKIP_HOSTNAME_LETSENCRIPT_RENEWING_WARNING" ]; then
-                    send_email_to_admin "LetsEncrypt renewing hostname $hostname" "Warning: hostname $domain failed for LetsEncrypt renewing"
-                fi
+                fail_counter=$(alter_web_counter "$user" "$domain" 'LETSENCRYPT_FAIL_COUNT')
+                send_email_to_admin "LetsEncrypt renewing hostname $hostname" "Warning: hostname $domain failed for LetsEncrypt renewing"
             fi
         fi
 

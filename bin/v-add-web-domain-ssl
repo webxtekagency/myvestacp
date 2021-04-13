@@ -149,6 +149,13 @@ if [ ! -z "$UPDATE_SSL_SCRIPT" ]; then
     eval "$UPDATE_SSL_SCRIPT $user $domain"
 fi
 
+UPDATE_SSL_SCRIPT2=''
+source $VESTA/conf/vesta.conf
+if [ ! -z "$UPDATE_SSL_SCRIPT2" ]; then
+    eval "$UPDATE_SSL_SCRIPT2 $user $domain"
+fi
+
+
 # Logging
 log_history "enabled ssl support for $domain"
 log_event "$OK" "$ARGUMENTS"

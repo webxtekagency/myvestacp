@@ -1,4 +1,10 @@
-Version 0.9.8-26-44 [04-Apr-2021]
+Version 0.9.8-26-45 [13-Apr-2021]
+==================================================
+* [Feature] Logging whole LetsEncrypt process to /usr/local/vesta/log/letsencrypt.log and /usr/local/vesta/log/letsencrypt_cron.log
+* [Feature] Warn admin once (by sending email) if LetsEncrypt renewing failed for server hostname
+* [Bugfix] Correct truncating of CA LetsEncrypt certificate (thanks to HestiaCP @hestiacp for fix)
+
+* Version 0.9.8-26-44 [04-Apr-2021]
 ==================================================
 * [Security] Preventing denial-of-service in openssl library in vesta-nginx service (CVE-2021-3449)
 * [Security] Preventing admin to install non-vesta packages from vesta admin panel user interface (Credits to: Numan Türle @numanturle)

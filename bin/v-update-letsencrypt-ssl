@@ -38,9 +38,7 @@ for user in $($BIN/v-list-users plain |cut -f 1); do
         if [[ "$fail_counter" -ge 7 ]]; then
             if [ "$hostname" = "$domain" ]; then
                 if [ -z "$SKIP_HOSTNAME_LETSENCRIPT_RENEWING_WARNING" ]; then
-                    email=$(grep CONTACT $VESTA/data/users/admin/user.conf)
-                    email=$(echo "$email" | cut -f 2 -d "'")
-                    echo "hostname $domain failed for LetsEncrypt renewing" | $SENDMAIL -s "LetsEncrypt renewing hostname $hostname" "$email" 'yes'
+                    send_email_to_admin "LetsEncrypt renewing hostname $hostname" "Warning: hostname $domain failed for LetsEncrypt renewing"
                 fi
             fi
         fi

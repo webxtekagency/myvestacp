@@ -1,3 +1,7 @@
+Version 0.9.8-26-46 [17-Apr-2021]
+==================================================
+* [Feature] Updating CloudFlare IP addresses
+
 Version 0.9.8-26-45 [13-Apr-2021]
 ==================================================
 * [Feature] Logging whole LetsEncrypt process to /usr/local/vesta/log/letsencrypt.log and /usr/local/vesta/log/letsencrypt_cron.log

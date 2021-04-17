@@ -23,6 +23,16 @@ fi
 echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+# Updating CloudFlare IP addresses
+if [ ! -f "/usr/local/vesta/data/upgrades/update-cloudflare-ips" ]; then
+  if [ -f "/etc/nginx/nginx.conf" ]; then
+    touch /usr/local/vesta/data/upgrades/update-cloudflare-ips
+    echo "== Updating CloudFlare IP addresses"
+    sed -i 's/ set_real_ip_from 104.16.0.0/12;/ set_real_ip_from 104.16.0.0/13;\n set_real_ip_from 104.24.0.0/14;/g' /etc/nginx/nginx.conf
+    systemctl restart nginx
+  fi
+fi
+
 # Tuning of php-fpm pool.d config files (perfomances and limits)
 if [ ! -f "/usr/local/vesta/data/upgrades/tune-fpm-config-files-v2" ]; then
     touch /usr/local/vesta/data/upgrades/tune-fpm-config-files-v2

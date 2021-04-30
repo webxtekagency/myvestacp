@@ -1040,6 +1040,7 @@ fi
 if [ "$proftpd" = 'yes' ]; then
     echo "127.0.0.1 $servername" >> /etc/hosts
     cp -f $vestacp/proftpd/proftpd.conf /etc/proftpd/
+    cp -f $vestacp/proftpd/tls.conf /etc/proftpd/
     update-rc.d proftpd defaults
     service proftpd start
     check_result $? "proftpd start failed"

@@ -1,3 +1,8 @@
+Version 0.9.8-26-47 [30-May-2021]
+==================================================
+* Enabling TLS for ProFTPD FTPS
+* More logical "Restore backup" template
+
 Version 0.9.8-26-46 [17-Apr-2021]
 ==================================================
 * [Feature] Updating CloudFlare IP addresses

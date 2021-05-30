@@ -23,6 +23,20 @@ fi
 echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+# Enabling TLS for ProFTPD FTPS
+if [ ! -f "/usr/local/vesta/data/upgrades/enable-tls-in-proftpd" ]; then
+  if [ -f "/etc/proftpd/proftpd.conf" ]; then
+    touch /usr/local/vesta/data/upgrades/enable-tls-in-proftpd
+    check_grep=$(grep -c 'tls' /etc/proftpd/proftpd.conf)
+    if [ "$check_grep" -eq 0 ]; then
+        echo "== Enabling TLS for ProFTPD FTPS"
+        wget -nv https://c.myvestacp.com/debian/10/proftpd/tls.conf -O /etc/proftpd/tls.conf
+        sed -i "s|AuthPAMConfig|Include /etc/proftpd/tls.conf\n\nAuthPAMConfig|g" /etc/proftpd/proftpd.conf
+        systemctl restart proftpd
+    fi
+  fi
+fi
+
 # Updating CloudFlare IP addresses
 if [ ! -f "/usr/local/vesta/data/upgrades/update-cloudflare-ips" ]; then
   if [ -f "/etc/nginx/nginx.conf" ]; then

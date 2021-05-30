@@ -756,6 +756,6 @@ $LANG['sr'] = array(
 
     'Email Credentials' => 'Email lozinka i podešavanja',
     
-    'selected' => 'selektovano',
+    'restore selected' => 'vrati selektovano',
     'First select what to restore' => 'Prvo selektujte šta tačno želite da vratite'
 );

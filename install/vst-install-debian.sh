@@ -1632,6 +1632,7 @@ touch /usr/local/vesta/data/upgrades/limit_max_recipients
 touch /usr/local/vesta/data/upgrades/roundcube_smtp_auth
 touch /usr/local/vesta/data/upgrades/apache_status_public_access
 touch /usr/local/vesta/data/upgrades/update-cloudflare-ips
+touch /usr/local/vesta/data/upgrades/enable-tls-in-proftpd
 
 # Secret URL
 secretquery=''

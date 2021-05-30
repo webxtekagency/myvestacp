@@ -755,4 +755,7 @@ $LANG['sr'] = array(
     'maximum characters length, including prefix' => 'maksimalna dužina sme biti %s karaktera, uključujući i prefix',
 
     'Email Credentials' => 'Email lozinka i podešavanja',
+    
+    'selected' => 'selektovano',
+    'First select what to restore' => 'Prvo selektujte šta tačno želite da vratite'
 );

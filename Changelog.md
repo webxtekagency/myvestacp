@@ -1,3 +1,7 @@
+Version 0.9.8-26-48 [11-Jul-2021]
+==================================================
+* Fixed two bugs in LetsEncrypt generating process
+
 Version 0.9.8-26-47 [30-May-2021]
 ==================================================
 * Enabling TLS for ProFTPD FTPS

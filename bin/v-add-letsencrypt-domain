@@ -214,13 +214,13 @@ for auth in $authz; do
                 # default nginx method
                 conf="$HOMEDIR/$user/conf/web/nginx.$domain.conf_letsencrypt"
                 sconf="$HOMEDIR/$user/conf/web/snginx.$domain.conf_letsencrypt"
-                if [ ! -e "$conf" ]; then
+                # if [ ! -e "$conf" ]; then
                     echo 'location ~ "^/\.well-known/acme-challenge/(.*)$" {' \
                         > $conf
                     echo '    default_type text/plain;' >> $conf
                     echo '    return 200 "$1.'$THUMB'";' >> $conf
                     echo '}' >> $conf
-                fi
+                # fi
                 echo "[$(date)] : in $conf we put: $THUMB" >> /usr/local/vesta/log/letsencrypt.log
                 if [ ! -e "$sconf" ]; then
                     ln -s "$conf" "$sconf"

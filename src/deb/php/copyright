@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: vesta-php
-Source: http://myvestacp.com
+Source: https://www.myvestacp.com
 
 Files: *
 Copyright: 2019 MyVesta <info@myvestacp.com>

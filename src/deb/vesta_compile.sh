@@ -29,7 +29,7 @@ if [ $# -gt 4 ]; then
     add_deb_to_apt_repo=$5
 fi
 
-MAINTAINER_EMAIL='predrag@myvestacp.com'
+MAINTAINER_EMAIL='info@myvestacp.com'
 
 TARGET_DEB_NAME_MAIN='buster'
 TARGET_DEB_VER_MAIN='10'
@@ -248,6 +248,10 @@ EOF
     press_enter "*** please copy above generated key to your clipboard and then paste it after pressing enter now ***"
     vi $PATH_OF_APT_REPO_ROOT/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/deb_signing.key
+    cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/10/deb_signing.key
+    cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/9/deb_signing.key
+    cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/8/deb_signing.key
+    cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/7/deb_signing.key
   fi
 
   echo "=== All done"

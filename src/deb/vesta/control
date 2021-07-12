@@ -3,8 +3,8 @@ Package: vesta
 Priority: optional
 Version: 0.9.8-26
 Section: admin
-Maintainer: Predrag Damnjanovic <predrag@myvestacp.com>
-Homepage: http://myvestacp.com
+Maintainer: myVesta <info@myvestacp.com>
+Homepage: https://www.myvestacp.com
 Architecture: amd64
 Depends: bash, awk, sed
 Description: Vesta

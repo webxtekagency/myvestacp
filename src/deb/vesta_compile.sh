@@ -243,7 +243,7 @@ Pull: $TARGET_DEB_NAME
 EOF
   
   if [ ! -d "/root/.gnupg" ]; then
-    gpg --gen-key
+    gpg --full-gen-key
     gpg --armor --export $MAINTAINER_EMAIL --output $MAINTAINER_EMAIL.gpg.key
     press_enter "*** please copy above generated key to your clipboard and then paste it after pressing enter now ***"
     vi $PATH_OF_APT_REPO_ROOT/deb_signing.key

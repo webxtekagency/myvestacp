@@ -42,15 +42,6 @@
  
  ; Maximum number of files that can be uploaded via a single request
  max_file_uploads = 20
-@@ -959,7 +960,7 @@
- [Date]
- ; Defines the default timezone used by the date functions
- ; http://php.net/date.timezone
--;date.timezone =
-+date.timezone = UTC
- 
- ; http://php.net/date.default-latitude
- ;date.default_latitude = 31.7667
 @@ -1089,7 +1090,7 @@
  
  ; The path to a log file that will log all mail() calls. Log entries include

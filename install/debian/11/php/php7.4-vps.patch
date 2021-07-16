@@ -1,5 +1,5 @@
---- /etc/php/7.4/fpm/php.ini.orig	2021-02-20 10:45:56.000000000 +0100
-+++ /etc/php/7.4/fpm/php.ini	2021-07-16 15:05:25.244169530 +0200
+--- /etc/php/7.4/fpm/php.ini.orig	2021-07-16 16:12:30.027464762 +0200
++++ /etc/php/7.4/fpm/php.ini	2021-07-16 16:24:26.000000000 +0200
 @@ -309,7 +309,8 @@
  ; This directive allows you to disable certain functions.
  ; It receives a comma-delimited list of function names.

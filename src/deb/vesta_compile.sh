@@ -7,8 +7,8 @@
 build_deb_package=1
 add_deb_to_apt_repo=0
 
-TARGET_DEB_NAME='buster'
-TARGET_DEB_VER='10'
+TARGET_DEB_NAME='bullseye'
+TARGET_DEB_VER='11'
 
 run_apt_update_and_install=1
 wait_to_press_enter=1
@@ -31,8 +31,8 @@ fi
 
 MAINTAINER_EMAIL='info@myvestacp.com'
 
-TARGET_DEB_NAME_MAIN='buster'
-TARGET_DEB_VER_MAIN='10'
+TARGET_DEB_NAME_MAIN='bullseye'
+TARGET_DEB_VER_MAIN='11'
 
 # Set compiling directory
 BUILD_DIR="/usr/src/$TARGET_DEB_NAME"
@@ -248,6 +248,7 @@ EOF
     press_enter "*** please copy above generated key to your clipboard and then paste it after pressing enter now ***"
     vi $PATH_OF_APT_REPO_ROOT/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/deb_signing.key
+    cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/11/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/10/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/9/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/8/deb_signing.key
@@ -380,7 +381,35 @@ if [ "$CWEB_B" = true ]; then
   tar -czf dovecot.tar.gz dovecot/
   echo "=== All done for Debian10"
   ##########
+  cd $PATH_OF_C_WEB_FOLDER_ROOT/debian/11
+  
+  if [ -f "packages.tar.gz" ]; then
+    rm packages.tar.gz
+  fi
+  tar -czf packages.tar.gz packages/
+  
+  if [ -f "templates.tar.gz" ]; then
+    rm templates.tar.gz
+  fi
+  tar -czf templates.tar.gz templates/
+  
+  if [ -f "firewall.tar.gz" ]; then
+    rm firewall.tar.gz
+  fi
+  tar -czf firewall.tar.gz firewall/
 
+  if [ -f "fail2ban.tar.gz" ]; then
+    rm fail2ban.tar.gz
+  fi
+  tar -czf fail2ban.tar.gz fail2ban/
+
+  if [ -f "dovecot.tar.gz" ]; then
+    rm dovecot.tar.gz
+  fi
+  tar -czf dovecot.tar.gz dovecot/
+  echo "=== All done for Debian11"
+  ##########
+  
   cp /root/vesta/install/vst-install-debian.sh $PATH_OF_C_WEB_FOLDER_ROOT/vst-install-debian.sh
 
   mkdir $PATH_OF_C_WEB_FOLDER_ROOT/tools

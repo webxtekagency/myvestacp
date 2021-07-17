@@ -1,3 +1,7 @@
+Version 0.9.8-26-49 [17-Jul-2021]
+==================================================
+* Support for Debian 11
+
 Version 0.9.8-26-48 [11-Jul-2021]
 ==================================================
 * Fixed two bugs in LetsEncrypt generating process

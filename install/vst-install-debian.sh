@@ -1079,6 +1079,12 @@ if [ "$proftpd" = 'yes' ]; then
     update-rc.d proftpd defaults
     service proftpd start
     check_result $? "proftpd start failed"
+    if [ "$release" -eq 11 ]; then
+        unit_files="$(systemctl list-unit-files |grep proftpd)"
+        if [[ "$unit_files" =~ "disabled" ]]; then
+            systemctl enable proftpd
+        fi
+    fi
 fi
 
 

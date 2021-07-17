@@ -220,6 +220,11 @@ if [ ! -z "$DB_SYSTEM" ] && [ "$DB_SYSTEM" != 'remote' ]; then
         proc_name=''
         service="$db"
         if [ "$service" = 'mysql' ]; then
+            release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
+            if [ "$release" -eq 11 ]; then
+                service='mariadb'
+                proc_name='mariadbd'
+            fi
             if [ -d "/etc/sysconfig" ]; then
                 service='mysqld'
                 proc_name='mysqld'

@@ -1164,6 +1164,22 @@ if [ "$mysql" = 'yes' ]; then
       blowfish=$(gen_pass)
       echo "\$cfg['blowfish_secret'] = '$blowfish';" >> /etc/phpmyadmin/config.inc.php
   fi
+  if [ "$release" -eq 11 ]; then
+      # Set config and log directory
+      sed -i "s|define('CONFIG_DIR', '');|define('CONFIG_DIR', '/etc/phpmyadmin/');|" /usr/share/phpmyadmin/libraries/vendor_config.php
+      sed -i "s|define('TEMP_DIR', './tmp/');|define('TEMP_DIR', '/var/lib/phpmyadmin/tmp/');|" /usr/share/phpmyadmin/libraries/vendor_config.php
+
+      # Create temporary folder and change permission
+      mkdir /usr/share/phpmyadmin/tmp
+      chmod 777 /usr/share/phpmyadmin/tmp
+
+      mkdir /root/phpmyadmin
+      wget -nv -O /root/phpmyadmin/pma.sh http://c.myvestacp.com/debian/11/pma/pma.sh 
+      wget -nv -O /root/phpmyadmin/create_tables.sql http://c.myvestacp.com/debian/11/pma/create_tables.sql
+      bash /root/phpmyadmin/pma.sh
+      blowfish=$(gen_pass)
+      echo "\$cfg['blowfish_secret'] = '$blowfish';" >> /etc/phpmyadmin/config.inc.php
+  fi
 fi
 
 #----------------------------------------------------------#

@@ -47,6 +47,7 @@ fi
 sed -i "s|'$oldport'|'$port'|g" $VESTA/data/firewall/rules.conf
 $VESTA/bin/v-update-firewall
 systemctl restart fail2ban.service
+sed -i "s|'$oldport'|'$port'|g" /etc/iptables.rules
 systemctl restart vesta
 
 #----------------------------------------------------------#

@@ -1576,13 +1576,13 @@ $VESTA/bin/v-add-cron-vesta-autoupdate
 
 echo "=== Installing additional PHP libs"
 if [ "$release" -eq 9 ]; then
-  apt-get -y install php7.0-apcu php7.0-mbstring php7.0-bcmath php7.0-curl php7.0-gd php7.0-intl php7.0-mcrypt php7.0-mysql php7.0-mysqlnd php7.0-pdo php7.0-soap php7.0-json php7.0-xml php7.0-zip php7.0-memcache php7.0-memcached php7.0-zip
+  apt-get -y install php7.0-apcu php7.0-mbstring php7.0-bcmath php7.0-curl php7.0-gd php7.0-intl php7.0-mcrypt php7.0-mysql php7.0-mysqlnd php7.0-pdo php7.0-soap php7.0-json php7.0-xml php7.0-zip php7.0-memcache php7.0-memcached php7.0-zip php7.0-imagick
 fi
 if [ "$release" -eq 10 ]; then
-  apt-get -y install php7.3-apcu php7.3-mbstring php7.3-bcmath php7.3-curl php7.3-gd php7.3-intl php7.3-mysql php7.3-mysqlnd php7.3-pdo php7.3-soap php7.3-json php7.3-xml php7.3-zip php7.3-memcache php7.3-memcached php7.3-zip
+  apt-get -y install php7.3-apcu php7.3-mbstring php7.3-bcmath php7.3-curl php7.3-gd php7.3-intl php7.3-mysql php7.3-mysqlnd php7.3-pdo php7.3-soap php7.3-json php7.3-xml php7.3-zip php7.3-memcache php7.3-memcached php7.3-zip php7.3-imagick
 fi
 if [ "$release" -eq 11 ]; then
-  apt-get -y install php7.4-apcu php7.4-mbstring php7.4-bcmath php7.4-curl php7.4-gd php7.4-intl php7.4-mysql php7.4-mysqlnd php7.4-pdo php7.4-soap php7.4-json php7.4-xml php7.4-zip php7.4-memcache php7.4-memcached php7.4-zip
+  apt-get -y install php7.4-apcu php7.4-mbstring php7.4-bcmath php7.4-curl php7.4-gd php7.4-intl php7.4-mysql php7.4-mysqlnd php7.4-pdo php7.4-soap php7.4-json php7.4-xml php7.4-zip php7.4-memcache php7.4-memcached php7.4-zip php7.4-imagick
 fi
 
 touch /var/log/php-mail.log

@@ -51,8 +51,6 @@ TO_DATABASE_USERNAME=''
 TO_DATABASE_PASSWORD=''
 DATABASE_SUFIX='_migrated'
 
-source /usr/local/vesta/func/handle_parameters.sh
-
 #----------------------------------------------------------#
 #                    Verifications                         #
 #----------------------------------------------------------#
@@ -65,6 +63,9 @@ FROM_USER=$user
 
 r=$(/usr/local/vesta/bin/v-get-database-credentials-of-domain "$FROM_DOMAIN")
 eval $r
+
+# take --parameters
+source /usr/local/vesta/func/handle_parameters.sh
 
 FROM_FOLDER=$SITE_FOLDER
 

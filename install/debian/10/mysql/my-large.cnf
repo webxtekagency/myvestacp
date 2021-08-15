@@ -1,11 +1,18 @@
 [client]
+default-character-set=utf8mb4
 port=3306
 socket=/var/run/mysqld/mysqld.sock
 
 [mysqld_safe]
 socket=/var/run/mysqld/mysqld.sock
 
+[mysql]
+default-character-set=utf8mb4
+
 [mysqld]
+collation-server = utf8mb4_unicode_520_ci
+init-connect='SET NAMES utf8mb4'
+character-set-server = utf8mb4
 user=mysql
 pid-file=/var/run/mysqld/mysqld.pid
 socket=/var/run/mysqld/mysqld.sock

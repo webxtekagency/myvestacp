@@ -41,6 +41,11 @@ is_backup_enabled
 
 wait_for_backup_if_it_is_not_time_for_backup
 
+# Override backup path
+if [ ! -z "$OVERRIDE_BACKUP_PATH" ]; then
+    BACKUP=$OVERRIDE_BACKUP_PATH
+fi
+
 # Set backup directory if undefined
 if [ -z "$BACKUP" ]; then
     BACKUP=/backup

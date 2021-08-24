@@ -46,29 +46,35 @@ pool_file_71="/etc/php/7.1/fpm/pool.d/$2.conf"
 pool_file_72="/etc/php/7.2/fpm/pool.d/$2.conf"
 pool_file_73="/etc/php/7.3/fpm/pool.d/$2.conf"
 pool_file_74="/etc/php/7.4/fpm/pool.d/$2.conf"
+pool_file_80="/etc/php/8.0/fpm/pool.d/$2.conf"
 
 if [ -f "$pool_file_56" ]; then
     rm $pool_file_56
+    systemctl reset-failed php5.6-fpm
     service php5.6-fpm restart
 fi
 
 if [ -f "$pool_file_70" ]; then
     rm $pool_file_70
+    systemctl reset-failed php7.0-fpm
     service php7.0-fpm restart
 fi
 
 if [ -f "$pool_file_71" ]; then
     rm $pool_file_71
+    systemctl reset-failed php7.1-fpm
     service php7.1-fpm restart
 fi
 
 if [ -f "$pool_file_72" ]; then
     rm $pool_file_72
+    systemctl reset-failed php7.2-fpm
     service php7.2-fpm restart
 fi
 
 if [ -f "$pool_file_73" ]; then
     rm $pool_file_73
+    systemctl reset-failed php7.3-fpm
     service php7.3-fpm restart
 fi
 
@@ -83,10 +89,17 @@ else
 fi
 if [ $write_file -eq 1 ]; then
     echo "$pool_conf" > $pool_file_74
+    systemctl reset-failed php7.4-fpm
     service php7.4-fpm restart
 fi
 if [ -f "/etc/php/7.4/fpm/pool.d/www.conf" ]; then
     rm /etc/php/7.4/fpm/pool.d/www.conf
+fi
+
+if [ -f "$pool_file_80" ]; then
+    rm $pool_file_80
+    systemctl reset-failed php8.0-fpm
+    service php8.0-fpm restart
 fi
 
 exit 0

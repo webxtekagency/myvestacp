@@ -527,11 +527,11 @@ check_result $? 'apt-get upgrade failed'
 
 # Installing nginx repo
 apt=/etc/apt/sources.list.d
-if [ "$release" -ne 11 ]; then
+# if [ "$release" -ne 11 ]; then
     echo "deb http://nginx.org/packages/debian/ $codename nginx" > $apt/nginx.list
     wget http://nginx.org/keys/nginx_signing.key -O /tmp/nginx_signing.key
     apt-key add /tmp/nginx_signing.key
-fi
+# fi
 
 # Installing vesta repo
 echo "deb http://$RHOST/$codename/ $codename vesta" > $apt/vesta.list

@@ -46,15 +46,18 @@ pool_file_71="/etc/php/7.1/fpm/pool.d/$2.conf"
 pool_file_72="/etc/php/7.2/fpm/pool.d/$2.conf"
 pool_file_73="/etc/php/7.3/fpm/pool.d/$2.conf"
 pool_file_74="/etc/php/7.4/fpm/pool.d/$2.conf"
+pool_file_80="/etc/php/8.0/fpm/pool.d/$2.conf"
 
 if [ -f "$pool_file_56" ]; then
     rm $pool_file_56
-    service php5.6-fpm restart
+    systemctl reset-failed php5.6-fpm
+    systemctl restart php5.6-fpm
 fi
 
 if [ -f "$pool_file_70" ]; then
     rm $pool_file_70
-    service php7.0-fpm restart
+    systemctl reset-failed php7.0-fpm
+    systemctl restart php7.0-fpm
 fi
 
 write_file=0
@@ -68,7 +71,8 @@ else
 fi
 if [ $write_file -eq 1 ]; then
     echo "$pool_conf" > $pool_file_71
-    service php7.1-fpm restart
+    systemctl reset-failed php7.1-fpm
+    systemctl restart php7.1-fpm
 fi
 if [ -f "/etc/php/7.1/fpm/pool.d/www.conf" ]; then
     rm /etc/php/7.1/fpm/pool.d/www.conf
@@ -76,17 +80,27 @@ fi
 
 if [ -f "$pool_file_72" ]; then
     rm $pool_file_72
-    service php7.2-fpm restart
+    systemctl reset-failed php7.2-fpm
+    systemctl restart php7.2-fpm
 fi
+
 
 if [ -f "$pool_file_73" ]; then
     rm $pool_file_73
-    service php7.3-fpm restart
+    systemctl reset-failed php7.3-fpm
+    systemctl restart php7.3-fpm
 fi
 
 if [ -f "$pool_file_74" ]; then
     rm $pool_file_74
-    service php7.4-fpm restart
+    systemctl reset-failed php7.4-fpm
+    systemctl restart php7.4-fpm
+fi
+
+if [ -f "$pool_file_80" ]; then
+    rm $pool_file_80
+    systemctl reset-failed php8.0-fpm
+    systemctl restart php8.0-fpm
 fi
 
 exit 0

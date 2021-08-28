@@ -1,15 +1,7 @@
 <?php
 
 // Preventing CSRF
-if ($_SERVER['REQUEST_METHOD']=='POST') {
-    $host_arr=explode(":", $_SERVER['HTTP_HOST']);
-    $hostname=$host_arr[0];
-    $port = $_SERVER['SERVER_PORT'];
-    $expected_http_origin="https://".$hostname.":".$port;
-    if ($_SERVER['HTTP_ORIGIN'] != $expected_http_origin) {
-        die ("Nope.");
-    }
-}
+prevent_post_csrf(true);
 
 include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
 $user = $_SESSION['user'];

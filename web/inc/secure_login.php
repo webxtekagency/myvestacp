@@ -53,31 +53,33 @@ if ($secure_gate_check==true) {
 function prevent_post_csrf ($hard_check=false) {
     if (file_exists('/usr/local/vesta/conf_web/dont_check_csrf')) return; 
     if ($_SERVER['REQUEST_METHOD']=='POST') {
-        if ($hard_check==false) {
-            if (isset($_SERVER['HTTP_HOST']) == false) return;
+        if ($hard_check == false) {
             if (isset($_SERVER['HTTP_ORIGIN']) == false) return;
+            if (isset($_SERVER['HTTP_HOST']) == false) return;
             if (isset($_SERVER['SERVER_PORT']) == false) return;
         } else {
-            if (isset($_SERVER['HTTP_HOST']) == false) $_SERVER['HTTP_HOST']='';
-            if (isset($_SERVER['HTTP_ORIGIN']) == false) $_SERVER['HTTP_ORIGIN']='';
-            if (isset($_SERVER['SERVER_PORT']) == false) $_SERVER['HTTP_PORT']='';
+            if (isset($_SERVER['HTTP_ORIGIN']) == false) $_SERVER['HTTP_ORIGIN'] = '';
+            if (isset($_SERVER['HTTP_HOST']) == false) $_SERVER['HTTP_HOST'] = '';
+            if (isset($_SERVER['SERVER_PORT']) == false) $_SERVER['HTTP_PORT'] = '';
         }
-        $_SERVER['HTTP_HOST']=strtolower($_SERVER['HTTP_HOST']);
-        $_SERVER['HTTP_ORIGIN']=strtolower($_SERVER['HTTP_ORIGIN']);
-        if ($hard_check==false) {
+        $_SERVER['HTTP_HOST'] = strtolower($_SERVER['HTTP_HOST']);
+        $_SERVER['HTTP_ORIGIN'] = strtolower($_SERVER['HTTP_ORIGIN']);
+        if ($hard_check == false) {
             if (substr($_SERVER['HTTP_ORIGIN'], 0,7) != "http://" && substr($_SERVER['HTTP_ORIGIN'], 0,8)!="https://") return;
         }
-        $host_arr=explode(":", $_SERVER['HTTP_HOST']);
-        $hostname=$host_arr[0];
+        $host_arr = explode(":", $_SERVER['HTTP_HOST']);
+        $hostname = $host_arr[0];
         $port = $_SERVER['SERVER_PORT'];
-        $expected_http_origin="https://".$hostname.":".$port;
-        $level=1;
-        if ($hard_check==true) $level=2;
+        $expected_http_origin = "https://".$hostname.":".$port;
+        $level = 1;
+        if ($hard_check == true) $level = 2;
         if ($_SERVER['HTTP_ORIGIN'] != $expected_http_origin) {
-            die ("CSRF detected (".$level.").<br />Your browser sent HTTP_ORIGIN with value: <b>".$_SERVER['HTTP_ORIGIN']."</b><br />myVesta expected HTTP_ORIGIN with value: <b>".$expected_http_origin."</b><br />Probably some browser extension is blocking it... disable all extensions and try again (or try to login with other browser).<br />If you are system administrator of this server, you can disable CSRF check by doing (as root, in SSH): <b>mkdir /usr/local/vesta/conf_web && touch /usr/local/vesta/conf_web/dont_check_csrf</b><br >(but we don't recommend it)<br />If you are not system administrator of this server and you can't access the hosting panel even you disabled all browser extensions, please copy-paste this message to the system administrator of this server.<br />Once again, before you disable CSRF check, try to disable all browser extensions or try to login with other browser.");
+            die ("CSRF detected (".$level.").<br />Your browser sent HTTP_ORIGIN with value: <b>".$_SERVER['HTTP_ORIGIN']."</b><br />myVesta expected HTTP_ORIGIN with value: <b>".$expected_http_origin."</b><br />Probably some browser extension is blocking it... disable all browser extensions and try again (or try to login with other browser).<br />If you are system administrator of this server, you can disable CSRF check by doing (as root, in SSH): <b>mkdir /usr/local/vesta/conf_web && touch /usr/local/vesta/conf_web/dont_check_csrf</b><br >(but we don't recommend it)<br />If you are not system administrator of this server and you can't access the hosting panel even you disabled all browser extensions, please copy-paste this message to the system administrator of this server.<br />Once again, before you disable CSRF check, try to disable all browser extensions or try to login with other browser.");
         }
     }
 }
 
-// Preventing all POST CSRF
-if ($secure_gate_check==true) prevent_post_csrf();
+// Preventing all CSRFs
+if ($secure_gate_check == true) {
+    prevent_post_csrf();
+}

@@ -1,13 +1,17 @@
 <?php
 
-// Preventing CSRF
-prevent_post_csrf(true);
-
 // Init
 error_reporting(NULL);
 ob_start();
 session_start();
 include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
+
+// Check token
+if ((!isset($_GET['token'])) || ($_SESSION['token'] != $_GET['token'])) {
+    die($_SESSION['token']);
+    header('location: /login/');
+    exit();
+}
 
 $v_username = escapeshellarg($user);
 exec (VESTA_CMD."v-schedule-user-backup ".$v_username, $output, $return_var);

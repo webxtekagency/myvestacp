@@ -1,8 +1,5 @@
 <?php
 
-// Preventing CSRF
-prevent_post_csrf(true);
-
 include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
 $user = $_SESSION['user'];
 
@@ -40,6 +37,12 @@ if (($_SESSION['user'] == 'admin') && (!empty($_SESSION['look']))) {
         $content = '';
         $path = $_REQUEST['path'];
         if (!empty($_POST['save'])) {
+            // Check token
+            if ((!isset($_POST['token'])) || ($_SESSION['token'] != $_POST['token'])) {
+                header('location: /login/');
+                exit();
+            }
+
             $fn = tempnam ('/tmp', 'vst-save-file-');
             if ($fn) {
                 $contents = $_POST['contents'];
@@ -76,7 +79,7 @@ if (($_SESSION['user'] == 'admin') && (!empty($_SESSION['look']))) {
 <!-- input id="do-backup" type="button" onClick="javascript:void(0);" name="save" value="backup (ctrl+F2)" class="backup" / -->
 <input type="submit" name="save" value="Save" class="save" />
 
-
+<input type="hidden" id="token" name="token" value="<?=$_SESSION['token']?>">
 <textarea name="contents" class="editor" id="editor" rows="4" style="display:none;width: 100%; height: 100%;"><?=htmlentities($content)?></textarea>
 
 </form>
@@ -96,6 +99,7 @@ if (($_SESSION['user'] == 'admin') && (!empty($_SESSION['look']))) {
     var makeBackup = function() {
         var params = {
             action: 'backup',
+            token: '<?=$_SESSION['token']?>',
             path:   '<?= $path ?>'
         };
         

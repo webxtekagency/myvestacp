@@ -79,22 +79,27 @@ function prevent_post_csrf ($hard_check=false) {
     }
 }
 
-function prevent_get_csrf ($hard_check=false) {
-    if (file_exists('/usr/local/vesta/conf_web/dont_check_csrf')) return; 
-        if (isset($_SERVER['HTTP_HOST']) == false) return;
-        if (isset($_SERVER['SERVER_PORT']) == false) return;
-        if (isset($_SERVER['HTTP_REFERER']) == false) return;
-        $_SERVER['HTTP_HOST'] = strtolower($_SERVER['HTTP_HOST']);
-        $_SERVER['HTTP_ORIGIN'] = strtolower($_SERVER['HTTP_ORIGIN']);
-        if (substr($_SERVER['HTTP_REFERER'], 0, 8) != "file:///" && substr($_SERVER['HTTP_REFERER'], 0, 7) != "http://" && substr($_SERVER['HTTP_REFERER'], 0, 8) != "https://") return;
-        $host_arr = explode(":", $_SERVER['HTTP_HOST']);
-        $hostname = $host_arr[0];
-        $port = $_SERVER['SERVER_PORT'];
-        $expected_http_referer = "https://".$hostname.":".$port;
-        $expected_http_referer_length = strlen($expected_http_referer);
-        if (substr($_SERVER['HTTP_REFERER'], 0, $expected_http_referer_length) != $expected_http_referer) {
-            die ("You clicked on someone's link from other site.<br />This is just a protection layer to prevent potentially dangerous clicks, so if it was your link - you can <a href=\"".$expected_http_referer.$_SERVER['REQUEST_URI']."\"><b>proceed safely to your hosting panel</b></a>.<br /><br />Technical details:<br />Your browser sent HTTP_REFERER with value: <b>".$_SERVER['HTTP_REFERER']."</b><br />myVesta expected HTTP_REFERER to begin with value: <b>".$expected_http_referer."</b><br />If you got this error during casual work in your hosting panel, probably some browser extension is blocking HTTP_REFERER... disable all browser extensions and try again (or try to login with other browser).<br />If you are system administrator of this server, you can disable CSRF check by doing (as root, in SSH): <b>mkdir /usr/local/vesta/conf_web && touch /usr/local/vesta/conf_web/dont_check_csrf</b><br >(but we don't recommend it)<br />If you are not system administrator of this server and you can't access the hosting panel even you clicked \"<b>proceed safely to your hosting panel</b>\" and disabled all browser extensions or changed the browser, please copy-paste this message to the system administrator of this server.<br />Once again, before you disable CSRF check, try to click \"<b>proceed safely to your hosting panel</b>\", and if that does not help then try to disable all browser extensions or try to login with other browser.");
-        }
+function prevent_get_csrf () {
+    global $login_url;
+    if (file_exists('/usr/local/vesta/conf_web/dont_check_csrf')) return;
+    if ($_SERVER['REQUEST_METHOD'] == "GET") {
+        if (isset($_GET[$login_url])) return;
+        if ($_SERVER['REQUEST_URI']=="" || $_SERVER['REQUEST_URI']=="/" || $_SERVER['REQUEST_URI']=="/login/" || $_SERVER['REQUEST_URI']=="/list/web/") return;
+    }
+    if (isset($_SERVER['HTTP_HOST']) == false) return;
+    if (isset($_SERVER['SERVER_PORT']) == false) return;
+    if (isset($_SERVER['HTTP_REFERER']) == false) return;
+    $_SERVER['HTTP_HOST'] = strtolower($_SERVER['HTTP_HOST']);
+    $_SERVER['HTTP_ORIGIN'] = strtolower($_SERVER['HTTP_ORIGIN']);
+    if (substr($_SERVER['HTTP_REFERER'], 0, 8) != "file:///" && substr($_SERVER['HTTP_REFERER'], 0, 7) != "http://" && substr($_SERVER['HTTP_REFERER'], 0, 8) != "https://") return;
+    $host_arr = explode(":", $_SERVER['HTTP_HOST']);
+    $hostname = $host_arr[0];
+    $port = $_SERVER['SERVER_PORT'];
+    $expected_http_referer = "https://".$hostname.":".$port;
+    $expected_http_referer_length = strlen($expected_http_referer);
+    if (substr($_SERVER['HTTP_REFERER'], 0, $expected_http_referer_length) != $expected_http_referer) {
+        die ("You clicked on someone's link from other site.<br />This is just a protection layer to prevent potentially dangerous clicks, so if it was your link - you can <a href=\"".$expected_http_referer.$_SERVER['REQUEST_URI']."\"><b>proceed safely to your hosting panel</b></a>.<br /><br />Technical details:<br />Your browser sent HTTP_REFERER with value: <b>".$_SERVER['HTTP_REFERER']."</b><br />myVesta expected HTTP_REFERER to begin with value: <b>".$expected_http_referer."</b><br />If you got this error during casual work in your hosting panel, probably some browser extension is blocking HTTP_REFERER... disable all browser extensions and try again (or try to login with other browser).<br />If you are system administrator of this server, you can disable CSRF check by doing (as root, in SSH): <b>mkdir /usr/local/vesta/conf_web && touch /usr/local/vesta/conf_web/dont_check_csrf</b><br >(but we don't recommend it)<br />If you are not system administrator of this server and you can't access the hosting panel even you clicked \"<b>proceed safely to your hosting panel</b>\" and disabled all browser extensions or changed the browser, please copy-paste this message to the system administrator of this server.<br />Once again, before you disable CSRF check, try to click \"<b>proceed safely to your hosting panel</b>\", and if that does not help then try to disable all browser extensions or try to login with other browser.");
+    }
 }
 
 // Preventing all CSRFs

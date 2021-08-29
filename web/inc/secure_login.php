@@ -84,7 +84,7 @@ function prevent_get_csrf () {
     if (file_exists('/usr/local/vesta/conf_web/dont_check_csrf')) return;
     if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (isset($_GET[$login_url])) return;
-        if ($_SERVER['REQUEST_URI']=="" || $_SERVER['REQUEST_URI']=="/" || $_SERVER['REQUEST_URI']=="/login/" || $_SERVER['REQUEST_URI']=="/list/web/") return;
+        if ($_SERVER['REQUEST_URI']=="" || $_SERVER['REQUEST_URI']=="/" || $_SERVER['REQUEST_URI']=="/login/" || $_SERVER['REQUEST_URI']=="/list/user/" || $_SERVER['REQUEST_URI']=="/list/web/") return;
     }
     if (isset($_SERVER['HTTP_HOST']) == false) return;
     if (isset($_SERVER['SERVER_PORT']) == false) return;

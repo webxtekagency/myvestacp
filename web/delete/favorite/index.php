@@ -5,6 +5,11 @@
 
     include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
 
+    // Check token
+    if ((!isset($_REQUEST['token'])) || ($_SESSION['token'] != $_REQUEST['token'])) {
+        die("Wrong token");
+    }
+
     unset($_SESSION['favourites'][strtoupper($_REQUEST['v_section'])][$_REQUEST['v_unit_id']]);
 
     $v_section = escapeshellarg($_REQUEST['v_section']);

@@ -128,6 +128,7 @@ $(document).ready(function(){
 
               $('.l-unit .l-icon-star').click(function(){
                 var l_unit = $(this).parents('.l-unit');
+                var token = $('#token').attr('token');
 
                 if(l_unit.hasClass('l-unit--starred')){
                   // removing star
@@ -135,7 +136,7 @@ $(document).ready(function(){
                   $.ajax({
                     method: "POST",
                     url: "/delete/favorite/index.php",
-                    data: { v_section: l_unit.attr('v_section'), v_unit_id: l_unit.attr('v_unit_id') }
+                    data: { v_section: l_unit.attr('v_section'), v_unit_id: l_unit.attr('v_unit_id'), token: token }
                   });
 
                   l_unit.attr({'sort-star': 0});
@@ -145,7 +146,7 @@ $(document).ready(function(){
                   $.ajax({
                     method: "POST",
                     url: "/add/favorite/index.php",
-                    data: { v_unit_id: l_unit.attr('v_unit_id'), v_section: l_unit.attr('v_section') }
+                    data: { v_unit_id: l_unit.attr('v_unit_id'), v_section: l_unit.attr('v_section'), token: token }
                   });
 
                   l_unit.attr({'sort-star': 1});

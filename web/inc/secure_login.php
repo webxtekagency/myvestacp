@@ -54,18 +54,18 @@ function prevent_post_csrf ($hard_check=false) {
     if (file_exists('/usr/local/vesta/conf_web/dont_check_csrf')) return; 
     if ($_SERVER['REQUEST_METHOD']=='POST') {
         if ($hard_check == false) {
-            if (isset($_SERVER['HTTP_ORIGIN']) == false) return;
             if (isset($_SERVER['HTTP_HOST']) == false) return;
             if (isset($_SERVER['SERVER_PORT']) == false) return;
+            if (isset($_SERVER['HTTP_ORIGIN']) == false) return;
         } else {
-            if (isset($_SERVER['HTTP_ORIGIN']) == false) $_SERVER['HTTP_ORIGIN'] = '';
             if (isset($_SERVER['HTTP_HOST']) == false) $_SERVER['HTTP_HOST'] = '';
             if (isset($_SERVER['SERVER_PORT']) == false) $_SERVER['HTTP_PORT'] = '';
+            if (isset($_SERVER['HTTP_ORIGIN']) == false) $_SERVER['HTTP_ORIGIN'] = '';
         }
         $_SERVER['HTTP_HOST'] = strtolower($_SERVER['HTTP_HOST']);
         $_SERVER['HTTP_ORIGIN'] = strtolower($_SERVER['HTTP_ORIGIN']);
         if ($hard_check == false) {
-            if (substr($_SERVER['HTTP_ORIGIN'], 0,7) != "http://" && substr($_SERVER['HTTP_ORIGIN'], 0,8)!="https://") return;
+            if (substr($_SERVER['HTTP_ORIGIN'], 0, 8) != "file:///" && substr($_SERVER['HTTP_ORIGIN'], 0, 7) != "http://" && substr($_SERVER['HTTP_ORIGIN'], 0, 8) != "https://") return;
         }
         $host_arr = explode(":", $_SERVER['HTTP_HOST']);
         $hostname = $host_arr[0];

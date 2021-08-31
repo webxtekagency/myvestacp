@@ -23,6 +23,18 @@ fi
 echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+# Enabling session.cookie_httponly and session.cookie_secure in myvesta php-fpm
+if [ ! -f "/usr/local/vesta/data/upgrades/enable_cookie_httponly" ]; then
+    touch /usr/local/vesta/data/upgrades/enable_cookie_httponly
+    check_grep=$(grep -c 'cookie_httponly' /usr/local/vesta/php/etc/php-fpm.conf)
+    if [ "$check_grep" -eq 0 ]; then
+        echo "== Enabling session.cookie_httponly and session.cookie_secure in myvesta php-fpm"
+        echo "php_admin_flag[session.cookie_httponly] = on" >> /usr/local/vesta/php/etc/php-fpm.conf
+        echo "php_admin_flag[session.cookie_secure] = on" >> /usr/local/vesta/php/etc/php-fpm.conf
+        systemctl restart vesta
+    fi
+fi
+
 # Enabling TLS for ProFTPD FTPS
 if [ ! -f "/usr/local/vesta/data/upgrades/enable-tls-in-proftpd" ]; then
   if [ -f "/etc/proftpd/proftpd.conf" ]; then

@@ -1721,6 +1721,7 @@ touch /usr/local/vesta/data/upgrades/roundcube_smtp_auth
 touch /usr/local/vesta/data/upgrades/apache_status_public_access
 touch /usr/local/vesta/data/upgrades/update-cloudflare-ips
 touch /usr/local/vesta/data/upgrades/enable-tls-in-proftpd
+touch /usr/local/vesta/data/upgrades/enable_cookie_httponly
 
 # Secret URL
 secretquery=''

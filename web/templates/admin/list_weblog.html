@@ -29,7 +29,7 @@
       <!-- /.l-menu -->
       <div class="l-profile">
         <a class="l-profile__username" href="/edit/user/?user=<?php echo $user; ?>"><?=$user?></a>
-        <a class="l-profile__logout" href="/logout/"> <?=__('Log out')?> </a>
+        <a class="l-profile__logout" href="/logout/?token=<?=$_SESSION['token']?>"> <?=__('Log out')?> </a>
       </div>
       <!-- /.l-profile -->
     </div>

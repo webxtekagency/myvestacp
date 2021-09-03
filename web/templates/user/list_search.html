@@ -70,7 +70,7 @@
               if ($value['USER'] != $user && $value['KEY'] == 'ACCOUNT') {
                 if ($key == $user) {
             ?>
-                  <div class="actions-panel__col actions-panel__loginas shortcut-l" key-action="href"><a href="/logout"><?=__('logout')?> <i></i></a><span class="shortcut">&nbsp;L</span></div>
+                  <div class="actions-panel__col actions-panel__loginas shortcut-l" key-action="href"><a href="/logout/?token=<?=$_SESSION['token']?>"><?=__('logout')?> <i></i></a><span class="shortcut">&nbsp;L</span></div>
 <?php
                 } else {
  ?>

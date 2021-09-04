@@ -15,6 +15,7 @@
 <script> GLOBAL = {}; </script>
 </head>
 <body>
+    <div class="hidden" id="token" token="<?=$_SESSION['token']?>"></div>
     <a href="#" class="to-shortcuts">
         <i class="l-icon-shortcuts"></i>
     </a>
@@ -145,6 +146,7 @@
             var acc = $('<div>');
             $(['A', 'B']).each(function(k, letter) {
                 var url = '/upload/';
+                var token = $('#token').attr('token');
                 $('#file_upload_' + letter).fileupload({
                     singleFileUploads: false,
                     add: function (e, data) {
@@ -154,7 +156,7 @@
                         var file_relocation = FM['TAB_'+tab+'_CURRENT_PATH'];
 
 
-                        $('#file_upload_' + letter).fileupload("option", "url", url + '?dir=' + file_relocation);
+                        $('#file_upload_' + letter).fileupload("option", "url", url + '?token='+token+'&dir=' + file_relocation);
                         acc = $('<div>');
                         show_msg = false;
                         data.submit();

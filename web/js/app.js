@@ -797,6 +797,8 @@ App.Ajax.request = function(method, data, callback, onError){
     }*/
     //App.Helpers.setAjaxBusy(method, data);
     data = data || {};
+    var token = $('#token').attr('token');
+    data.token = token;
 
     var prgs = $('.progress-container');
 

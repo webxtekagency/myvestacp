@@ -3,9 +3,14 @@
 //session_start();
 
 // Preventing CSRF
-prevent_post_csrf(true);
+// prevent_post_csrf(true);
 
 include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
+
+// Check token
+if ((!isset($_REQUEST['token'])) || ($_SESSION['token'] != $_REQUEST['token'])) {
+    die("Wrong token or missing token");
+}
 
 // Check login_as feature
 $user = $_SESSION['user'];

@@ -1,6 +1,11 @@
 <?php
 include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
 
+// Check token
+if ((!isset($_GET['token'])) || ($_SESSION['token'] != $_GET['token'])) {
+    die("Wrong token or missing token");
+}
+
 if ((!isset($_SESSION['FILEMANAGER_KEY'])) || (empty($_SESSION['FILEMANAGER_KEY']))) {
     header("Location: /login/");
     exit;

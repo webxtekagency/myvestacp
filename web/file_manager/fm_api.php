@@ -3,15 +3,18 @@
 //error_reporting(NULL);
 
 // Preventing CSRF
-prevent_post_csrf(true);
+// prevent_post_csrf(true);
 
 header('Content-Type: application/json');
 
 include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
 include($_SERVER['DOCUMENT_ROOT']."/file_manager/fm_core.php");
 
+// Check token
+if ((!isset($_REQUEST['token'])) || ($_SESSION['token'] != $_REQUEST['token'])) {
+    die("Wrong token or missing token");
+}
 
-// todo: set in session?
 if (empty($panel)) {
     $command = VESTA_CMD."v-list-user '".$user."' 'json'";
     exec ($command, $output, $return_var);

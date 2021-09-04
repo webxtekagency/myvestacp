@@ -533,7 +533,8 @@ FM.downloadFileFromSubcontext = function(elm) {
     var src = $.parseJSON($(elm).find('.source').val());
 
     var path = src.full_path;
-    var win = window.open('/download/file/?path=' + path, '_blank');
+    var token = $('#token').attr('token');
+    var win = window.open('/download/file/?token='+token+'&path=' + path, '_blank');
     win.focus();
 }
 
@@ -552,20 +553,21 @@ FM.openFile = function(dir, box, elm) {
     };
     
     App.Ajax.request('check_file_type', params, function(reply) {
+        var token = $('#token').attr('token');
         if (reply.result) {
             if (FM.isFileEditable(src, reply.data)) {
-                var myWindow = window.open('/edit/file/?path=' + src.full_path, '_blank');//, src.full_path, "width=900, height=700");
+                var myWindow = window.open('/edit/file/?token='+token+'&path=' + src.full_path, '_blank');//, src.full_path, "width=900, height=700");
             }
             else {
                 var path = src.full_path;
-                var win = window.open('/download/file/?path=' + path, '_blank');
+                var win = window.open('/download/file/?token='+token+'&path=' + path, '_blank');
                 //win.focus();
             }
         }
         else {
             // force download file
             var path = src.full_path;
-            var win = window.open('/download/file/?path=' + path, '_blank');
+            var win = window.open('/download/file/?token='+token+'&path=' + path, '_blank');
             //win.focus();
         }
     });
@@ -1994,7 +1996,8 @@ FM.downloadFiles = function() {
     }
 
     var path = src.full_path;
-    var win = window.open('/download/file/?path=' + path, '_blank');
+    var token = $('#token').attr('token');
+    var win = window.open('/download/file/?token='+token+'&path=' + path, '_blank');
     win.focus();
 }
 

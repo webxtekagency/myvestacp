@@ -3,6 +3,13 @@
 error_reporting(NULL);
 session_start();
 include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
+
+// Check token
+if ((!isset($_GET['token'])) || ($_SESSION['token'] != $_GET['token'])) {
+    header('Location: /login/');
+    exit();
+}
+
 $v_domain = $_GET['domain'];
 $v_domain = escapeshellarg($_GET['domain']);
 if ($_GET['type'] == 'access') $type = 'access';

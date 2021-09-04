@@ -23,8 +23,8 @@
       <div class="l-menu clearfix">
         <div class="l-menu__item <?php if($_GET['type'] == 'access') echo 'l-menu__item--active' ?>"><a href="/list/web-log/?domain=<?=htmlentities($_GET['domain'])?>&type=access"><?=__('AccessLog')?></a></div>
         <div class="l-menu__item <?php if($_GET['type'] == 'error') echo 'l-menu__item--active' ?>"><a href="/list/web-log/?domain=<?=htmlentities($_GET['domain'])?>&type=error"><?=__('ErrorLog')?></a></div>
-        <div class="l-menu__item"><a href="/download/web-log/?domain=<?=htmlentities($_GET['domain'])?>&type=access"><?=__('Download AccessLog')?></a></div>
-        <div class="l-menu__item"><a href="/download/web-log/?domain=<?=htmlentities($_GET['domain'])?>&type=error"><?=__('Download ErrorLog')?></a></div>
+        <div class="l-menu__item"><a href="/download/web-log/?domain=<?=htmlentities($_GET['domain'])?>&type=access&token=<?=$_SESSION['token']?>"><?=__('Download AccessLog')?></a></div>
+        <div class="l-menu__item"><a href="/download/web-log/?domain=<?=htmlentities($_GET['domain'])?>&type=error&token=<?=$_SESSION['token']?>"><?=__('Download ErrorLog')?></a></div>
       </div>
       <!-- /.l-menu -->
       <div class="l-profile">

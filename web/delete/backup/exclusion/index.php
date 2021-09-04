@@ -1,4 +1,7 @@
 <?php
+echo "We think this script is not used anymore. Report it if it's linked from somewhere";
+exit;
+
 // Init
 error_reporting(NULL);
 ob_start();

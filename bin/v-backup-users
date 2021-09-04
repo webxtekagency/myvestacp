@@ -39,9 +39,9 @@ log=$VESTA/log/backup.log
 
 $BIN/v-check-vesta-license >/dev/null
 
+touch $log
 if [ ! -z "$NOTIFY_ADMIN_FULL_BACKUP" ]; then
     mv $log $log-`date +"%Y-%m-%d--%H:%M:%S"`
-    touch $log
 fi
 
 # Auto-repair all databases before backuping all accounts

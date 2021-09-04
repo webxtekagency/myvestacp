@@ -145,6 +145,9 @@ if [ "$inst_70" -eq 1 ]; then
     if [ $debian_version -eq 10 ]; then
       cp /etc/php/7.3/fpm/php.ini /etc/php/7.0/fpm/php.ini
     fi
+    if [ $debian_version -eq 11 ]; then
+      cp /etc/php/7.4/fpm/php.ini /etc/php/7.0/fpm/php.ini
+    fi
     press_enter "=== Press enter to continue ==============================================================================="
 fi
 
@@ -165,6 +168,9 @@ if [ "$inst_71" -eq 1 ]; then
     fi
     if [ $debian_version -eq 10 ]; then
       cp /etc/php/7.3/fpm/php.ini /etc/php/7.1/fpm/php.ini
+    fi
+    if [ $debian_version -eq 11 ]; then
+      cp /etc/php/7.4/fpm/php.ini /etc/php/7.1/fpm/php.ini
     fi
     press_enter "=== Press enter to continue ==============================================================================="
 fi
@@ -187,6 +193,9 @@ if [ "$inst_72" -eq 1 ]; then
     if [ $debian_version -eq 10 ]; then
       cp /etc/php/7.3/fpm/php.ini /etc/php/7.2/fpm/php.ini
     fi
+    if [ $debian_version -eq 11 ]; then
+      cp /etc/php/7.4/fpm/php.ini /etc/php/7.2/fpm/php.ini
+    fi
     press_enter "=== Press enter to continue ==============================================================================="
 fi
 
@@ -208,6 +217,9 @@ if [ "$inst_73" -eq 1 ]; then
     chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-73-public.sh
     if [ $debian_version -eq 9 ]; then
       cp /etc/php/7.0/apache2/php.ini /etc/php/7.3/fpm/php.ini
+    fi
+    if [ $debian_version -eq 11 ]; then
+      cp /etc/php/7.4/fpm/php.ini /etc/php/7.3/fpm/php.ini
     fi
     press_enter "=== Press enter to continue ==============================================================================="
 fi

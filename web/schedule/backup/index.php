@@ -8,7 +8,6 @@ include($_SERVER['DOCUMENT_ROOT']."/inc/main.php");
 
 // Check token
 if ((!isset($_GET['token'])) || ($_SESSION['token'] != $_GET['token'])) {
-    die($_SESSION['token']);
     header('location: /login/');
     exit();
 }

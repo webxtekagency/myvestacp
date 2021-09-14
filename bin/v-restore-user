@@ -28,6 +28,11 @@ if [ -z "$BACKUP" ]; then
     BACKUP=/backup
 fi
 
+# Allow to specify full path to backup file
+if [[ $backup == "/backup/"* ]]; then
+    backup="${backup:8}"
+fi
+
 # Includes
 source $VESTA/func/main.sh
 source $VESTA/func/domain.sh

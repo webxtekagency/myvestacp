@@ -159,7 +159,7 @@ if [ ! -z "$WEB_SYSTEM" ] && [ "$WEB" != '*' ]; then
             fpm_path="$fpm_ver/fpm/pool.d/$domain.conf"
             if [[ $TPL == *"-ioncube" ]]; then
                 fpm_folder="$fpm_ver/fpm/pool.d-ioncube"
-                fpm_path = "$fpm_ver/fpm/pool.d-ioncube/$domain.conf"
+                fpm_path="$fpm_ver/fpm/pool.d-ioncube/$domain.conf"
             fi
             fpm_original_path="/etc/php/$fpm_path"
             fpm_dest_path="$tmpdir/web/$domain/php/$fpm_path"

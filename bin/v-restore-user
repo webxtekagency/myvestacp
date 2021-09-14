@@ -440,6 +440,12 @@ if [ "$web" != 'no' ] && [ ! -z "$WEB_SYSTEM" ]; then
             find $HOMEDIR/$user/web/$domain/ -user $old_uid \
                 -exec chown -h $user:$user {} \;
         fi
+    
+        # Restoring php-fpm pool.d conf files
+        if [ -d "$tmpdir/web/$domain/php" ]; then
+            cp -r $tmpdir/web/$domain/php/ /etc/
+        fi
+
     done
 
     # Adding user to traff queue

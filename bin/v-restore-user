@@ -443,7 +443,10 @@ if [ "$web" != 'no' ] && [ ! -z "$WEB_SYSTEM" ]; then
     
         # Restoring php-fpm pool.d conf files
         if [ -d "$tmpdir/web/$domain/php" ]; then
-            cp -r $tmpdir/web/$domain/php/ /etc/
+            fpmver=$(ls $tmpdir/web/$domain/php/)
+            cp -r $tmpdir/web/$domain/php/$fpmver/ /etc/php/
+            systemctl reset-failed php$fpmver-fpm
+            systemctl restart php$fpmver-fpm
         fi
 
     done

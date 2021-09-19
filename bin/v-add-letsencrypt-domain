@@ -268,6 +268,8 @@ for auth in $authz; do
         echo "[$(date)] : query_le_v2 \"$url\" \"$payload\" \"$nonce\"" >> /usr/local/vesta/log/letsencrypt.log
         answer=$(query_le_v2 "$url" "$payload" "$nonce")
         echo "[$(date)] : answer=$answer" >> /usr/local/vesta/log/letsencrypt.log
+        url2=$(echo "$answer" |grep -A3 $proto |grep url |cut -f 4 -d \")
+        echo "[$(date)] : url2=$url2" >> /usr/local/vesta/log/letsencrypt.log
         validation=$(echo "$answer"|grep -A1 $proto |tail -n1|cut -f4 -d \")
         echo "[$(date)] : validation=$validation" >> /usr/local/vesta/log/letsencrypt.log
         nonce=$(echo "$answer" |grep -i nonce |cut -f2 -d \ |tr -d '\r\n')
@@ -284,6 +286,9 @@ for auth in $authz; do
             echo "[$(date)] : EXIT=Let's Encrypt domain validation timeout" >> /usr/local/vesta/log/letsencrypt.log
             check_result $E_CONNECT "Let's Encrypt domain validation timeout"
         fi
+        echo "[$(date)] : curl: $url2 :" >> /usr/local/vesta/log/letsencrypt.log
+        get_answer=$(curl -S "$url2")
+        echo "[$(date)] : get_answer=$get_answer" >> /usr/local/vesta/log/letsencrypt.log
         sleeping=$((i*2))
         echo "[$(date)] : sleep $sleeping (i=$i)" >> /usr/local/vesta/log/letsencrypt.log
         sleep $sleeping

@@ -294,15 +294,18 @@ if [ ! -z "$(grep ^admin: /etc/passwd)" ] && [ -z "$force" ]; then
     check_result 1 "User admin exists"
 fi
 
+echo "Updating apt, please wait..."
+apt-get update > /dev/null 2>&1
+
 # Checking wget
 if [ ! -e '/usr/bin/wget' ]; then
-    apt-get -y install wget
+    apt-get -y install wget > /dev/null 2>&1
     check_result $? "Can't install wget"
 fi
 
 # Check if gnupg2 is installed
 if [ $(dpkg-query -W -f='${Status}' gnupg2 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
-    apt -y install gnupg2
+    apt-get -y install gnupg2 > /dev/null 2>&1
 fi
 
 # Check if apparmor is installed

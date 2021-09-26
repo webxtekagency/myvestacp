@@ -329,6 +329,15 @@ for pkg in exim4 mysql-server apache2 nginx vesta; do
     fi
 done
 rm -f $tmpfile
+
+if [ ! -z "$conflicts" ] && [[ "$conflicts" = *"exim4"* ]]; then
+    echo "=== Removing pre-installed exim4"
+    apt remove --purge -y exim4 exim4-base exim4-config
+    rm -rf /etc/exim4
+    conflicts=$(echo "$conflicts" | sed -e "s/exim4//")
+    conflicts=$(echo "$conflicts" | sed -e "s/ //")
+fi
+
 if [ ! -z "$conflicts" ] && [ -z "$force" ]; then
     echo '!!! !!! !!! !!! !!! !!! !!! !!! !!! !!! !!! !!! !!! !!! !!! !!! !!!'
     echo

@@ -1442,7 +1442,7 @@ fi
 
 if [ "$release" -eq 11 ]; then
     # Switching to sha512
-    sed -i "s/obscure yescrypt/obscure sha512/g" /etc/pam.d/common-password
+    sed -i "s/yescrypt/sha512/g" /etc/pam.d/common-password
 fi
 
 # Deleting old admin user

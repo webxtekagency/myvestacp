@@ -7,7 +7,6 @@
 # This script can import databases and database users and password, 
 # Import domains, subdomains and website files
 # This script import also mail accounts and mails into accounts if previous cpanel run dovecot
-# Mail password not are restored this was reset by new one.
 ###########
 # If you need restore main database user read line 160 or above
 ###########
@@ -272,7 +271,13 @@ if [[ "$sk_maild" != "cur" && "$sk_maild" != "new" && "$sk_maild" != "tmp"  ]]; 
 					mv ${sk_maild}/${sk_mail_account} /home/${sk_cp_user}/mail/${sk_maild}
 					chown ${sk_cp_user}:mail -R /home/${sk_cp_user}/mail/${sk_maild}
 					find /home/${sk_cp_user}/mail/${sk_maild} -type f -name 'dovecot*' -delete
-					echo "${sk_mail_account}@${sk_maild} | $sk_mail_pass1"	>> /root/sk_mail_password_${sk_cp_user}-${sk_cod}
+					# echo "${sk_mail_account}@${sk_maild} | $sk_mail_pass1"	>> /root/sk_mail_password_${sk_cp_user}-${sk_cod}
+				    echo "Set password for ${sk_mail_account}@${sk_maild}"
+				    pass=$(grep "^${sk_mail_account}:" ${sk_importer_in}/homedir/etc/${sk_maild}/shadow | awk -F  ":" '{print $2}')
+				    newline="${sk_mail_account}:{SHA512-CRYPT}$pass:${sk_cp_user}:mail::/home/${sk_cp_user}:0"
+				    echo $newline
+				    escaped=$(printf '%s\n' "$newline" | sed -e 's/[\/&]/\\&/g')
+				    sed -i "s/^${sk_mail_account}:.*/$escaped/g" /home/${sk_cp_user}/conf/mail/${sk_maild}/passwd
 		done
 	fi
 #else
@@ -351,7 +356,7 @@ tput setaf 4
 echo "##############################"
 echo "cPanel Backup restored"
 echo "Review your content and report any fail"
-echo "I reset mail password not posible restore it yet."
-echo "Check your new passwords runing: cat /root/sk_mail_password_${sk_cp_user}-${sk_cod}"
+# echo "I reset mail password not posible restore it yet."
+# echo "Check your new passwords runing: cat /root/sk_mail_password_${sk_cp_user}-${sk_cod}"
 echo "##############################"
 tput sgr0

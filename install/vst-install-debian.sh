@@ -1734,6 +1734,7 @@ touch /usr/local/vesta/data/upgrades/apache_status_public_access
 touch /usr/local/vesta/data/upgrades/update-cloudflare-ips
 touch /usr/local/vesta/data/upgrades/enable-tls-in-proftpd
 touch /usr/local/vesta/data/upgrades/enable_cookie_httponly
+touch /usr/local/vesta/data/upgrades/fix_exim_494_autoreply
 
 # Secret URL
 secretquery=''

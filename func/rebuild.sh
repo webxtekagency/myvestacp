@@ -523,6 +523,12 @@ rebuild_mail_domain_conf() {
         fi
     done
 
+    # Define mail user
+    if [ "$MAIL_SYSTEM" = 'exim4' ]; then
+        MAIL_USER=Debian-exim
+    else
+        MAIL_USER=exim
+    fi
     # Set permissions and ownership
     if [[ "$MAIL_SYSTEM" =~ exim ]]; then
         chmod 660 $USER_DATA/mail/$domain.*

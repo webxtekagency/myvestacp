@@ -35,7 +35,7 @@ if [ ! -f "/usr/local/vesta/data/upgrades/fix_exim_494_autoreply" ]; then
                 if [ ! -f "/usr/local/vesta/data/users/$user/user.conf" ]; then
                     continue;
                 fi
-                v-rebuild-mail-domains $user
+                /usr/local/vesta/bin/v-rebuild-mail-domains $user
             done
             systemctl restart exim4
         fi

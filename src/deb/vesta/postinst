@@ -25,12 +25,20 @@ chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
 # Fix Autoreply issue with Exim 4.94+
 if [ ! -f "/usr/local/vesta/data/upgrades/fix_exim_494_autoreply" ]; then
-    touch /usr/local/vesta/data/upgrades/fix_exim_494_autoreply
-    if [ -f "/etc/exim4/exim4.conf.template" ]; then 
-        echo "== Fix Autoreply issue with Exim 4.94+"
-        sed -i 's|file = /etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/autoreply.${lookup{$local_part}dsearch{${extract{5}{:}{${lookup{$local_part}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/passwd}}}}/mail/${lookup{$domain}dsearch{/etc/exim4/domains/}}}}.msg|file = /etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/autoreply.${extract{1}{:}{${lookup{$local_part}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/accounts}}}}.msg|g'  /etc/exim4/exim4.conf.template
-        sed -i 's| from = "${lookup{$local_part}dsearch{${extract{5}{:}{${lookup{$local_part}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/passwd}}}}/mail/${lookup{$domain}dsearch{/etc/exim4/domains/}}}}@${lookup{$domain}dsearch{/etc/exim4/domains/}}"| from = "${extract{1}{:}{${lookup{$local_part}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/accounts}}}}@${lookup{$domain}dsearch{/etc/exim4/domains/}}"|g' /etc/exim4/exim4.conf.template
-        systemctl restart exim4
+    if [ "$release" -eq 11 ]; then
+        touch /usr/local/vesta/data/upgrades/fix_exim_494_autoreply
+        if [ -f "/etc/exim4/exim4.conf.template" ]; then 
+            echo "== Fix Autoreply issue with Exim 4.94+"
+            sed -i 's|file = /etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/autoreply.${lookup{$local_part}dsearch{${extract{5}{:}{${lookup{$local_part}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/passwd}}}}/mail/${lookup{$domain}dsearch{/etc/exim4/domains/}}}}.msg|file = /etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/autoreply.${extract{1}{:}{${lookup{$local_part}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/accounts}}}}.msg|g'  /etc/exim4/exim4.conf.template
+            sed -i 's| from = "${lookup{$local_part}dsearch{${extract{5}{:}{${lookup{$local_part}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/passwd}}}}/mail/${lookup{$domain}dsearch{/etc/exim4/domains/}}}}@${lookup{$domain}dsearch{/etc/exim4/domains/}}"| from = "${extract{1}{:}{${lookup{$local_part}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/accounts}}}}@${lookup{$domain}dsearch{/etc/exim4/domains/}}"|g' /etc/exim4/exim4.conf.template
+            for user in $(grep '@' /etc/passwd |cut -f1 -d:); do
+                if [ ! -f "/usr/local/vesta/data/users/$user/user.conf" ]; then
+                    continue;
+                fi
+                v-rebuild-mail-domains $user
+            done
+            systemctl restart exim4
+        fi
     fi
 fi
 

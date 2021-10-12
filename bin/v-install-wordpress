@@ -17,17 +17,6 @@ fi
 # Argument definition
 domain=$1
 
-# take --parameters
-source /usr/local/vesta/func/handle_parameters.sh
-
-if [ -z "$database" ]; then
-    database="wp"
-fi
-
-if [ -z "$emil" ]; then
-    email="info@$domain";
-fi
-
 user=$(/usr/local/vesta/bin/v-search-domain-owner $domain)
 if [ -z "$user" ]; then
     check_result $E_NOTEXIST "domain $domain doesn't exist"
@@ -48,6 +37,17 @@ check_args '1' "$#" 'DOMAIN [DB_NAME] [EMAIL]'
 is_format_valid 'domain' 'database' 'email'
 is_object_valid 'user' 'USER' "$user"
 is_object_unsuspended 'user' 'USER' "$user"
+
+# take --parameters
+source /usr/local/vesta/func/handle_parameters.sh
+
+if [ -z "$database" ]; then
+    database="wp"
+fi
+
+if [ -z "$emil" ]; then
+    email="info@$domain";
+fi
 
 if [ ! -d "/home/$user" ]; then
     echo "User doesn't exist";

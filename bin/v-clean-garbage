@@ -1,0 +1,35 @@
+#!/bin/bash
+
+nice -n 19 ionice -c 3 find /home/*/tmp/ -type f -delete
+find /home/ -name '.wp-cli' -type d -exec rm -rf {} \;
+
+rm /var/backups/*
+rm /var/cache/apt/archives/*
+cd /var/log
+truncate -s 0 xferlog lastlog faillog btmp syslog;
+find /var/log/ -name "*.log" -type f -exec truncate -s 0 {} \;
+find /var/log/ -name "*.err" -type f -exec truncate -s 0 {} \;
+find /var/log/ -name "errors" -type f -exec truncate -s 0 {} \;
+find /var/log/ -name "*.info" -type f -exec truncate -s 0 {} \;
+find /var/log/ -name "*.warn" -type f -exec truncate -s 0 {} \;
+find /var/log/ -type f -name "*.1" -delete
+find /var/log/ -type f -name "*.2" -delete
+find /var/log/ -type f -name "*.3" -delete
+find /var/log/ -type f -name "*.4" -delete
+find /var/log/ -type f -name "*.5" -delete
+find /var/log/ -type f -name "*.6" -delete
+find /var/log/ -type f -name "*.7" -delete
+find /var/log/ -name "*.gz" -type f -delete
+find /usr/local/vesta/log/ -type f -name "*.log" -exec truncate -s 0 {} \;
+find /usr/local/vesta/log/ -type f -not -name "*.log" -delete
+find /var/log/exim4/ -type f -exec truncate -s 0 {} \;
+
+find /home/*/web/*/public_html/wp-content/aiowps_backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+find /home/*/web/*/public_html/wp-content/envato-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+find /home/*/web/*/public_html/wp-content/ai1wm-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+find /home/*/web/*/public_html/wp-content/updraft/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+find /home/*/web/*/public_html/ -type f -name "error_log" -delete
+find /home/*/web/*/public_html/ -type f -name "error_log.txt" -delete
+find /home/ -type f -name "*.log" -delete
+
+echo "=== Garbage cleaned ==="

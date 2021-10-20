@@ -293,6 +293,6 @@ if [ $debian_version -eq 10 ]; then
     a2dismod php8.0
     a2dismod mpm_prefork
     a2enmod mpm_event
-    apt-get -y remove libapache2-mod-php8.0
+    apt-get -y remove libapache2-mod-php*
     service apache2 restart
 fi

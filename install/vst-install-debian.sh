@@ -1637,7 +1637,9 @@ if [ "$release" -eq 9 ]; then
       patch -p1 --directory=/ < /root/vesta-temp-dl/vesta/patch/php7.0-dedi.patch
     fi
   fi
+  update-alternatives --set php /usr/bin/php7.0
 fi
+
 if [ "$release" -eq 10 ]; then
   if [ $memory -lt 10000000 ]; then
     echo "=== Patching php7.3-vps"
@@ -1647,8 +1649,10 @@ if [ "$release" -eq 10 ]; then
     echo "=== Patching php7.3-dedi"
     patch /etc/php/7.3/fpm/php.ini < $vestacp/php/php7.3-dedi.patch
   fi
+  update-alternatives --set php /usr/bin/php7.3
   service php7.3-fpm restart
 fi
+
 if [ "$release" -eq 11 ]; then
   if [ $memory -lt 10000000 ]; then
     echo "=== Patching php7.4-vps"
@@ -1658,6 +1662,7 @@ if [ "$release" -eq 11 ]; then
     echo "=== Patching php7.4-dedi"
     patch /etc/php/7.4/fpm/php.ini < $vestacp/php/php7.4-dedi.patch
   fi
+  update-alternatives --set php /usr/bin/php7.4
   service php7.4-fpm restart
 fi
 

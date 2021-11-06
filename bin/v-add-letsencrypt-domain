@@ -287,7 +287,7 @@ for auth in $authz; do
             check_result $E_CONNECT "Let's Encrypt domain validation timeout"
         fi
         echo "[$(date)] : curl: $url2 :" >> /usr/local/vesta/log/letsencrypt.log
-        get_answer=$(curl -S "$url2")
+        get_answer=$(curl --silent -S "$url2")
         echo "[$(date)] : get_answer=$get_answer" >> /usr/local/vesta/log/letsencrypt.log
         sleeping=$((i*2))
         echo "[$(date)] : sleep $sleeping (i=$i)" >> /usr/local/vesta/log/letsencrypt.log

@@ -174,7 +174,7 @@ acl_check_data:
 .ifdef SPAMASSASSIN
   warn   !authenticated = *
          hosts          = !+relay_from_hosts
-         condition      = ${if < {$message_size}{100K}}
+         condition      = ${if < {$message_size}{600K}}
          condition      = ${if eq{$acl_m1}{yes}{yes}{no}}
          spam           = nobody:true/defer_ok
          add_header     = X-Spam-Score: $spam_score_int

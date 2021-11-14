@@ -141,48 +141,68 @@ if [ "$check_cron" -eq 0 ]; then
     crontab -l | { cat; echo "10 2 * * 6 sudo find /home/*/tmp/ -type f -mtime +5 -exec rm {} \;"; } | crontab -
 fi
 
-# make sure clamav-daemon.service has mkdir fix
-if [ -f "/lib/systemd/system/clamav-daemon.service" ]; then
-    check_grep=$(grep -c 'mkdir' /lib/systemd/system/clamav-daemon.service)
-    if [ "$check_grep" -eq 0 ]; then
-        echo "=== patching clamav-daemon.service"
-        exec_pre1='ExecStartPre=-/bin/mkdir -p /var/run/clamav'
-        exec_pre2='ExecStartPre=-/bin/chown -R clamav:clamav /var/run/clamav'
-        sed -i "s|\[Service\]|[Service]\n$exec_pre1\n$exec_pre2|g" /lib/systemd/system/clamav-daemon.service
-        systemctl daemon-reload
-        systemctl restart clamav-daemon
-        systemctl restart clamav-freshclam
-    fi
-fi
-
-# reverting to default clamd sock
-if [ ! -f "/usr/local/vesta/data/upgrades/change-clamav-socket-v3" ]; then
-    touch /usr/local/vesta/data/upgrades/change-clamav-socket-v3
-    if [ -f "/etc/clamav/clamd.conf" ]; then
-        sed -i "s#/var/lib/clamav/clamd.sock#/var/run/clamav/clamd.ctl#g" /etc/clamav/clamd.conf
-        if [ -f "/etc/exim4/exim4.conf.template" ]; then
-            sed -i "s#/var/lib/clamav/clamd.sock#/var/run/clamav/clamd.ctl#g" /etc/exim4/exim4.conf.template
-        fi
-        if [ -f "/lib/systemd/system/clamav-daemon.socket" ]; then
-            sed -i "s#/var/lib/clamav/clamd.sock#/run/clamav/clamd.ctl#g" /lib/systemd/system/clamav-daemon.socket
-        fi
-        systemctl daemon-reload
-        systemctl restart clamav-daemon
-        systemctl restart clamav-freshclam
-        if [ -f "/etc/exim4/exim4.conf.template" ]; then
-            systemctl restart exim4
-        fi
-    fi
-fi
-
-# reverting to default clamd sock
-if [ ! -f "/usr/local/vesta/data/upgrades/change-clamav-socket-v4" ]; then
-    touch /usr/local/vesta/data/upgrades/change-clamav-socket-v4
-    if [ -f "/etc/clamav/clamd.conf" ]; then
-        check_grep=$(grep -c '/var/lib/clamav/clamd.ctl' /etc/clamav/clamd.conf)
-        if [ "$check_grep" -eq 1 ]; then
-            sed -i "s#/var/lib/clamav/clamd.ctl#/var/run/clamav/clamd.ctl#g" /etc/clamav/clamd.conf
+unit_files="$(systemctl list-unit-files | grep clamav-daemon)"
+if [[ ! "$unit_files" =~ "disabled" ]]; then
+    # make sure clamav-daemon.service has mkdir fix
+    if [ -f "/lib/systemd/system/clamav-daemon.service" ]; then
+        check_grep=$(grep -c 'mkdir' /lib/systemd/system/clamav-daemon.service)
+        if [ "$check_grep" -eq 0 ]; then
+            echo "=== patching clamav-daemon.service"
+            exec_pre1='ExecStartPre=-/bin/mkdir -p /var/run/clamav'
+            exec_pre2='ExecStartPre=-/bin/chown -R clamav:clamav /var/run/clamav'
+            sed -i "s|\[Service\]|[Service]\n$exec_pre1\n$exec_pre2|g" /lib/systemd/system/clamav-daemon.service
+            systemctl daemon-reload
             systemctl restart clamav-daemon
+            systemctl restart clamav-freshclam
+        fi
+    fi
+
+    # reverting to default clamd sock
+    if [ ! -f "/usr/local/vesta/data/upgrades/change-clamav-socket-v3" ]; then
+        touch /usr/local/vesta/data/upgrades/change-clamav-socket-v3
+        if [ -f "/etc/clamav/clamd.conf" ]; then
+            sed -i "s#/var/lib/clamav/clamd.sock#/var/run/clamav/clamd.ctl#g" /etc/clamav/clamd.conf
+            if [ -f "/etc/exim4/exim4.conf.template" ]; then
+                sed -i "s#/var/lib/clamav/clamd.sock#/var/run/clamav/clamd.ctl#g" /etc/exim4/exim4.conf.template
+            fi
+            if [ -f "/lib/systemd/system/clamav-daemon.socket" ]; then
+                sed -i "s#/var/lib/clamav/clamd.sock#/run/clamav/clamd.ctl#g" /lib/systemd/system/clamav-daemon.socket
+            fi
+            systemctl daemon-reload
+            systemctl restart clamav-daemon
+            systemctl restart clamav-freshclam
+            if [ -f "/etc/exim4/exim4.conf.template" ]; then
+                systemctl restart exim4
+            fi
+        fi
+    fi
+
+    # reverting to default clamd sock
+    if [ ! -f "/usr/local/vesta/data/upgrades/change-clamav-socket-v4" ]; then
+        touch /usr/local/vesta/data/upgrades/change-clamav-socket-v4
+        if [ -f "/etc/clamav/clamd.conf" ]; then
+            check_grep=$(grep -c '/var/lib/clamav/clamd.ctl' /etc/clamav/clamd.conf)
+            if [ "$check_grep" -eq 1 ]; then
+                sed -i "s#/var/lib/clamav/clamd.ctl#/var/run/clamav/clamd.ctl#g" /etc/clamav/clamd.conf
+                systemctl restart clamav-daemon
+            fi
+        fi
+    fi
+
+    # Block executable files inside zip/rar/tar archives in ClamAV
+    if [ ! -f "/usr/local/vesta/data/upgrades/clamav_block_exe_in_archives" ]; then
+        touch /usr/local/vesta/data/upgrades/clamav_block_exe_in_archives
+        if [ -f "/etc/exim4/exim4.conf.template" ]; then
+            check_grep=$(grep -c '#CLAMD' /etc/exim4/exim4.conf.template)
+            if [ "$check_grep" -eq 0 ]; then
+                folder="/var/lib/clamav"
+                if [ -d "$folder" ]; then
+                    echo "=== Blocking executable files inside zip/rar/tar archives in ClamAV"
+                    wget -nv -O $folder/foxhole_all.cdb http://c.myvestacp.com/tools/clamav/foxhole_all.cdb
+                    chown clamav:clamav $folder/foxhole_all.cdb
+                    service clamav-daemon restart
+                fi
+            fi
         fi
     fi
 fi
@@ -201,23 +221,6 @@ if [ "$release" -eq 9 ] || [ "$release" -eq 10 ]; then
         touch /usr/local/vesta/data/upgrades/fix_ssl_directive_in_templates
         echo "=== Fixing ssl directive in nginx templates"
         bash /usr/local/vesta/upd/fix_ssl_directive_in_templates.sh
-    fi
-fi
-
-# Block executable files inside zip/rar/tar archives in ClamAV
-if [ ! -f "/usr/local/vesta/data/upgrades/clamav_block_exe_in_archives" ]; then
-    touch /usr/local/vesta/data/upgrades/clamav_block_exe_in_archives
-    if [ -f "/etc/exim4/exim4.conf.template" ]; then
-        check_grep=$(grep -c '#CLAMD' /etc/exim4/exim4.conf.template)
-        if [ "$check_grep" -eq 0 ]; then
-            folder="/var/lib/clamav"
-            if [ -d "$folder" ]; then
-                echo "=== Blocking executable files inside zip/rar/tar archives in ClamAV"
-                wget -nv -O $folder/foxhole_all.cdb http://c.myvestacp.com/tools/clamav/foxhole_all.cdb
-                chown clamav:clamav $folder/foxhole_all.cdb
-                service clamav-daemon restart
-            fi
-        fi
     fi
 fi
 

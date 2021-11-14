@@ -141,8 +141,9 @@ if [ "$check_cron" -eq 0 ]; then
     crontab -l | { cat; echo "10 2 * * 6 sudo find /home/*/tmp/ -type f -mtime +5 -exec rm {} \;"; } | crontab -
 fi
 
-unit_files="$(systemctl list-unit-files | grep clamav-daemon)"
-if [[ ! "$unit_files" =~ "disabled" ]]; then
+if [ $(systemctl list-unit-files | grep clamav-daemon | grep -c "disabled") -eq 0 ]; then
+    # Fixes only if ClamAV is enabled
+
     # make sure clamav-daemon.service has mkdir fix
     if [ -f "/lib/systemd/system/clamav-daemon.service" ]; then
         check_grep=$(grep -c 'mkdir' /lib/systemd/system/clamav-daemon.service)

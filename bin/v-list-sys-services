@@ -18,6 +18,8 @@ source $VESTA/conf/vesta.conf
 
 export PATH=$PATH:/sbin
 
+debug=0
+
 # JSON list function
 json_list() {
     IFS=$'\n'
@@ -50,6 +52,9 @@ shell_list() {
     echo "----   -----   ---   ---   ------"
     while read str; do
         eval $str
+        if [ "$STATE" = "stopped" ]; then
+            STATE='off'
+        fi
         echo "$NAME $STATE $CPU $MEM $RTIME"
     done < <(echo -e "$data" |grep NAME)
 }
@@ -77,8 +82,17 @@ csv_list() {
 get_srv_state() {
     srv=$1
     name=${2-$1}
+    procfolder=$4
+    procfile=$5
     state='running'
+    mem=0
+    cpu=0
+    rtime="0"
 
+    if [ $debug -eq 1 ]; then
+        echo "---------------------"
+        echo "$srv = $name"
+    fi
     # Searching related pids
     if [ -z $3 ]; then
         pids=$(pidof $name |tr ' ' '|')
@@ -88,10 +102,23 @@ get_srv_state() {
     if [ -z "$pids" ] && [ "$name" != 'nginx' ]; then
         pids=$(pgrep $name |tr '\n' '|')
     fi
+    if [ "$name" = 'elasticsearch' ]; then
+        pids=$(ps -Af | grep 'elasticsearch' | grep -v 'grep' | awk '{print $2}' | tr '\n' '|')
+    fi
+    if [ "$name" = 'vesta-nginx' ]; then
+        pids=$(ps -Af | grep 'vesta/nginx' | grep -v 'grep' | awk '{print $2}' | tr '\n' '|')
+    fi
+    if [ "$name" = 'vesta-php' ]; then
+        pids=$(ps -Af | grep 'vesta/php' | grep -v 'grep' | awk '{print $2}' | tr '\n' '|')
+    fi
+    if [ $debug -eq 1 ]; then
+        echo "pids = $pids"
+    fi
 
     # Checking pid
-    if [ ! -z "$pids" ]; then
+    if [ -n "$pids" ]; then
         pid=$(echo "$pids" |cut -f 1 -d '|')
+        pids=${pids%|}
         pids=$(egrep "$pids" $tmp_file)
 
         # Calculating CPU usage
@@ -103,7 +130,22 @@ get_srv_state() {
 
         # Searching pid file
         pid_file=''
-        if [ -e "/var/run/$srv.pid" ]; then
+        if [ ! -z "$procfolder" ]; then
+            if [ -f "/var/run/$procfolder/$srv.pid" ]; then
+                pid_file="/var/run/$procfolder/$srv.pid"
+            fi
+        fi
+        if [ -z "$pid_file" ] && [ ! -z "$procfolder" ] && [ ! -z "$procfile" ]; then
+            if [ -f "/var/run/$procfolder/$procfile.pid" ]; then
+                pid_file="/var/run/$procfolder/$procfile.pid"
+            fi
+        fi
+        if [ -z "$pid_file" ] && [ -z "$procfolder" ] && [ ! -z "$procfile" ]; then
+            if [ -f "/var/run/$procfile.pid" ]; then
+                pid_file="/var/run/$procfile.pid"
+            fi
+        fi
+        if [ -z "$pid_file" ] && [ -e "/var/run/$srv.pid" ]; then
             pid_file="/var/run/$srv.pid"
         fi
         if [ -z "$pid_file" ] && [ -e "/var/run/$srv/$srv.pid" ]; then
@@ -112,17 +154,30 @@ get_srv_state() {
         if [ -z "$pid_file" ] && [ -e "/var/run/$name/$name.pid" ]; then
             pid_file="/var/run/$name/$name.pid"
         fi
+        if [ -z "$pid_file" ] && [ -f "/var/run/$name.pid" ]; then
+            pid_file="/var/run/$name.pid"
+        fi
         if [ -z "$pid_file" ] && [ -e "/proc/$pid" ]; then
             pid_file="/proc/$pid"
         fi
 
+        if [ $debug -eq 1 ]; then
+            echo "$srv = $name = $pid_file"
+        fi
         # Calculating uptime
-        if [ ! -z "$pid_file" ]; then
+        if [ -n "$pid_file" ]; then
             mtime=$(stat -c "%Y" $pid_file)
             rtime=$((ctime - mtime))
             rtime=$((rtime  / 60))
         else
             rtime=0
+        fi
+        if [ "$pid_file" = "/proc/$pid" ]; then
+            if [ $debug -eq 1 ]; then
+                echo "getting pid lifetime via ps"
+            fi            
+            rtime=$(ps -p 2877633 -o etimes | tail -n 1 | awk '{print $1}')
+            rtime=$((rtime  / 60))
         fi
     else
         state='stopped'
@@ -151,19 +206,23 @@ if [ ! -z "$WEB_SYSTEM" ] && [ "$WEB_SYSTEM" != 'remote' ]; then
     data="$data MEM='$mem' RTIME='$rtime'"
 fi
 
-# Checking WEB Backend
-if [ ! -z "$WEB_BACKEND" ] && [ "$WEB_BACKEND" != 'remote' ]; then
-    proc_name=$(ls /usr/sbin/php*fpm* | rev | cut -d'/' -f 1 | rev)
-    get_srv_state $proc_name
-    data="$data\nNAME='$WEB_BACKEND' SYSTEM='backend server' STATE='$state'"
-    data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
-fi
-
 # Checking WEB Proxy
 if [ ! -z "$PROXY_SYSTEM" ] && [ "$PROXY_SYSTEM" != 'remote' ]; then
     get_srv_state $PROXY_SYSTEM
     data="$data\nNAME='$PROXY_SYSTEM' SYSTEM='reverse proxy' STATE='$state'"
     data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
+fi
+
+# Checking WEB Backend
+if [ "$WEB_BACKEND" != 'remote' ]; then
+    php_versions=$(ls /usr/sbin/php*fpm* | cut -d'/' -f4 | sed 's|php-fpm||')
+    for version in $php_versions; do
+        proc_name="php-fpm${version}"
+        service_name="php${version}-fpm"
+        get_srv_state "$service_name" "$proc_name" '' 'php'
+        data="$data\nNAME='$service_name' SYSTEM='backend server' STATE='$state'"
+        data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
+    done
 fi
 
 # DNS
@@ -177,14 +236,22 @@ fi
 
 # Checking MAIL system
 if [ ! -z "$MAIL_SYSTEM" ] && [ "$MAIL_SYSTEM" != 'remote' ]; then
-    get_srv_state $MAIL_SYSTEM
+    if [ "$MAIL_SYSTEM" = "exim4" ]; then
+        get_srv_state "$MAIL_SYSTEM" "$MAIL_SYSTEM" '' 'exim4' 'exim'
+    else
+        get_srv_state $MAIL_SYSTEM
+    fi
     data="$data\nNAME='$MAIL_SYSTEM' SYSTEM='mail server' STATE='$state'"
     data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
 fi
 
 # Checking MAIL IMAP
 if [ ! -z "$IMAP_SYSTEM" ] && [ "$IMAP_SYSTEM" != 'remote' ]; then
-    get_srv_state $IMAP_SYSTEM
+    if [ "$IMAP_SYSTEM" = "dovecot" ]; then
+        get_srv_state "$IMAP_SYSTEM" "$IMAP_SYSTEM" '' 'dovecot' 'master'
+    else
+        get_srv_state $IMAP_SYSTEM
+    fi
     data="$data\nNAME='$IMAP_SYSTEM' SYSTEM='pop/imap server' STATE='$state'"
     data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
 fi
@@ -200,11 +267,19 @@ if [ ! -z "$ANTIVIRUS_SYSTEM" ] && [ "$ANTIVIRUS_SYSTEM" != 'remote' ]; then
         if [ "$ANTIVIRUS_SYSTEM" == 'clamav-daemon' ];then
             proc_name='clamd'
         fi
-        get_srv_state $ANTIVIRUS_SYSTEM $proc_name
+        get_srv_state $ANTIVIRUS_SYSTEM $proc_name '' 'clamav' 'clamd'
     fi
     data="$data\nNAME='$ANTIVIRUS_SYSTEM' SYSTEM='email antivirus'"
     data="$data STATE='$state' CPU='$cpu' MEM='$mem' RTIME='$rtime'"
     proc_name=''
+    if [ ! -d "/etc/sysconfig" ]; then
+        if [ "$ANTIVIRUS_SYSTEM" == 'clamav-daemon' ];then
+            get_srv_state "clamav-freshclam" "freshclam"
+            data="$data\nNAME='clamav-freshclam' SYSTEM='email antivirus updater'"
+            data="$data STATE='$state' CPU='$cpu' MEM='$mem' RTIME='$rtime'"
+            proc_name=''
+        fi
+    fi
 fi
 
 # Checking MAIL ANTISPAM
@@ -220,6 +295,7 @@ if [ ! -z "$DB_SYSTEM" ] && [ "$DB_SYSTEM" != 'remote' ]; then
         proc_name=''
         service="$db"
         if [ "$service" = 'mysql' ]; then
+            proc_name='mysqld'
             release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
             if [ "$release" -eq 11 ]; then
                 service='mariadb'
@@ -243,7 +319,7 @@ if [ ! -z "$DB_SYSTEM" ] && [ "$DB_SYSTEM" != 'remote' ]; then
                 proc_name='postgres'
             fi
         fi
-        get_srv_state $service $proc_name
+        get_srv_state $service $proc_name '' 'mysqld' 'mysqld'
         data="$data\nNAME='$service' SYSTEM='database server' STATE='$state'"
         data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
         proc_name=''
@@ -259,10 +335,27 @@ fi
 
 # Checking CRON system
 if [ ! -z "$CRON_SYSTEM" ] && [ "$CRON_SYSTEM" != 'remote' ]; then
-    get_srv_state $CRON_SYSTEM
+    get_srv_state "$CRON_SYSTEM" "$CRON_SYSTEM" '' '' 'crond'
     data="$data\nNAME='$CRON_SYSTEM' SYSTEM='job scheduler' STATE='$state'"
     data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
 fi
+
+# Checking SSH daemon
+if [ -e "/etc/ssh/sshd_config" ]; then
+    get_srv_state 'ssh' 'ssh' '' '' 'sshd'
+    data="$data\nNAME='ssh' SYSTEM='SSH Access' STATE='$state'"
+    data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
+fi
+
+# Checking Vesta nginx
+get_srv_state 'vesta' 'vesta-nginx' '' '' 'vesta-nginx'
+data="$data\nNAME='vesta-nginx' SYSTEM='Vesta nginx service' STATE='$state'"
+data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
+
+# Checking Vesta php-fpm
+get_srv_state 'vesta' 'vesta-php' '' '' 'vesta-php'
+data="$data\nNAME='vesta-php' SYSTEM='Vesta php service' STATE='$state'"
+data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
 
 # Checking FIREWALL system
 if [ ! -z "$FIREWALL_SYSTEM" ] && [ "$FIREWALL_SYSTEM" != 'remote' ]; then
@@ -277,10 +370,25 @@ fi
 
 # Checking FIREWALL Fail2ban extention
 if [ ! -z "$FIREWALL_EXTENSION" ]; then
-    get_srv_state $FIREWALL_EXTENSION fail2ban-server script
+    get_srv_state "$FIREWALL_EXTENSION" 'fail2ban-server' 'script'
     data="$data\nNAME='$FIREWALL_EXTENSION' SYSTEM='brute-force monitor'"
     data="$data STATE='$state' CPU='$cpu' MEM='$mem' RTIME='$rtime'"
 fi
+
+# Checking ElasticSearch
+if [ -d "/etc/elasticsearch" ]; then
+    get_srv_state 'elasticsearch'
+    data="$data\nNAME='elasticsearch' SYSTEM='ElasticSearch' STATE='$state'"
+    data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
+fi
+
+# Checking Redis
+if [ -d "/etc/redis" ]; then
+    get_srv_state 'redis' 'redis-server' '' 'redis' 'redis-server'
+    data="$data\nNAME='redis' SYSTEM='Redis' STATE='$state'"
+    data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
+fi
+
 
 # Listing data
 case $format in

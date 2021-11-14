@@ -121,7 +121,11 @@
             $status = 'suspended';
             $action = 'start';
           }
-
+          
+          $realservice=$key;
+          if ($realservice=="vesta-php") $realservice="vesta";
+          if ($realservice=="vesta-nginx") $realservice="vesta";
+          
           $cpu = $data[$key]['CPU'] / 10;
           $cpu = number_format($cpu, 1);
           if ($cpu == '0.0')  $cpu = 0;
@@ -137,9 +141,9 @@
           <!-- l-unit-toolbar__col -->
           <div class="l-unit-toolbar__col l-unit-toolbar__col--right noselect">
             <div class="actions-panel clearfix">
-              <div class="actions-panel__col actions-panel__configure shortcut-enter" key-action="href"><a href="/edit/server/<? echo $key ?>/"><?=__('configure')?> <i></i></a><span class="shortcut enter">&nbsp;&#8629;</span></div>
-              <div class="actions-panel__col actions-panel__<?=$action?> shortcut-s" key-action="href"><a href="/<?php echo $action ?>/service/?srv=<?=$key?>&token=<?=$_SESSION['token']?>"><?=__($action)?> <i></i></a><span class="shortcut">&nbsp;S</span></div>
-              <div class="actions-panel__col actions-panel__restart shortcut-r" key-action="href"><a href="/restart/service/?srv=<?=$key?>&token=<?=$_SESSION['token']?>"><?=__('restart')?> <i></i></a><span class="shortcut">&nbsp;R</span></div>
+              <div class="actions-panel__col actions-panel__configure shortcut-enter" key-action="href"><a href="/edit/server/<? echo $realservice ?>/"><?=__('configure')?> <i></i></a><span class="shortcut enter">&nbsp;&#8629;</span></div>
+              <div class="actions-panel__col actions-panel__<?=$action?> shortcut-s" key-action="href"><a href="/<?php echo $action ?>/service/?srv=<?=$realservice?>&token=<?=$_SESSION['token']?>"><?=__($action)?> <i></i></a><span class="shortcut">&nbsp;S</span></div>
+              <div class="actions-panel__col actions-panel__restart shortcut-r" key-action="href"><a href="/restart/service/?srv=<?=$realservice?>&token=<?=$_SESSION['token']?>"><?=__('restart')?> <i></i></a><span class="shortcut">&nbsp;R</span></div>
             </div>
             <!-- /.actions-panel -->
           </div>

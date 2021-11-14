@@ -1,3 +1,7 @@
+Version 0.9.8-26-51 [14-Nov-2021]
+==================================================
+* Many fixes for "List services" page (v-list-sys-services function)
+
 Version 0.9.8-26-50 [07-Nov-2021]
 ==================================================
 * Many small bugfixes and CSRF fixes

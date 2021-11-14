@@ -176,7 +176,7 @@ get_srv_state() {
             if [ $debug -eq 1 ]; then
                 echo "getting pid lifetime via ps"
             fi            
-            rtime=$(ps -p 2877633 -o etimes | tail -n 1 | awk '{print $1}')
+            rtime=$(ps -p $pid -o etimes | tail -n 1 | awk '{print $1}')
             rtime=$((rtime  / 60))
         fi
     else

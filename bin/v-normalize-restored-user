@@ -45,7 +45,7 @@ NEWNS2=${arrNS[1]}
 
 for domain in $(/usr/local/vesta/bin/v-list-web-domains $user plain |cut -f 1); do
     if [ -f "/usr/local/vesta/data/users/$user/dns/$domain.conf" ]; then
-        NEWIPV4=$(v-list-dns-domain "$user" "$domain" | grep 'IP:' | awk '{print $2}')
+        NEWIPV4=$(/usr/local/vesta/bin/v-list-dns-domain "$user" "$domain" | grep 'IP:' | awk '{print $2}')
         res=$(grep "'www'" /usr/local/vesta/data/users/$user/dns/$domain.conf)
         eval $res
         OLDIPV4=$VALUE

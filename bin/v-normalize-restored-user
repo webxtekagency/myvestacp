@@ -79,7 +79,7 @@ sed -i "s#$OLDIPV4#$NEWIPV4#g" /usr/local/vesta/data/users/$user/dns.conf
 sed -i "s#$OLDNS1#$NEWNS1#g" /usr/local/vesta/data/users/$user/dns.conf
 sed -i "s#$OLDNS1#$NEWNS1#g" /usr/local/vesta/data/users/$user/user.conf
 sed -i "s#$OLDNS2#$NEWNS2#g" /usr/local/vesta/data/users/$user/user.conf
-service bind9 reload
+systemctl reload bind9
 
 echo "Done!"
 

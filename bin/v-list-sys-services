@@ -389,6 +389,13 @@ if [ -d "/etc/redis" ]; then
     data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
 fi
 
+# Checking Memcached
+if [ -f "/etc/memcached.conf" ]; then
+    get_srv_state 'memcached'
+    data="$data\nNAME='memcached' SYSTEM='Memcached' STATE='$state'"
+    data="$data CPU='$cpu' MEM='$mem' RTIME='$rtime'"
+fi
+
 
 # Listing data
 case $format in

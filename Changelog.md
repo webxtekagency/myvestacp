@@ -1,3 +1,8 @@
+Version 0.9.8-26-52 [23-Nov-2021]
+==================================================
+* Fix for not to match wildcard "*domains" and "databases*" while restoring
+* Added memcached to v-list-sys-services
+
 Version 0.9.8-26-51 [14-Nov-2021]
 ==================================================
 * Many fixes for "List services" page (v-list-sys-services function)

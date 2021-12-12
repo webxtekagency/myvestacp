@@ -590,3 +590,28 @@ is_domain_new() {
 get_domain_values() {
     eval $(grep "DOMAIN='$domain'" $USER_DATA/$1.conf)
 }
+
+# Ensure that pool.d folders are not empty
+ensure_poold_folders_not_empty () {
+    for D in /etc/php/*; do
+        if [ -d "${D}" ]; then
+            BD=$(basename ${D})
+            POOLD="${D}/fpm/pool.d"
+            if [ -d "$POOLD" ]; then
+                # echo $POOLD
+                # service_to_check="php${BD}-fpm"
+                # service_exists=$(check_if_service_exists $service_to_check)
+                # if [ $service_exists -eq 1 ]; then
+                    # echo "$BD = $service_to_check = $POOLD = $service_exists"
+                    ls=$(ls $POOLD | grep -c '.conf')
+                    if [ $ls -eq 0 ]; then
+                        # echo "$BD = $POOLD = $ls"
+                        if [ -f "/usr/local/vesta/src/deb/for-download/tools/default-pool.d/$BD/www.conf" ] && [ ! -f "/etc/php/$BD/fpm/pool.d/www.conf" ]; then
+                            cp /usr/local/vesta/src/deb/for-download/tools/default-pool.d/$BD/www.conf /etc/php/$BD/fpm/pool.d/www.conf
+                        fi
+                    fi
+                # fi
+            fi
+        fi
+    done
+}

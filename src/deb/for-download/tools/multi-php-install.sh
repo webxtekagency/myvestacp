@@ -309,8 +309,8 @@ if [ "$inst_81" -eq 1 ]; then
 fi
 
 
-apt update
-apt upgrade -y
+apt update > /dev/null 2>&1
+apt upgrade -y > /dev/null 2>&1
 
 if [ $debian_version -ge 10 ]; then
     a2dismod ruid2 > /dev/null 2>&1

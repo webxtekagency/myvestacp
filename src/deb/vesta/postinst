@@ -211,8 +211,8 @@ if [ $(systemctl list-unit-files | grep clamav-daemon | grep -c "disabled") -eq 
 fi
 
 # Making sure mpm_event will stay
-if [ ! -f "/usr/local/vesta/data/upgrades/keeping-mpm-event-2" ]; then
-    touch /usr/local/vesta/data/upgrades/keeping-mpm-event-2
+if [ ! -f "/usr/local/vesta/data/upgrades/keeping-mpm-event-3" ]; then
+    touch /usr/local/vesta/data/upgrades/keeping-mpm-event-3
     echo "=== scheduling keeping-mpm-event check script"
     echo "bash /usr/local/vesta/upd/keep_mpm_event.sh 'background' >> /usr/local/vesta/data/upgrades/keeping-mpm-event.log 2>&1" >> /usr/local/vesta/data/queue/restart.pipe
     /usr/local/vesta/bin/v-add-cron-restart-job > /dev/null 2>&1

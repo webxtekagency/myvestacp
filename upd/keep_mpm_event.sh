@@ -21,8 +21,8 @@ if [ "$1" = 'background' ]; then
             if [ "$check_grep" -eq 1 ]; then
                 echo "=== OK, we have Apache2"
                 release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
-                if [ "$release" -eq 10 ]; then
-                    echo "=== OK, it's Debian 10"
+                if [ "$release" -ge 10 ]; then
+                    echo "=== OK, it's Debian 10 or 11"
                     switch_to_mpm_event=1
                 else
                     check_grep=$(/usr/local/vesta/bin/v-list-sys-web-status | grep -c "Server MPM: event")
@@ -40,6 +40,7 @@ fi
 
 if [ "$switch_to_mpm_event" -eq 1 ]; then
     echo "=== OK, let's ensure mpm_event"
+
     a2dismod ruid2 > /dev/null 2>&1
     a2dismod suexec > /dev/null 2>&1
     a2dismod php5.6 > /dev/null 2>&1
@@ -49,10 +50,10 @@ if [ "$switch_to_mpm_event" -eq 1 ]; then
     a2dismod php7.3 > /dev/null 2>&1
     a2dismod php7.4 > /dev/null 2>&1
     a2dismod php8.0 > /dev/null 2>&1
+    a2dismod php8.1 > /dev/null 2>&1
     a2dismod mpm_prefork > /dev/null 2>&1
     a2enmod mpm_event > /dev/null 2>&1
-    apt-get -y remove libapache2-mod-php7.4 > /dev/null 2>&1
-    apt-get -y remove libapache2-mod-php8.0 > /dev/null 2>&1
+    apt-get -y remove libapache2-mod-php* > /dev/null 2>&1
     service apache2 restart
     echo "=== Done!"
 fi

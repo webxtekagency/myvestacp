@@ -1,3 +1,8 @@
+Version 0.9.8-26-53 [12-Dec-2021]
+==================================================
+* Support for PHP 8.1
+* Function to ensure that pool.d folders are not empty
+
 Version 0.9.8-26-52 [23-Nov-2021]
 ==================================================
 * Fix for not to match wildcard "*domains" and "databases*" while restoring

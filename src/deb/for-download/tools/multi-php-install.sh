@@ -11,6 +11,7 @@ inst_72=0
 inst_73=0
 inst_74=0
 inst_80=0
+inst_81=0
 
 #######################################################################
 
@@ -48,8 +49,11 @@ fi
 if [ $# -gt 7 ]; then
     inst_80=$8
 fi
+if [ $# -gt 8 ]; then
+    inst_81=$9
+fi
 
-if [ $inst_56 -eq 1 ] || [ $inst_70 -eq 1 ] || [ $inst_71 -eq 1 ] || [ $inst_72 -eq 1 ] || [ $inst_73 -eq 1 ] || [ $inst_74 -eq 1 ] || [ $inst_80 -eq 1 ]; then
+if [ $inst_56 -eq 1 ] || [ $inst_70 -eq 1 ] || [ $inst_71 -eq 1 ] || [ $inst_72 -eq 1 ] || [ $inst_73 -eq 1 ] || [ $inst_74 -eq 1 ] || [ $inst_80 -eq 1 ] || [ $inst_81 -eq 1 ]; then
     inst_repo=1
 fi
 
@@ -277,23 +281,50 @@ if [ "$inst_80" -eq 1 ]; then
     press_enter "=== PHP 8.0 installed, press enter to continue ==============================================================================="
 fi
 
+if [ "$inst_81" -eq 1 ]; then
+    press_enter "=== Press enter to install PHP 8.1 ==============================================================================="
+    apt -y install php8.1-mbstring php8.1-bcmath php8.1-cli php8.1-curl php8.1-fpm php8.1-gd php8.1-intl php8.1-mysql php8.1-soap php8.1-xml php8.1-zip php8.1-memcache php8.1-memcached
+    update-rc.d php8.1-fpm defaults
+    a2enconf php8.1-fpm
+    a2dismod php8.1
+    apt-get -y remove libapache2-mod-php8.1
+    systemctl restart apache2
+    cp -r /etc/php/8.1/ /root/vst_install_backups/php8.1/
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-81.stpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-81.stpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-81.tpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-81.tpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-81.sh -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-81.sh
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-81-public.stpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-81-public.stpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-81-public.tpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-81-public.tpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-81-public.sh -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-81-public.sh
+    chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-81.sh
+    chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-81-public.sh
+    echo "=== Patching php.ini for php8.1"
+    wget -nv https://c.myvestacp.com/tools/patches/php8.0.patch -O /root/php8.1.patch
+    patch /etc/php/8.1/fpm/php.ini < /root/php8.1.patch
+    if [ $memory -gt 9999999 ]; then
+        sed -i "s|opcache.memory_consumption=512|opcache.memory_consumption=2048|g" /etc/php/8.1/fpm/php.ini
+    fi
+    service php8.1-fpm restart
+    press_enter "=== PHP 8.1 installed, press enter to continue ==============================================================================="
+fi
+
 
 apt update
 apt upgrade -y
 
 if [ $debian_version -ge 10 ]; then
-    a2dismod ruid2
-    a2dismod suexec
-    a2dismod php5.6
-    a2dismod php7.0
-    a2dismod php7.1
-    a2dismod php7.2
-    a2dismod php7.3
-    a2dismod php7.4
-    a2dismod php8.0
-    a2dismod php8.1
-    a2dismod mpm_prefork
-    a2enmod mpm_event
-    apt-get -y remove libapache2-mod-php*
+    a2dismod ruid2 > /dev/null 2>&1
+    a2dismod suexec > /dev/null 2>&1
+    a2dismod php5.6 > /dev/null 2>&1
+    a2dismod php7.0 > /dev/null 2>&1
+    a2dismod php7.1 > /dev/null 2>&1
+    a2dismod php7.2 > /dev/null 2>&1
+    a2dismod php7.3 > /dev/null 2>&1
+    a2dismod php7.4 > /dev/null 2>&1
+    a2dismod php8.0 > /dev/null 2>&1
+    a2dismod php8.1 > /dev/null 2>&1
+    a2dismod mpm_prefork > /dev/null 2>&1
+    a2enmod mpm_event > /dev/null 2>&1
+    apt-get -y remove libapache2-mod-php* > /dev/null 2>&1
     service apache2 restart
 fi

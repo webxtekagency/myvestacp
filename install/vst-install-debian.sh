@@ -1730,6 +1730,7 @@ touch /usr/local/vesta/data/upgrades/change-clamav-socket-v3
 touch /usr/local/vesta/data/upgrades/change-clamav-socket-v4
 touch /usr/local/vesta/data/upgrades/keeping-mpm-event
 touch /usr/local/vesta/data/upgrades/keeping-mpm-event-2
+touch /usr/local/vesta/data/upgrades/keeping-mpm-event-3
 touch /usr/local/vesta/data/upgrades/fix_ssl_directive_in_templates
 touch /usr/local/vesta/data/upgrades/clamav_block_exe_in_archives
 touch /usr/local/vesta/data/upgrades/clearing-letsencrypt-pipe

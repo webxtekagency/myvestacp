@@ -225,6 +225,10 @@ add_web_config() {
             $user $domain $local_ip $HOMEDIR \
             $HOMEDIR/$user/web/$domain/public_html
     fi
+
+    if [[ "$2" =~ ^PHP-FPM ]]; then
+        ensure_poold_folders_not_empty
+    fi
 }
 
 # Get config top and bottom line number

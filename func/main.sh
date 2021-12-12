@@ -1114,3 +1114,11 @@ send_email_to_admin() {
     fi
     echo "$2" | $SENDMAIL -s "$1" "$email" 'yes'
 }
+
+check_if_service_exists() {
+    if [ $(systemctl list-units --all -t service --full --no-legend | grep -c "$1") -gt 0 ]; then
+        echo "1"
+    else
+        echo "0"
+    fi
+}

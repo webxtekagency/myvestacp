@@ -15,6 +15,8 @@ if [ ! -e "/usr/local/vesta/data/users/admin" ]; then
     exit
 fi
 
+/usr/local/vesta/bin/v-ensure-poold-folders-not-empty
+
 if [ ! -d "/usr/local/vesta/data/upgrades" ]; then
     mkdir -p /usr/local/vesta/data/upgrades
 fi

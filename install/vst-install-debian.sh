@@ -1321,6 +1321,11 @@ if [ "$clamd" = 'yes' ]; then
     fi
     service clamav-daemon start
     check_result $? "clamav-daeom start failed"
+    
+    systemctl status clamav-freshclam.service > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        systemctl start clamav-freshclam.service
+    fi
 fi
 
 

@@ -7,7 +7,7 @@ VERSION='1.5.1'
 DOWNLOAD="https://github.com/roundcube/roundcubemail/releases/download/$VERSION/roundcubemail-$VERSION-complete.tar.gz"
 
 LOGINMESSAGE1='Click here for NEW Webmail'
-LOGINMESSAGE2='(it is adapted to mobile phones)'
+LOGINMESSAGE2='(it is adapted for mobile phones too)'
 
 DATABASE_NAME_WITHOUT_PREFIX="roundcube"
 DATABASE_NAME="${USER}_roundcube"

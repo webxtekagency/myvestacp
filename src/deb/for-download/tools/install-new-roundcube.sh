@@ -98,9 +98,9 @@ if [ ! -f "/home/$USER/conf/web/ssl.$DOMAIN.ca" ]; then
     www_host_ip=$(host $www_host | head -n 1 | awk '{print $NF}')
     if [ "$www_host_ip" != "$domain_host_ip" ]; then
         echo "=== Deleting www"
-        www_host=""
         /usr/local/vesta/bin/v-delete-web-domain-alias "$USER" "$DOMAIN" "$www_host" 'no'
         /usr/local/vesta/bin/v-delete-dns-on-web-alias "$USER" "$DOMAIN" "$www_host" 'no'
+        www_host=""
     fi
     echo "== Installing LetsEncrypt SSL, please wait..."
     /usr/local/vesta/bin/v-add-letsencrypt-domain "$USER" "$DOMAIN" "$www_host" 'yes'

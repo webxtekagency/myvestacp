@@ -25,6 +25,18 @@ fi
 echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+# Checking if FreshClam is started after installation
+if [ ! -f "/usr/local/vesta/data/upgrades/freshclam_start" ]; then
+    clamavup=$(/usr/local/vesta/bin/v-list-sys-services | grep 'clamav-daemon' | grep -c 'running')
+    freshclamdown=$(/usr/local/vesta/bin/v-list-sys-services | grep 'clamav-freshclam' | grep -c 'off')
+    if [ $clamavup -eq 1 ] && [ $freshclamdown -eq 1 ]; then
+        echo "== Starting FreshClam"
+        systemctl enable clamav-freshclam.service
+        systemctl start clamav-freshclam.service
+    fi
+    touch /usr/local/vesta/data/upgrades/freshclam_start
+fi
+
 # Fix Autoreply issue with Exim 4.94+
 if [ ! -f "/usr/local/vesta/data/upgrades/fix_exim_494_autoreply" ]; then
     if [ "$release" -eq 11 ]; then

@@ -1,3 +1,7 @@
+Version 0.9.8-26-54 [17-Dec-2021]
+==================================================
+* Checking if FreshClam is started after installation
+
 Version 0.9.8-26-53 [12-Dec-2021]
 ==================================================
 * Support for PHP 8.1

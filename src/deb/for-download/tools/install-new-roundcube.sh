@@ -120,6 +120,9 @@ DB_EXISTS=$(check_if_database_exists "$USER" "$DATABASE_NAME")
 if [ "$DB_EXISTS" = "no" ]; then
     echo "== Creating database: $DATABASE_NAME"
     /usr/local/vesta/bin/v-add-database "$USER" "$DATABASE_NAME_WITHOUT_PREFIX" "$DATABASE_NAME_WITHOUT_PREFIX" "$DATABASE_PASSWORD" 'mysql' 'localhost' 'utf8'
+else
+    echo "== Database $DATABASE_NAME already exists, and it's maybe used by another site. I will not continue. Please edit this script and enter other database name."
+    exit 1
 fi
 
 if [ -f "/usr/local/vesta/data/templates/web/apache2/PHP-FPM-73.tpl" ]; then
@@ -167,7 +170,10 @@ echo "\$config['session_lifetime'] = 1080;" >> /home/$USER/web/$DOMAIN/public_ht
 
 fix_ownership
 
-sed -i "s|<roundcube:form name=\"form\" method=\"post\">|<br /><br /><center><a href=\"https://$DOMAIN/\" style=\"color: white; font-size: 12pt;\">$LOGINMESSAGE1</a><br /><span style=\"color: white; font-size: 8pt;\">$LOGINMESSAGE2</span></center><br /><br />\n\n<roundcube:form name=\"form\" method=\"post\">|g" /usr/share/roundcube/skins/larry/templates/login.html
+check_grep=$(grep -c 'color: white; font-size: 12pt' /usr/share/roundcube/skins/larry/templates/login.html)
+if [ "$check_grep" -eq 0 ]; then
+    sed -i "s|<roundcube:form name=\"form\" method=\"post\">|<br /><br /><center><a href=\"https://$DOMAIN/\" style=\"color: white; font-size: 12pt;\">$LOGINMESSAGE1</a><br /><span style=\"color: white; font-size: 8pt;\">$LOGINMESSAGE2</span></center><br /><br />\n\n<roundcube:form name=\"form\" method=\"post\">|g" /usr/share/roundcube/skins/larry/templates/login.html
+fi
 
 
 echo "-------------------------------------"

@@ -84,14 +84,15 @@ if [ "$pub_ip" != "$domain_host_ip" ]; then
 fi
 
 number_of_files=$(ls /home/$USER/web/$DOMAIN/public_html | wc -l)
-if [ $number_of_files -eq 2 ] && [ -f "/home/$USER/web/$DOMAIN/public_html/index.html" ] && [ -f "/home/$USER/web/$DOMAIN/public_html/robots.txt" ]; then
-    rm /home/$USER/web/$DOMAIN/public_html/index.html
-    rm /home/$USER/web/$DOMAIN/public_html/robots.txt
-else
-    echo "== public_html folder is not empty, aborting."
-    exit 1
+if [ $number_of_files -ne 0 ]; then
+    if [ $number_of_files -eq 2 ] && [ -f "/home/$USER/web/$DOMAIN/public_html/index.html" ] && [ -f "/home/$USER/web/$DOMAIN/public_html/robots.txt" ]; then
+        rm /home/$USER/web/$DOMAIN/public_html/index.html
+        rm /home/$USER/web/$DOMAIN/public_html/robots.txt
+    else
+        echo "== public_html folder is not empty, aborting."
+        exit 1
+    fi
 fi
-
 
 if [ ! -f "/home/$USER/conf/web/ssl.$DOMAIN.ca" ]; then
     www_host="www.$DOMAIN"

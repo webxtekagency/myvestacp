@@ -15,7 +15,7 @@ rm -rf /usr/local/vesta/web/softaculous/
 
 apt update
 
-apt install --reinstall vesta-php
+# apt install --reinstall vesta-php
 
 apt install --reinstall vesta-ioncube vesta-softaculous
 
@@ -28,7 +28,11 @@ if [ -f "/usr/local/vesta/web/inc/login_url.php-bak" ]; then
     mv /usr/local/vesta/web/inc/login_url.php-bak /usr/local/vesta/web/inc/login_url.php
 fi
 
+echo ""
+echo ""
 echo "=== Softaculous installation done ==="
+echo ""
 echo "Wait for about 5 minutes so softaculous-cron download all packages."
 echo "You can check if it is still downloading packages by running command:"
-echo 'ps -Af | grep "cron.php"  | grep -v "grep"'
+echo 'ps -Af | grep "cron.php" | grep -v "grep"'
+echo ""

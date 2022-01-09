@@ -7,7 +7,7 @@ rm /var/backups/*
 rm /var/cache/apt/archives/*
 cd /var/log
 truncate -s 0 xferlog lastlog faillog btmp syslog;
-find /var/log/ -name "*.log" -type f -exec truncate -s 0 {} \;
+find /var/log/ -name "*.log" -not -path "/var/log/apt/*" -type f -exec truncate -s 0 {} \;
 find /var/log/ -name "*.err" -type f -exec truncate -s 0 {} \;
 find /var/log/ -name "errors" -type f -exec truncate -s 0 {} \;
 find /var/log/ -name "*.info" -type f -exec truncate -s 0 {} \;

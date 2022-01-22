@@ -155,6 +155,18 @@ echo "-------------------------------------"
 echo ""
 echo "=== When you click 'Initialize database' button (and see DB Write: OK), you can consider the installation as done."
 read -p "=== Then press Enter here, and this script will remove /home/$USER/web/$DOMAIN/public_html/installer folder ==="
+
+if [ ! -f "/home/$USER/web/$DOMAIN/public_html/config/config.inc.php" ]; then
+    echo "=== ERROR: You didn't finish the installation."
+    echo "=== Please read carefully what is written above."
+    read -p "=== Then press Enter when you finish installation ==="
+fi
+if [ ! -f "/home/$USER/web/$DOMAIN/public_html/config/config.inc.php" ]; then
+    echo "=== ERROR: You didn't finish the installation."
+    echo "=== Sorry, the script will exit now."
+    exit 1;
+fi
+
 rm -rf /home/$USER/web/$DOMAIN/public_html/installer
 
 if [ -d "/home/$USER/web/$DOMAIN/public_html/plugins/password" ]; then

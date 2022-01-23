@@ -146,12 +146,22 @@ CREATE DATABASE $PMADB;
 MYSQL_PMA2
 
 #GRANT PMA USE SOME RIGHTS
+if [ ! -f "/etc/apt/sources.list.d/mysql.list" ]; then
+# MariaDB
 mysql -uroot <<MYSQL_PMA3
 USE $PMADB;
 GRANT USAGE ON $PMADB.* TO '$PMAUSER'@'localhost' IDENTIFIED BY '$PASS';
 GRANT ALL PRIVILEGES ON $PMADB.* TO '$PMAUSER'@'localhost';
 FLUSH PRIVILEGES;
 MYSQL_PMA3
+else
+# MySQL8
+mysql -uroot <<MYSQL_PMA3
+USE $PMADB;
+GRANT ALL ON $PMADB.* TO '$PMAUSER'@'localhost';
+FLUSH PRIVILEGES;
+MYSQL_PMA3
+fi
 
 #MYSQL DB and TABLES ADDITION
 mysql -uroot < /root/phpmyadmin/create_tables.sql

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# myVesta Debian installer v.05
+# myVesta Debian installer v 0.9
 
 #----------------------------------------------------------#
 #                  Variables&Functions                     #
@@ -89,7 +89,8 @@ help() {
   -v, --vsftpd            Install Vsftpd        [yes|no]  default: no
   -j, --proftpd           Install ProFTPD       [yes|no]  default: yes
   -k, --named             Install Bind          [yes|no]  default: yes
-  -m, --mysql             Install MySQL         [yes|no]  default: yes
+  -m, --mysql             Install MariaDB       [yes|no]  default: yes
+  -d, --mysql8            Install MySQL 8       [yes|no]  default: no
   -g, --postgresql        Install PostgreSQL    [yes|no]  default: no
   -x, --exim              Install Exim          [yes|no]  default: yes
   -z, --dovecot           Install Dovecot       [yes|no]  default: yes
@@ -159,6 +160,25 @@ set_default_lang() {
     fi
 }
 
+ensure_startup() {
+    echo "- making sure startup is enabled for: $1"
+    currentservice=$1
+    unit_files="$(systemctl list-unit-files |grep $currentservice)"
+    if [[ "$unit_files" =~ "disabled" ]]; then
+        systemctl enable $currentservice
+    fi
+}
+
+ensure_start() {
+    echo "- making sure $1 is started"
+    currentservice=$1
+    systemctl status $currentservice.service > /dev/null 2>&1
+    r=$?
+    if [ $r -ne 0 ]; then
+        systemctl start $currentservice
+        check_result $? "$currentservice start failed"
+    fi
+}
 
 #----------------------------------------------------------#
 #                    Verifications                         #
@@ -178,6 +198,7 @@ for arg; do
         --proftpd)              args="${args}-j " ;;
         --named)                args="${args}-k " ;;
         --mysql)                args="${args}-m " ;;
+        --mysql8)               args="${args}-d " ;;
         --postgresql)           args="${args}-g " ;;
         --mongodb)              args="${args}-d " ;;
         --exim)                 args="${args}-x " ;;
@@ -213,7 +234,8 @@ while getopts "a:n:w:v:j:k:m:g:d:x:z:c:t:i:b:r:o:q:l:y:s:e:p:u:1:fh" Option; do
         v) vsftpd=$OPTARG ;;            # Vsftpd
         j) proftpd=$OPTARG ;;           # Proftpd
         k) named=$OPTARG ;;             # Named
-        m) mysql=$OPTARG ;;             # MySQL
+        m) mysql=$OPTARG ;;             # MariaDB
+        d) mysql8=$OPTARG ;;            # MySQL8
         g) postgresql=$OPTARG ;;        # PostgreSQL
         d) mongodb=$OPTARG ;;           # MongoDB (unsupported)
         x) exim=$OPTARG ;;              # Exim
@@ -246,6 +268,7 @@ set_default_value 'vsftpd' 'no'
 set_default_value 'proftpd' 'yes'
 set_default_value 'named' 'yes'
 set_default_value 'mysql' 'yes'
+set_default_value 'mysql8' 'no'
 set_default_value 'postgresql' 'no'
 set_default_value 'mongodb' 'no'
 set_default_value 'exim' 'yes'
@@ -279,6 +302,9 @@ if [ "$exim" = 'no' ]; then
 fi
 if [ "$iptables" = 'no' ]; then
     fail2ban='no'
+fi
+if [ "$mysql8" = 'yes' ]; then
+    mysql='no'
 fi
 
 # Checking root permissions
@@ -412,7 +438,10 @@ fi
 
 # DB stack
 if [ "$mysql" = 'yes' ]; then
-    echo '   - MySQL Database server'
+    echo '   - MariaDB Database server'
+fi
+if [ "$mysql8" = 'yes' ]; then
+    echo '   - MySQL 8 Database server'
 fi
 if [ "$postgresql" = 'yes' ]; then
     echo '   - PostgreSQL Database server'
@@ -519,8 +548,8 @@ sleep 5
 #                      Checking swap                       #
 #----------------------------------------------------------#
 
-# Checking swap on small instances
 if [ -z "$(swapon -s)" ] && [ $memory -lt 1000000 ]; then
+    echo "== Checking swap on small instances"
     fallocate -l 1G /swapfile
     chmod 600 /swapfile
     mkswap /swapfile
@@ -533,19 +562,17 @@ fi
 #                   Install repository                     #
 #----------------------------------------------------------#
 
-# Updating system
+echo "=== Updating system (apt-get -y upgrade)"
 apt-get -y upgrade
 check_result $? 'apt-get upgrade failed'
 
-# Installing nginx repo
+echo "=== Installing nginx repo"
 apt=/etc/apt/sources.list.d
-# if [ "$release" -ne 11 ]; then
-    echo "deb http://nginx.org/packages/debian/ $codename nginx" > $apt/nginx.list
-    wget http://nginx.org/keys/nginx_signing.key -O /tmp/nginx_signing.key
-    apt-key add /tmp/nginx_signing.key
-# fi
+echo "deb http://nginx.org/packages/debian/ $codename nginx" > $apt/nginx.list
+wget http://nginx.org/keys/nginx_signing.key -O /tmp/nginx_signing.key
+apt-key add /tmp/nginx_signing.key
 
-# Installing vesta repo
+echo "=== Installing myVesta repo"
 echo "deb http://$RHOST/$codename/ $codename vesta" > $apt/vesta.list
 wget $CHOST/deb_signing.key -O deb_signing.key
 apt-key add deb_signing.key
@@ -566,12 +593,13 @@ fi
 #                         Backup                           #
 #----------------------------------------------------------#
 
-# Creating backup directory tree
+echo "=== Creating backup directory tree"
 mkdir -p $vst_backups
 cd $vst_backups
 mkdir nginx apache2 php php5 php5-fpm vsftpd proftpd bind exim4 dovecot clamd
 mkdir spamassassin mysql postgresql mongodb vesta
 
+echo "=== Backing up old configs"
 # Backing up Nginx configuration
 service nginx stop > /dev/null 2>&1
 cp -r /etc/nginx/* $vst_backups/nginx >/dev/null 2>&1
@@ -689,9 +717,47 @@ if [ "$mysql" = 'no' ]; then
     software=$(echo "$software" | sed -e 's/mysql-server//')
     software=$(echo "$software" | sed -e 's/mysql-client//')
     software=$(echo "$software" | sed -e 's/mysql-common//')
+    software=$(echo "$software" | sed -e 's/mariadb-server//')
+    software=$(echo "$software" | sed -e 's/mariadb-client//')
+    software=$(echo "$software" | sed -e 's/mariadb-common//')
     software=$(echo "$software" | sed -e 's/php5-mysql//')
     software=$(echo "$software" | sed -e 's/php-mysql//')
     software=$(echo "$software" | sed -e 's/phpMyAdmin//')
+    software=$(echo "$software" | sed -e 's/phpmyadmin//')
+    software=$(echo "$software" | sed -e 's/roundcube-mysql//')
+fi
+if [ "$mysql8" = 'yes' ]; then
+    echo "=== Preparing MySQL 8 apt repo"
+    software=$(echo "$software" | sed -e 's/exim4-daemon-heavy//')
+    software=$(echo "$software" | sed -e 's/exim4//')
+    #software="$software php-mysql roundcube-mysql"
+    echo "### THIS FILE IS AUTOMATICALLY CONFIGURED ###" > /etc/apt/sources.list.d/mysql.list
+    echo "# You may comment out entries below, but any other modifications may be lost." >> /etc/apt/sources.list.d/mysql.list
+    echo "# Use command 'dpkg-reconfigure mysql-apt-config' as root for modifications." >> /etc/apt/sources.list.d/mysql.list
+    echo "deb http://repo.mysql.com/apt/debian/ $codename mysql-apt-config" >> /etc/apt/sources.list.d/mysql.list
+    echo "deb http://repo.mysql.com/apt/debian/ $codename mysql-8.0" >> /etc/apt/sources.list.d/mysql.list
+    echo "deb http://repo.mysql.com/apt/debian/ $codename mysql-tools" >> /etc/apt/sources.list.d/mysql.list
+    echo "#deb http://repo.mysql.com/apt/debian/ $codename mysql-tools-preview" >> /etc/apt/sources.list.d/mysql.list
+    echo "deb-src http://repo.mysql.com/apt/debian/ $codename mysql-8.0" >> /etc/apt/sources.list.d/mysql.list
+
+    # apt-key adv --keyserver pgp.mit.edu --recv-keys 3A79BD29
+    key="467B942D3A79BD29"
+    readonly key
+    GNUPGHOME="$(mktemp -d)"
+    export GNUPGHOME
+    for keyserver in $(shuf -e ha.pool.sks-keyservers.net hkp://p80.pool.sks-keyservers.net:80 keyserver.ubuntu.com hkp://keyserver.ubuntu.com:80)
+    do
+        gpg --keyserver "${keyserver}" --recv-keys "${key}" 2>&1 && break
+    done
+    gpg --export "${key}" > /etc/apt/trusted.gpg.d/mysql.gpg
+    gpgconf --kill all
+    rm -rf "${GNUPGHOME}"
+    unset GNUPGHOME
+    
+    mpass=$(gen_pass)
+    debconf-set-selections <<< "mysql-community-server mysql-community-server/root-pass password $mpass"
+    debconf-set-selections <<< "mysql-community-server mysql-community-server/re-root-pass password $mpass"
+    debconf-set-selections <<< "mysql-community-server mysql-server/default-auth-override select Use Legacy Authentication Method (Retain MySQL 5.x Compatibility)"
 fi
 if [ "$postgresql" = 'no' ]; then
     software=$(echo "$software" | sed -e 's/postgresql-contrib//')
@@ -713,17 +779,42 @@ fi
 #----------------------------------------------------------#
 
 # Update system packages
+echo "=== Running: apt-get update"
 apt-get update
 
-# Disable daemon autostart /usr/share/doc/sysv-rc/README.policy-rc.d.gz
+echo "=== Disable daemon autostart /usr/share/doc/sysv-rc/README.policy-rc.d.gz"
 echo -e '#!/bin/sh \nexit 101' > /usr/sbin/policy-rc.d
 chmod a+x /usr/sbin/policy-rc.d
 
-# Install apt packages
+if [ "$mysql8" = 'yes' ]; then
+    echo "=== Installing MySQL 8"
+    apt-get -y install mysql-server mysql-client mysql-common
+    #update-rc.d mysql defaults
+    currentservice='mysql'
+    ensure_startup $currentservice
+    ensure_start $currentservice
+    echo -e "[client]\npassword='$mpass'\n" > /root/.my.cnf
+    chmod 600 /root/.my.cnf
+    mysqladmin -u root password $mpass
+fi
+
+echo "=== Installing all apt packages"
+# echo "apt-get -y install $software"
 apt-get -y install $software
+
 check_result $? "apt-get install failed"
 
-# Restore  policy
+if [ "$mysql8" = 'yes' ]; then
+    if [ "$exim" = 'yes' ]; then
+        echo "=== Installing exim4"
+        apt-get -y install exim4 exim4-daemon-heavy
+    fi
+    echo "=== Installing phpmyadmin"
+    #apt-get -y --no-install-recommends install phpmyadmin
+    apt-get -y install phpmyadmin
+fi
+
+echo "=== Enabling daemon autostart"
 rm -f /usr/sbin/policy-rc.d
 
 
@@ -731,21 +822,21 @@ rm -f /usr/sbin/policy-rc.d
 #                     Configure system                     #
 #----------------------------------------------------------#
 
-# Enable SSH password auth
+echo "== Enable SSH password auth"
 sed -i "s/rdAuthentication no/rdAuthentication yes/g" /etc/ssh/sshd_config
-service ssh restart
+systemctl restart ssh
 
-# Disable awstats cron
+echo "== Disable awstats cron"
 rm -f /etc/cron.d/awstats
 
-# Set directory color
+echo "== Set directory color"
 echo 'LS_COLORS="$LS_COLORS:di=00;33"' >> /etc/profile
 
-# Register /sbin/nologin and /usr/sbin/nologin
+echo "== Register /sbin/nologin and /usr/sbin/nologin"
 echo "/sbin/nologin" >> /etc/shells
 echo "/usr/sbin/nologin" >> /etc/shells
 
-# NTP Synchronization
+echo "== NTP Synchronization"
 echo '#!/bin/sh' > /etc/cron.daily/ntpdate
 echo "$(which ntpdate) -s pool.ntp.org" >> /etc/cron.daily/ntpdate
 chmod 775 /etc/cron.daily/ntpdate
@@ -766,12 +857,12 @@ fi
 #                     Configure VESTA                      #
 #----------------------------------------------------------#
 
-# Installing sudo configuration
+echo "== Installing sudo configuration"
 mkdir -p /etc/sudoers.d
 cp -f $vestacp/sudo/admin /etc/sudoers.d/
 chmod 440 /etc/sudoers.d/admin
 
-# Configuring system env
+echo "== Configuring system env"
 echo "export VESTA='$VESTA'" > /etc/profile.d/vesta.sh
 chmod 755 /etc/profile.d/vesta.sh
 source /etc/profile.d/vesta.sh
@@ -779,10 +870,10 @@ echo 'PATH=$PATH:'$VESTA'/bin' >> /root/.bash_profile
 echo 'export PATH' >> /root/.bash_profile
 source /root/.bash_profile
 
-# Configuring logrotate for Vesta logs
+echo "== Copying logrotate for myVesta logs"
 cp -f $vestacp/logrotate/vesta /etc/logrotate.d/
 
-# Building directory tree and creating some blank files for vesta
+echo "== Building directory tree and creating some blank files for myVesta"
 mkdir -p $VESTA/conf $VESTA/log $VESTA/ssl $VESTA/data/ips \
     $VESTA/data/queue $VESTA/data/users $VESTA/data/firewall \
     $VESTA/data/sessions
@@ -797,7 +888,7 @@ rm -f /var/log/vesta
 ln -s $VESTA/log /var/log/vesta
 chmod 770 $VESTA/data/sessions
 
-# Generating vesta configuration
+echo "== Generating vesta.conf"
 rm -f $VESTA/conf/vesta.conf 2>/dev/null
 touch $VESTA/conf/vesta.conf
 chmod 660 $VESTA/conf/vesta.conf
@@ -891,14 +982,14 @@ echo "LANGUAGE='$lang'" >> $VESTA/conf/vesta.conf
 # Version
 echo "VERSION='0.9.8'" >> $VESTA/conf/vesta.conf
 
-# Installing hosting packages
+echo "== Copying packages"
 cp -rf $vestacp/packages $VESTA/data/
 
-# Installing templates
+echo "== Copying templates"
 cp -rf $vestacp/templates $VESTA/data/
 
 if [ "$release" -eq 10 ]; then
-    # Symlink missing templates
+    echo "== Symlink missing templates"
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.sh /usr/local/vesta/data/templates/web/nginx/default.sh
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.tpl /usr/local/vesta/data/templates/web/nginx/default.tpl
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.stpl /usr/local/vesta/data/templates/web/nginx/default.stpl
@@ -914,7 +1005,7 @@ if [ "$release" -eq 10 ]; then
     ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.tpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-73.tpl
 fi
 if [ "$release" -eq 11 ]; then
-    # Symlink missing templates
+    echo "== Symlink missing templates"
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.sh /usr/local/vesta/data/templates/web/nginx/default.sh
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.tpl /usr/local/vesta/data/templates/web/nginx/default.tpl
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.stpl /usr/local/vesta/data/templates/web/nginx/default.stpl
@@ -930,7 +1021,7 @@ if [ "$release" -eq 11 ]; then
     ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.tpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-74.tpl
 fi
 
-# Set nameservers
+echo "== Set nameservers address"
 sed -i "s/YOURHOSTNAME1/ns1.$servername/" /usr/local/vesta/data/packages/default.pkg
 sed -i "s/YOURHOSTNAME2/ns2.$servername/" /usr/local/vesta/data/packages/default.pkg
 sed -i "s/ns1.domain.tld/ns1.$servername/" /usr/local/vesta/data/packages/default.pkg
@@ -938,17 +1029,17 @@ sed -i "s/ns2.domain.tld/ns2.$servername/" /usr/local/vesta/data/packages/defaul
 sed -i "s/ns1.example.com/ns1.$servername/" /usr/local/vesta/data/packages/default.pkg
 sed -i "s/ns2.example.com/ns2.$servername/" /usr/local/vesta/data/packages/default.pkg
 
-# Copying index.html to default documentroot
+echo "== Copying index.html to default documentroot"
 cp $VESTA/data/templates/web/skel/public_html/index.html /var/www/
 sed -i 's/%domain%/It worked!/g' /var/www/index.html
 
-# Installing firewall rules
+echo "== Copying firewall rules"
 cp -rf $vestacp/firewall $VESTA/data/
 
-# Configuring server hostname
+echo "== Configuring server hostname: $servername"
 $VESTA/bin/v-change-sys-hostname $servername 2>/dev/null
 
-# Generating SSL certificate
+echo "== Generating myVesta unsigned SSL certificate"
 $VESTA/bin/v-generate-ssl-cert $(hostname) $email 'US' 'California' \
      'San Francisco' 'Vesta Control Panel' 'IT' > /tmp/vst.pem
 
@@ -957,7 +1048,6 @@ crt_end=$(grep -n "END CERTIFICATE-" /tmp/vst.pem |cut -f 1 -d:)
 key_start=$(grep -n "BEGIN RSA" /tmp/vst.pem |cut -f 1 -d:)
 key_end=$(grep -n  "END RSA" /tmp/vst.pem |cut -f 1 -d:)
 
-# Adding SSL certificate
 cd $VESTA/ssl
 sed -n "1,${crt_end}p" /tmp/vst.pem > certificate.crt
 sed -n "$key_start,${key_end}p" /tmp/vst.pem > certificate.key
@@ -971,6 +1061,7 @@ rm /tmp/vst.pem
 #----------------------------------------------------------#
 
 if [ "$nginx" = 'yes' ]; then
+    echo "=== Configure nginx"
     rm -f /etc/nginx/conf.d/*.conf
     cp -f $vestacp/nginx/nginx.conf /etc/nginx/
     cp -f $vestacp/nginx/status.conf /etc/nginx/conf.d/
@@ -980,9 +1071,11 @@ if [ "$nginx" = 'yes' ]; then
     cp -f $vestacp/logrotate/nginx /etc/logrotate.d/
     echo > /etc/nginx/conf.d/vesta.conf
     mkdir -p /var/log/nginx/domains
-    update-rc.d nginx defaults
-    service nginx start
-    check_result $? "nginx start failed"
+    #update-rc.d nginx defaults
+    #service nginx start
+    currentservice='nginx'
+    ensure_startup $currentservice
+    ensure_start $currentservice
 fi
 
 
@@ -991,6 +1084,7 @@ fi
 #----------------------------------------------------------#
 
 if [ "$apache" = 'yes'  ]; then
+    echo "=== Configure Apache"
     cp -f $vestacp/apache2/apache2.conf /etc/apache2/
     cp -f $vestacp/apache2/status.conf /etc/apache2/mods-enabled/
     cp -f  $vestacp/logrotate/apache2 /etc/logrotate.d/
@@ -1013,12 +1107,16 @@ if [ "$apache" = 'yes'  ]; then
     chmod a+x /var/log/apache2
     chmod 640 /var/log/apache2/access.log /var/log/apache2/error.log
     chmod 751 /var/log/apache2/domains
-    update-rc.d apache2 defaults
-    service apache2 start
-    check_result $? "apache2 start failed"
+    #update-rc.d apache2 defaults
+    #service apache2 start
+    currentservice='apache2'
+    ensure_startup $currentservice
+    ensure_start $currentservice
 else
-    update-rc.d apache2 disable >/dev/null 2>&1
-    service apache2 stop >/dev/null 2>&1
+    #update-rc.d apache2 disable >/dev/null 2>&1
+    #service apache2 stop >/dev/null 2>&1
+    systemctl disable apache2
+    systemctl stop apache2
 fi
 
 
@@ -1027,26 +1125,31 @@ fi
 #----------------------------------------------------------#
 
 if [ "$phpfpm" = 'yes' ]; then
+    echo "=== Configure PHP-FPM"
     if [ "$release" -eq 11 ]; then
         cp -f $vestacp/php-fpm/www.conf /etc/php/7.4/fpm/pool.d/www.conf
-        update-rc.d php7.4-fpm defaults
-        service php7.4-fpm start
-        check_result $? "php-fpm start failed"
+        #update-rc.d php7.4-fpm defaults
+        currentservice='php7.4-fpm'
+        ensure_startup $currentservice
+        ensure_start $currentservice
     elif [ "$release" -eq 10 ]; then
         cp -f $vestacp/php-fpm/www.conf /etc/php/7.3/fpm/pool.d/www.conf
-        update-rc.d php7.3-fpm defaults
-        service php7.3-fpm start
-        check_result $? "php-fpm start failed"
+        #update-rc.d php7.3-fpm defaults
+        currentservice='php7.3-fpm'
+        ensure_startup $currentservice
+        ensure_start $currentservice
     elif [ "$release" -eq 9 ]; then
         cp -f $vestacp/php-fpm/www.conf /etc/php/7.0/fpm/pool.d/www.conf
-        update-rc.d php7.0-fpm defaults
-        service php7.0-fpm start
-        check_result $? "php-fpm start failed"
+        #update-rc.d php7.0-fpm defaults
+        currentservice='php7.0-fpm'
+        ensure_startup $currentservice
+        ensure_start $currentservice
     else
         cp -f $vestacp/php5-fpm/www.conf /etc/php5/fpm/pool.d/www.conf
-        update-rc.d php5-fpm defaults
-        service php5-fpm start
-        check_result $? "php-fpm start failed"
+        #update-rc.d php5-fpm defaults
+        currentservice='php5-fpm'
+        ensure_startup $currentservice
+        ensure_start $currentservice
     fi
 fi
 
@@ -1055,6 +1158,7 @@ fi
 #                     Configure PHP                        #
 #----------------------------------------------------------#
 
+echo "=== Configure PHP timezone"
 ZONE=$(timedatectl 2>/dev/null|grep Timezone|awk '{print $2}')
 if [ -z "$ZONE" ]; then
     ZONE='UTC'
@@ -1070,10 +1174,12 @@ done
 #----------------------------------------------------------#
 
 if [ "$vsftpd" = 'yes' ]; then
+    echo "=== Configure VSFTPD"
     cp -f $vestacp/vsftpd/vsftpd.conf /etc/
-    update-rc.d vsftpd defaults
-    service vsftpd start
-    check_result $? "vsftpd start failed"
+    #update-rc.d vsftpd defaults
+    currentservice='vsftpd'
+    ensure_startup $currentservice
+    ensure_start $currentservice
 
     # To be deleted after release 0.9.8-18
     echo "/sbin/nologin" >> /etc/shells
@@ -1085,18 +1191,14 @@ fi
 #----------------------------------------------------------#
 
 if [ "$proftpd" = 'yes' ]; then
+    echo "=== Configure ProFTPD"
     echo "127.0.0.1 $servername" >> /etc/hosts
     cp -f $vestacp/proftpd/proftpd.conf /etc/proftpd/
     cp -f $vestacp/proftpd/tls.conf /etc/proftpd/
-    update-rc.d proftpd defaults
-    service proftpd start
-    check_result $? "proftpd start failed"
-    if [ "$release" -eq 11 ]; then
-        unit_files="$(systemctl list-unit-files |grep proftpd)"
-        if [[ "$unit_files" =~ "disabled" ]]; then
-            systemctl enable proftpd
-        fi
-    fi
+    #update-rc.d proftpd defaults
+    currentservice='proftpd'
+    ensure_startup $currentservice
+    ensure_start $currentservice
 fi
 
 
@@ -1104,34 +1206,39 @@ fi
 #                  Configure MySQL/MariaDB                 #
 #----------------------------------------------------------#
 
-if [ "$mysql" = 'yes' ]; then
-    mycnf="my-small.cnf"
-    if [ $memory -gt 1200000 ]; then
-        mycnf="my-medium.cnf"
-    fi
-    if [ $memory -gt 3900000 ]; then
-        mycnf="my-large.cnf"
-    fi
+if [ "$mysql" = 'yes' ] || [ "$mysql8" = 'yes' ]; then
+    if [ "$mysql" = 'yes' ]; then
+        echo "=== Configure MariaDB"
+        mycnf="my-small.cnf"
+        if [ $memory -gt 1200000 ]; then
+            mycnf="my-medium.cnf"
+        fi
+        if [ $memory -gt 3900000 ]; then
+            mycnf="my-large.cnf"
+        fi
 
-    # MySQL configuration
-    cp -f $vestacp/mysql/$mycnf /etc/mysql/my.cnf
-    mysql_install_db
-    update-rc.d mysql defaults
-    service mysql start
-    check_result $? "mysql start failed"
+        # MySQL configuration
+        cp -f $vestacp/mysql/$mycnf /etc/mysql/my.cnf
+        mysql_install_db
+        # update-rc.d mysql defaults
+        currentservice='mysql'
+        ensure_startup $currentservice
+        ensure_start $currentservice
 
-    # Securing MySQL installation
-    mpass=$(gen_pass)
-    mysqladmin -u root password $mpass
-    echo -e "[client]\npassword='$mpass'\n" > /root/.my.cnf
-    chmod 600 /root/.my.cnf
-    mysql -e "DELETE FROM mysql.user WHERE User=''"
-    mysql -e "DROP DATABASE test" >/dev/null 2>&1
-    mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"
-    mysql -e "DELETE FROM mysql.user WHERE user='' or password='';"
-    mysql -e "FLUSH PRIVILEGES"
+        # Securing MySQL installation
+        mpass=$(gen_pass)
+        mysqladmin -u root password $mpass
+        echo -e "[client]\npassword='$mpass'\n" > /root/.my.cnf
+        chmod 600 /root/.my.cnf
+        mysql -e "DELETE FROM mysql.user WHERE User=''"
+        mysql -e "DROP DATABASE test" >/dev/null 2>&1
+        mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"
+        mysql -e "DELETE FROM mysql.user WHERE user='' or password='';"
+        mysql -e "FLUSH PRIVILEGES"
+    fi
 
     # Configuring phpMyAdmin
+    echo "=== Configure phpMyAdmin"
     if [ "$release" -eq 10 ]; then
         mkdir /etc/phpmyadmin
         mkdir -p /var/lib/phpmyadmin/tmp
@@ -1148,7 +1255,7 @@ if [ "$mysql" = 'yes' ]; then
       mkdir /usr/share/phpmyadmin
       
       pma_v='4.9.7'
-      echo "(*) Installing phpMyAdmin version v$pma_v..."
+      echo "=== Installing phpMyAdmin version v$pma_v (Debian10 custom part)"
 
       cd /root/phpmyadmin
 
@@ -1183,6 +1290,7 @@ if [ "$mysql" = 'yes' ]; then
       echo "\$cfg['blowfish_secret'] = '$blowfish';" >> /etc/phpmyadmin/config.inc.php
   fi
   if [ "$release" -eq 11 ]; then
+      echo "=== Configure phpMyAdmin (Debian11 custom part)"
       # Set config and log directory
       sed -i "s|define('CONFIG_DIR', '');|define('CONFIG_DIR', '/etc/phpmyadmin/');|" /usr/share/phpmyadmin/libraries/vendor_config.php
       sed -i "s|define('TEMP_DIR', './tmp/');|define('TEMP_DIR', '/var/lib/phpmyadmin/tmp/');|" /usr/share/phpmyadmin/libraries/vendor_config.php
@@ -1205,9 +1313,12 @@ fi
 #----------------------------------------------------------#
 
 if [ "$postgresql" = 'yes' ]; then
+    echo "=== Configure PostgreSQL"
     ppass=$(gen_pass)
     cp -f $vestacp/postgresql/pg_hba.conf /etc/postgresql/*/main/
-    service postgresql restart
+    currentservice='postgresql'
+    ensure_startup $currentservice
+    ensure_start $currentservice
     sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$ppass'"
 
     # Configuring phpPgAdmin
@@ -1223,6 +1334,7 @@ fi
 #----------------------------------------------------------#
 
 if [ "$named" = 'yes' ]; then
+    echo "=== Configure Bind9"
     cp -f $vestacp/bind/named.conf /etc/bind/
     sed -i "s%listen-on%//listen%" /etc/bind/named.conf.options
     chown root:bind /etc/bind/named.conf
@@ -1237,9 +1349,10 @@ if [ "$named" = 'yes' ]; then
           service apparmor restart
       # fi
     fi
-    update-rc.d bind9 defaults
-    service bind9 start
-    check_result $? "bind9 start failed"
+    # update-rc.d bind9 defaults
+    currentservice='bind9'
+    ensure_startup $currentservice
+    ensure_start $currentservice
 fi
 
 #----------------------------------------------------------#
@@ -1247,6 +1360,7 @@ fi
 #----------------------------------------------------------#
 
 if [ "$exim" = 'yes' ]; then
+    echo "=== Configure Exim"
     gpasswd -a Debian-exim mail
     cp -f $vestacp/exim/exim4.conf.template /etc/exim4/
     cp -f $vestacp/exim/dnsbl.conf /etc/exim4/
@@ -1272,8 +1386,10 @@ if [ "$exim" = 'yes' ]; then
     update-rc.d -f postfix remove > /dev/null 2>&1
     service postfix stop > /dev/null 2>&1
 
-    update-rc.d exim4 defaults
-    service exim4 start
+    #update-rc.d exim4 defaults
+    currentservice='exim4'
+    ensure_startup $currentservice
+    ensure_start $currentservice
 fi
 
 
@@ -1282,13 +1398,15 @@ fi
 #----------------------------------------------------------#
 
 if [ "$dovecot" = 'yes' ]; then
+    echo "=== Configure Dovecot"
     gpasswd -a dovecot mail
     cp -rf $vestacp/dovecot /etc/
     cp -f $vestacp/logrotate/dovecot /etc/logrotate.d/
     chown -R root:root /etc/dovecot*
-    update-rc.d dovecot defaults
-    service dovecot start
-    check_result $? "dovecot start failed"
+    # update-rc.d dovecot defaults
+    currentservice='dovecot'
+    ensure_startup $currentservice
+    ensure_start $currentservice
 fi
 
 
@@ -1297,13 +1415,20 @@ fi
 #----------------------------------------------------------#
 
 if [ "$clamd" = 'yes' ]; then
+    echo "=== Configure ClamAV"
     gpasswd -a clamav mail
     gpasswd -a clamav Debian-exim
     cp -f $vestacp/clamav/clamd.conf /etc/clamav/
     mkdir -p /var/lib/clamav
     /usr/bin/freshclam
-    update-rc.d clamav-daemon defaults
-    if [ ! -d "/var/run/clamav" ]; then
+
+    # update-rc.d clamav-daemon defaults
+    currentservice='clamav-daemon'
+    ensure_startup $currentservice
+    currentservice='clamav-freshclam'
+    ensure_startup $currentservice
+    
+ if [ ! -d "/var/run/clamav" ]; then
         mkdir /var/run/clamav
     fi
     chown -R clamav:clamav /var/run/clamav
@@ -1319,13 +1444,11 @@ if [ "$clamd" = 'yes' ]; then
         wget -nv -O $clamavfolder/foxhole_all.cdb http://c.myvestacp.com/tools/clamav/foxhole_all.cdb
         chown clamav:clamav $clamavfolder/foxhole_all.cdb
     fi
-    service clamav-daemon start
-    check_result $? "clamav-daeom start failed"
     
-    systemctl status clamav-freshclam.service > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        systemctl start clamav-freshclam.service
-    fi
+    currentservice='clamav-daemon'
+    ensure_start $currentservice
+    currentservice='clamav-freshclam'
+    ensure_start $currentservice
 fi
 
 
@@ -1334,14 +1457,12 @@ fi
 #----------------------------------------------------------#
 
 if [ "$spamd" = 'yes' ]; then
-    update-rc.d spamassassin defaults
+    echo "=== Configure SpamAssassin"
+    #update-rc.d spamassassin defaults
     sed -i "s/ENABLED=0/ENABLED=1/" /etc/default/spamassassin
-    service spamassassin start
-    check_result $? "spamassassin start failed"
-    unit_files="$(systemctl list-unit-files |grep spamassassin)"
-    if [[ "$unit_files" =~ "disabled" ]]; then
-        systemctl enable spamassassin
-    fi
+    currentservice='spamassassin'
+    ensure_startup $currentservice
+    ensure_start $currentservice
 fi
 
 
@@ -1349,7 +1470,8 @@ fi
 #                   Configure RoundCube                    #
 #----------------------------------------------------------#
 
-if [ "$exim" = 'yes' ] && [ "$mysql" = 'yes' ]; then
+if [ "$exim" = 'yes' ] && { [ "$mysql" = 'yes' ] || [ "$mysql8" = 'yes' ]; } then
+    echo "=== Configure RoundCube"
     if [ "$apache" = 'yes' ]; then
         cp -f $vestacp/roundcube/apache.conf /etc/roundcube/
         ln -s /etc/roundcube/apache.conf /etc/apache2/conf.d/roundcube.conf
@@ -1365,8 +1487,14 @@ if [ "$exim" = 'yes' ] && [ "$mysql" = 'yes' ]; then
     cp -f $vestacp/roundcube/config.inc.php /etc/roundcube/plugins/password/
     r="$(gen_pass)"
     mysql -e "CREATE DATABASE roundcube"
-    mysql -e "GRANT ALL ON roundcube.* 
-        TO roundcube@localhost IDENTIFIED BY '$r'"
+    if [ "$mysql8" = 'yes' ]; then
+        mysql -e "CREATE USER 'roundcube'@'localhost' IDENTIFIED BY '$r';"
+        mysql -e "GRANT ALL ON roundcube.* 
+            TO roundcube@localhost"
+    else
+        mysql -e "GRANT ALL ON roundcube.* 
+            TO roundcube@localhost IDENTIFIED BY '$r'"
+    fi
     sed -i "s/%password%/$r/g" /etc/roundcube/db.inc.php
     sed -i "s/localhost/$servername/g" \
         /etc/roundcube/plugins/password/config.inc.php
@@ -1415,6 +1543,7 @@ fi
 #----------------------------------------------------------#
 
 if [ "$fail2ban" = 'yes' ]; then
+    echo "=== Configure Fail2Ban"
     cp -rf $vestacp/fail2ban /etc/
     if [ "$dovecot" = 'no' ]; then
         fline=$(cat /etc/fail2ban/jail.local |grep -n dovecot-iptables -A 2)
@@ -1435,9 +1564,11 @@ if [ "$fail2ban" = 'yes' ]; then
         fline=$(echo "$fline" |grep enabled |tail -n1 |cut -f 1 -d -)
         sed -i "${fline}s/false/true/" /etc/fail2ban/jail.local
     fi 
-    update-rc.d fail2ban defaults
-    service fail2ban start
-    check_result $? "fail2ban start failed"
+    #update-rc.d fail2ban defaults
+    currentservice='fail2ban'
+    ensure_startup $currentservice
+    ensure_start $currentservice
+    echo "- leaving fail2ban config"
 fi
 
 
@@ -1445,12 +1576,13 @@ fi
 #                   Configure Admin User                   #
 #----------------------------------------------------------#
 
+echo "=== Configure Admin User"
 if [ "$release" -eq 11 ]; then
-    # Switching to sha512
+    echo "=== Switching to sha512"
     sed -i "s/yescrypt/sha512/g" /etc/pam.d/common-password
 fi
 
-# Deleting old admin user
+echo "== Deleting old admin user"
 if [ ! -z "$(grep ^admin: /etc/passwd)" ] && [ "$force" = 'yes' ]; then
     chattr -i /home/admin/conf > /dev/null 2>&1
     userdel -f admin >/dev/null 2>&1
@@ -1462,14 +1594,14 @@ if [ ! -z "$(grep ^admin: /etc/group)" ]; then
     groupdel admin > /dev/null 2>&1
 fi
 
-# Adding vesta account
+echo "== Adding vesta account"
 $VESTA/bin/v-add-user admin $vpass $email default System Administrator
 check_result $? "can't create admin user"
 $VESTA/bin/v-change-user-shell admin bash
 $VESTA/bin/v-change-user-language admin $lang
 
-# RoundCube permissions fix
-if [ "$exim" = 'yes' ] && [ "$mysql" = 'yes' ]; then
+if [ "$exim" = 'yes' ] && { [ "$mysql" = 'yes' ] || [ "$mysql8" = 'yes' ]; } then
+    echo "== RoundCube permissions fix"
     if [ ! -d "/var/log/roundcube" ]; then
         mkdir /var/log/roundcube
     fi
@@ -1479,28 +1611,30 @@ fi
 # Vesta data sessions permissions
 chown admin:admin $VESTA/data/sessions
 
-# Configuring system ips
+echo "== Configuring system ips"
 $VESTA/bin/v-update-sys-ip
 
-# Get main ip
+echo "== Get main ip"
 ip=$(ip addr|grep 'inet '|grep global|head -n1|awk '{print $2}'|cut -f1 -d/)
 local_ip=$ip
 
 # Firewall configuration
 if [ "$iptables" = 'yes' ]; then
+    echo "== Firewall configuration"
     $VESTA/bin/v-update-firewall
 fi
 
-# Get public ip
+echo "== Get public ip"
 pub_ip=$(curl -4 -s https://scripts.myvestacp.com/ip.php)
 
 if [ ! -z "$pub_ip" ] && [ "$pub_ip" != "$ip" ]; then
+    echo "== NAT detected"
     $VESTA/bin/v-change-sys-ip-nat $ip $pub_ip
     ip=$pub_ip
 fi
 
-# Configuring libapache2-mod-remoteip
 if [ "$apache" = 'yes' ] && [ "$nginx"  = 'yes' ] ; then
+    echo "== Configuring libapache2-mod-remoteip"
     cd /etc/apache2/mods-available
     echo "<IfModule mod_remoteip.c>" > remoteip.conf
     echo "  RemoteIPHeader X-Real-IP" >> remoteip.conf
@@ -1519,30 +1653,31 @@ if [ "$apache" = 'yes' ] && [ "$nginx"  = 'yes' ] ; then
     service apache2 restart
 fi
 
-# Configuring mysql host
-if [ "$mysql" = 'yes' ]; then
-     $VESTA/bin/v-add-database-host mysql localhost root $mpass
-     # $VESTA/bin/v-add-database admin default default $(gen_pass) mysql
+if [ "$mysql" = 'yes' ] || [ "$mysql8" = 'yes' ]; then
+    echo "== Configuring mysql host"
+    $VESTA/bin/v-add-database-host mysql localhost root $mpass
+    # $VESTA/bin/v-add-database admin default default $(gen_pass) mysql
 fi
 
-# Configuring pgsql host
 if [ "$postgresql" = 'yes' ]; then
+    echo "== Configuring pgsql host"
     $VESTA/bin/v-add-database-host pgsql localhost postgres $ppass
     $VESTA/bin/v-add-database admin db db $(gen_pass) pgsql
 fi
 
-# Adding default domain
+echo "== Adding default domain"
 $VESTA/bin/v-add-domain admin $servername
 check_result $? "can't create $servername domain"
 
 if [ "$named" = 'yes' ]; then
-    # Adding ns1 and ns2 A records
+    echo "== Adding ns1 and ns2 A records"
     /usr/local/vesta/bin/v-add-dns-record 'admin' "$servername" 'ns1' 'A' "$pub_ip"
     /usr/local/vesta/bin/v-add-dns-record 'admin' "$servername" 'ns2' 'A' "$pub_ip"
 fi
 
 if [ "$release" -eq 10 ]; then
   if [ -f "/etc/php/7.3/fpm/pool.d/$servername.conf" ]; then
+    echo "== FPM pool.d $servername tweaks"
     sed -i "/^group =/c\group = www-data" /etc/php/7.3/fpm/pool.d/$servername.conf
     sed -i "/max_execution_time/c\php_admin_value[max_execution_time] = 900" /etc/php/7.3/fpm/pool.d/$servername.conf
     sed -i "/request_terminate_timeout/c\request_terminate_timeout = 900s" /etc/php/7.3/fpm/pool.d/$servername.conf
@@ -1555,6 +1690,7 @@ if [ "$release" -eq 10 ]; then
 fi
 if [ "$release" -eq 11 ]; then
   if [ -f "/etc/php/7.4/fpm/pool.d/$servername.conf" ]; then
+    echo "== FPM pool.d $servername tweaks"
     sed -i "/^group =/c\group = www-data" /etc/php/7.4/fpm/pool.d/$servername.conf
     sed -i "/max_execution_time/c\php_admin_value[max_execution_time] = 900" /etc/php/7.4/fpm/pool.d/$servername.conf
     sed -i "/request_terminate_timeout/c\request_terminate_timeout = 900s" /etc/php/7.4/fpm/pool.d/$servername.conf
@@ -1566,7 +1702,7 @@ if [ "$release" -eq 11 ]; then
   fi
 fi
 
-# Adding cron jobs
+echo "== Adding cron jobs"
 command="sudo $VESTA/bin/v-update-sys-queue disk"
 $VESTA/bin/v-add-cron-job 'admin' '15' '02' '*' '*' '*' "$command"
 command="sudo $VESTA/bin/v-update-sys-queue traffic"
@@ -1583,29 +1719,30 @@ command="sudo $VESTA/bin/v-update-sys-rrd"
 $VESTA/bin/v-add-cron-job 'admin' '*/5' '*' '*' '*' '*' "$command"
 service cron restart
 
-# Building inititall rrd images
+echo "== Building inititall rrd images"
 $VESTA/bin/v-update-sys-rrd
 
-# Enabling file system quota
 if [ "$quota" = 'yes' ]; then
+    echo "== Enabling file system quota"
     $VESTA/bin/v-add-sys-quota
 fi
 
-# Enabling softaculous plugin
+echo "== Enabling softaculous plugin"
 if [ "$softaculous" = 'yes' ]; then
     $VESTA/bin/v-add-vesta-softaculous
 fi
 
 # Starting vesta service
-update-rc.d vesta defaults
-service vesta start
-check_result $? "vesta start failed"
+#update-rc.d vesta defaults
+currentservice='vesta'
+ensure_startup $currentservice
+ensure_start $currentservice
 chown admin:admin $VESTA/data/sessions
 
-# Adding notifications
+echo "== Adding notifications"
 $VESTA/upd/add_notifications.sh
 
-# Adding cronjob for autoupdates
+echo "== Adding cronjob for autoupdates"
 $VESTA/bin/v-add-cron-vesta-autoupdate
 
 

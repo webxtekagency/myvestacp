@@ -1568,7 +1568,6 @@ if [ "$fail2ban" = 'yes' ]; then
     currentservice='fail2ban'
     ensure_startup $currentservice
     ensure_start $currentservice
-    echo "- leaving fail2ban config"
 fi
 
 

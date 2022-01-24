@@ -297,7 +297,7 @@ if [ ! -z "$DB_SYSTEM" ] && [ "$DB_SYSTEM" != 'remote' ]; then
         if [ "$service" = 'mysql' ]; then
             proc_name='mysqld'
             release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
-            if [ "$release" -eq 11 ]; then
+            if [ "$release" -eq 11 ] && [ ! -f "/etc/apt/sources.list.d/mysql.list" ]; then
                 service='mariadb'
                 proc_name='mariadbd'
             fi

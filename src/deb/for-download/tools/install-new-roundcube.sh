@@ -187,6 +187,11 @@ if [ "$check_grep" -eq 0 ]; then
     sed -i "s|<roundcube:form name=\"form\" method=\"post\">|<br /><br /><center><a href=\"https://$DOMAIN/\" style=\"color: white; font-size: 12pt;\">$LOGINMESSAGE1</a><br /><span style=\"color: white; font-size: 8pt;\">$LOGINMESSAGE2</span></center><br /><br />\n\n<roundcube:form name=\"form\" method=\"post\">|g" /usr/share/roundcube/skins/larry/templates/login.html
 fi
 
+check_grep=$(grep -c 'MAIL_URL=' /usr/local/vesta/conf/vesta.conf)
+if [ "$check_grep" -eq 0 ]; then
+    echo "MAIL_URL='https://$DOMAIN/'" >> /usr/local/vesta/conf/vesta.conf
+fi
+
 
 echo "-------------------------------------"
 echo "Roundcube installed!"

@@ -29,6 +29,12 @@ source /etc/profile
 source /usr/local/vesta/func/main.sh
 source /usr/local/vesta/func/db.sh
 
+
+if [[ $(is_package_full 'DATABASES') = *reached* ]]; then
+        echo "Database limit is reached. Delete database or upgrade user package."
+        exit
+fi
+
 #----------------------------------------------------------#
 #                    Verifications                         #
 #----------------------------------------------------------#

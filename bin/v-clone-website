@@ -226,6 +226,7 @@ if [ $IT_IS_WP -eq 0 ]; then
             apt-get update > /dev/null 2>&1
             apt-get -y install git > /dev/null 2>&1
         fi
+        cd /root
         git clone https://github.com/interconnectit/Search-Replace-DB.git
     fi
 else

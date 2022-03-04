@@ -221,7 +221,7 @@ fi
 # ----------- CHECK -------------
 
 if [ $IT_IS_WP -eq 0 ]; then
-    if [ ! -f "/root/Search-Replace-DB-master/srdb.cli.php" ]; then
+    if [ ! -f "/root/Search-Replace-DB/srdb.cli.php" ]; then
         if [ ! -f "/usr/bin/git" ]; then
             apt-get update > /dev/null 2>&1
             apt-get -y install git > /dev/null 2>&1
@@ -341,7 +341,7 @@ if [ $IT_IS_WP -eq 0 ]; then
     php /root/Search-Replace-DB/srdb.cli.php -h localhost -n "$TO_DATABASE_NAME" -u "$TO_DATABASE_USERNAME" -p "$TO_DATABASE_PASSWORD" -s "$FROM_DOMAIN" -r "$TO_DOMAIN"
     if [ "$FROM_USER" != "$TO_USER" ]; then
         echo "=== Replacing /home/$FROM_USER/ to /home/$TO_USER/ in database $TO_DATABASE_NAME"
-        php7.0 /root/Search-Replace-DB-master/srdb.cli.php -h localhost -n "$TO_DATABASE_NAME" -u "$TO_DATABASE_USERNAME" -p "$TO_DATABASE_PASSWORD" -s "/home/$FROM_USER/" -r "/home/$TO_USER/"
+        php /root/Search-Replace-DB/srdb.cli.php -h localhost -n "$TO_DATABASE_NAME" -u "$TO_DATABASE_USERNAME" -p "$TO_DATABASE_PASSWORD" -s "/home/$FROM_USER/" -r "/home/$TO_USER/"
     fi
 else
     cd $TO_FOLDER

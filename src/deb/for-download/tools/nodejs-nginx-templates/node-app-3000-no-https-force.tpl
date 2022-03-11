@@ -32,7 +32,7 @@ server {
         alias   %home%/%user%/web/%domain%/document_errors/;
     }
 
-    location ~ /\.ht    {return 404;}
+    location ~ /\.      {return 404;}
     location ~ /\.svn/  {return 404;}
     location ~ /\.git/  {return 404;}
     location ~ /\.hg/   {return 404;}

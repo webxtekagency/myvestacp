@@ -1,4 +1,5 @@
 # handle --parameters=val
+
 handle_parameter() {
     origparam=$1
     searchstring="="
@@ -7,14 +8,12 @@ handle_parameter() {
         var_without_minuses=${origparam:2}
         var=${var_without_minuses%%=*}
         val=${origparam#*$searchstring}
-        #echo $var
-        #echo $val
+        # echo "$var = $val"
         printf -v "$var" '%s' "$val"
     fi
 }
 numargs=$#
 for ((i=1 ; i <= numargs ; i++))
 do
-    handle_parameter $1
-    shift
+    handle_parameter ${@:$i:1}
 done

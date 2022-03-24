@@ -14,11 +14,12 @@ if [ $# -lt 2 ]; then
     echo "--FROM_DATABASE_NAME=..."
     echo "--FROM_DATABASE_USERNAME=..."
     echo "--FROM_DATABASE_PASSWORD=..."
-    echo "--FROM_CONFIG_FILE=..."
+    echo "--CONFIG_FILE=..."
     echo "--TO_USER=..."
     echo "--TO_DATABASE_NAME=..."
     echo "--TO_DATABASE_USERNAME=..."
     echo "--TO_DATABASE_PASSWORD=..."
+    echo "--SITE_SUBFOLDER=..."
     exit 1
 fi
 
@@ -50,6 +51,9 @@ TO_DATABASE_NAME=''
 TO_DATABASE_USERNAME=''
 TO_DATABASE_PASSWORD=''
 DATABASE_SUFIX='_migrated'
+SITE_SUBFOLDER=''
+SEARCH_FOR_CONFIGS_DATABASE_NAME=''
+SEARCH_FOR_CONFIGS_DATABASE_USERNAME=''
 
 #----------------------------------------------------------#
 #                    Verifications                         #
@@ -61,7 +65,16 @@ is_domain_format_valid "$TO_DOMAIN"
 
 FROM_USER=$user
 
-r=$(/usr/local/vesta/bin/v-get-database-credentials-of-domain "$FROM_DOMAIN")
+# take --parameters
+source /usr/local/vesta/func/handle_parameters.sh
+
+if [ -z "$SITE_SUBFOLDER" ]; then
+    r=$(/usr/local/vesta/bin/v-get-database-credentials-of-domain "$FROM_DOMAIN")
+else
+    r=$(/usr/local/vesta/bin/v-get-database-credentials-of-domain "$FROM_DOMAIN" "$SITE_SUBFOLDER")
+fi
+#echo $r
+#exit
 eval $r
 
 # take --parameters
@@ -155,6 +168,9 @@ CHECK_PUBLIC_SHTML=$(/usr/local/vesta/bin/v-list-web-domain "$TO_USER" "$TO_DOMA
 if [ $CHECK_PUBLIC_SHTML -eq 1 ]; then
     TO_FOLDER="/home/$TO_USER/web/$TO_DOMAIN/public_shtml"
 fi
+if [ ! -z "$SITE_SUBFOLDER" ]; then
+    TO_FOLDER="$TO_FOLDER/$SITE_SUBFOLDER"
+fi
 
 TO_CONFIG_FILE_FULL_PATH="$TO_FOLDER/$FROM_CONFIG_FILE"
 
@@ -218,6 +234,12 @@ if [ $FROM_DOMAIN_HAS_SSL -eq 1 ] && [ $TO_DOMAIN_HAS_SSL -eq 0 ]; then
     SHOULD_INSTALL_SSL=1
 fi
 
+FROM_FPM_VER=""
+if [[ $FROM_DOMAIN_TPL == "PHP-FPM-"* ]]; then
+    FROM_FPM_TPL_VER=${FROM_DOMAIN_TPL:8:2}
+    FROM_FPM_VER="${FROM_DOMAIN_TPL:8:1}.${FROM_DOMAIN_TPL:9:1}"
+fi
+
 # ----------- CHECK -------------
 
 if [ $IT_IS_WP -eq 0 ]; then
@@ -240,13 +262,16 @@ fi
 # ----------- PRINT -------------
 
 echo "==============================================================================="
-echo "FROM_DOMAIN = $FROM_DOMAIN"
-echo "TO_DOMAIN   = $TO_DOMAIN"
-echo "FROM_USER = $FROM_USER"
-echo "TO_USER   = $TO_USER"
-echo "FROM_FOLDER = $FROM_FOLDER"
-echo "TO_FOLDER   = $TO_FOLDER"
-echo "IT_IS_WP = $IT_IS_WP"
+echo "FROM_DOMAIN    = $FROM_DOMAIN"
+echo "TO_DOMAIN      = $TO_DOMAIN"
+echo "FROM_USER      = $FROM_USER"
+echo "TO_USER        = $TO_USER"
+echo "SITE_SUBFOLDER = $SITE_SUBFOLDER"
+echo "FROM_FOLDER    = $FROM_FOLDER"
+echo "TO_FOLDER      = $TO_FOLDER"
+echo "CMS_TYPE       = $CMS_TYPE"
+echo "IT_IS_WP       = $IT_IS_WP"
+echo "CONFIG_FILE    = $CONFIG_FILE"
 echo "FROM_CONFIG_FILE_FULL_PATH = $FROM_CONFIG_FILE_FULL_PATH"
 echo "TO_CONFIG_FILE_FULL_PATH   = $TO_CONFIG_FILE_FULL_PATH"
 echo "FROM_DATABASE_NAME = $FROM_DATABASE_NAME"
@@ -264,8 +289,11 @@ echo "CREATE_TO_USER        = $CREATE_TO_USER"
 echo "CREATE_TO_DOMAIN      = $CREATE_TO_DOMAIN"
 echo "SHOULD_INSTALL_SSL    = $SHOULD_INSTALL_SSL"
 echo "FROM_DOMAIN_TPL       = $FROM_DOMAIN_TPL"
+echo "FROM_FPM_VER          = $FROM_FPM_VER"
 echo "FROM_DOMAIN_PROXY_TPL = $FROM_DOMAIN_PROXY_TPL"
 echo "FROM_DOMAIN_PROXY_EXT = $FROM_DOMAIN_PROXY_EXT"
+echo "SEARCH_FOR_CONFIGS_DATABASE_NAME     = $SEARCH_FOR_CONFIGS_DATABASE_NAME"
+echo "SEARCH_FOR_CONFIGS_DATABASE_USERNAME = $SEARCH_FOR_CONFIGS_DATABASE_USERNAME"
 echo "==============================================================================="
 read -p "=== Press Enter to continue ==="
 
@@ -297,6 +325,15 @@ if [ ! -z "$FROM_DOMAIN_TPL" ]; then
     echo "=== Set $FROM_DOMAIN_TPL template to domain $TO_DOMAIN"
     /usr/local/vesta/bin/v-change-web-domain-tpl "$TO_USER" "$TO_DOMAIN" "$FROM_DOMAIN_TPL" "yes"
 fi
+if [ "$SITE_SUBFOLDER" = ".." ]; then
+    if [ ! -z "$FROM_FPM_VER" ]; then
+        POOLD_FILE="/etc/php/$FROM_FPM_VER/fpm/pool.d/$TO_DOMAIN.conf"
+        echo "=== Removing public_html from open_basedir in $POOLD_FILE"
+        sed -i "s|/public_html:|:|g" $POOLD_FILE
+        sed -i "s|/public_shtml:|:|g" $POOLD_FILE
+        systemctl restart php${FROM_FPM_VER}-fpm
+    fi
+fi
 
 if [ ! -z "$FROM_DOMAIN_PROXY_TPL" ]; then
     echo "=== Set $FROM_DOMAIN_PROXY_TPL proxy template to domain $TO_DOMAIN"
@@ -320,7 +357,13 @@ echo "=== Importing to database $TO_DATABASE_NAME"
 mysql $TO_DATABASE_NAME < $FROM_DATABASE_NAME.sql
 
 echo "=== Copying files from $FROM_FOLDER to folder $TO_FOLDER"
-rsync -a --delete $FROM_FOLDER/ $TO_FOLDER/
+if [ "$SITE_SUBFOLDER" != ".." ]; then
+    echo "====== Executing: rsync -a --delete $FROM_FOLDER/ $TO_FOLDER/"
+    rsync -a --delete $FROM_FOLDER/ $TO_FOLDER/
+else
+    echo "====== Executing: rsync -a --delete --exclude 'logs/*' $FROM_FOLDER/ $TO_FOLDER/"
+    rsync -a --delete --exclude 'logs/*' $FROM_FOLDER/ $TO_FOLDER/
+fi
 echo "=== Chowning to $TO_USER:$TO_USER in folder $TO_FOLDER"
 chown -R $TO_USER:$TO_USER $TO_FOLDER
 
@@ -328,12 +371,26 @@ replace_php_config_value "${FROM_DATABASE_NAME}" "${TO_DATABASE_NAME}" "$TO_CONF
 replace_php_config_value "${FROM_DATABASE_USERNAME}" "${TO_DATABASE_USERNAME}" "$TO_CONFIG_FILE_FULL_PATH" "yes"
 replace_php_config_value "${FROM_DATABASE_PASSWORD}" "${TO_DATABASE_PASSWORD}" "$TO_CONFIG_FILE_FULL_PATH" "yes"
 
-echo "=== Replacing $FROM_DOMAIN to $TO_DOMAIN in folder $TO_FOLDER"
+echo "=== Replacing $FROM_DOMAIN to $TO_DOMAIN by searching in folder $TO_FOLDER"
 REGEXP_FROM_DOMAIN="${FROM_DOMAIN//\./\\.}"
 grep -rl "$REGEXP_FROM_DOMAIN" $TO_FOLDER | xargs sed -i "s#$REGEXP_FROM_DOMAIN#$TO_DOMAIN#g"
 if [ "$FROM_USER" != "$TO_USER" ]; then
-    echo "=== Replacing /home/$FROM_USER/ to /home/$TO_USER/ in folder $TO_FOLDER"
+    echo "=== Replacing /home/$FROM_USER/ to /home/$TO_USER/ by searching in folder $TO_FOLDER"
     grep -rl "/home/$FROM_USER/" $TO_FOLDER | xargs sed -i "s#/home/$FROM_USER/#/home/$TO_USER/#g"
+fi
+if [ ! -z "$SEARCH_FOR_CONFIGS_DATABASE_NAME" ]; then
+    echo "=== Replacing ${FROM_DATABASE_NAME} to ${TO_DATABASE_NAME} by searching in folder $TO_FOLDER [SEARCH_FOR_CONFIGS_DATABASE_NAME]"
+    grep -rl "${FROM_DATABASE_NAME}" $TO_FOLDER | xargs sed -i "s#${FROM_DATABASE_NAME}#${TO_DATABASE_NAME}#g"
+fi
+if [ ! -z "$SEARCH_FOR_CONFIGS_DATABASE_USERNAME" ]; then
+    DO_SEARCH_FOR_CONFIGS_DATABASE_USERNAME=1;
+    if [ ! -z "$SEARCH_FOR_CONFIGS_DATABASE_NAME" ] && [ "$SEARCH_FOR_CONFIGS_DATABASE_NAME" = "$SEARCH_FOR_CONFIGS_DATABASE_USERNAME" ]; then
+        DO_SEARCH_FOR_CONFIGS_DATABASE_USERNAME=0
+    fi
+    if [ $DO_SEARCH_FOR_CONFIGS_DATABASE_USERNAME -eq 1 ]; then
+        echo "=== Replacing ${FROM_DATABASE_USERNAME} to ${TO_DATABASE_USERNAME} by searching in folder $TO_FOLDER [SEARCH_FOR_CONFIGS_DATABASE_USERNAME]"
+        grep -rl "${FROM_DATABASE_USERNAME}" $TO_FOLDER | xargs sed -i "s#${FROM_DATABASE_USERNAME}#${TO_DATABASE_USERNAME}#g"
+    fi
 fi
 
 if [ $IT_IS_WP -eq 0 ]; then

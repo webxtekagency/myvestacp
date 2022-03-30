@@ -33,7 +33,7 @@ server {
 
     location = /robots.txt  { access_log off; log_not_found off; }
     location = /favicon.ico { access_log off; log_not_found off; }
-    location ~ /\.          { access_log off; log_not_found off; deny all; }
+    location ~ /\.ht        { access_log off; log_not_found off; deny all; }
     location ~ ~$           { access_log off; log_not_found off; deny all; }
 
     error_page  403 /error/404.html;

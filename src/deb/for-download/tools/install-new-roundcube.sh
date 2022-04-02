@@ -10,7 +10,6 @@ LOGINMESSAGE1='Click here for NEW Webmail'
 LOGINMESSAGE2='(it is adapted for mobile phones too)'
 
 DATABASE_NAME_WITHOUT_PREFIX="roundcube"
-DATABASE_NAME="${USER}_roundcube"
 
 #############################################################################################################################
 
@@ -20,6 +19,8 @@ fi
 if [ $# -gt 1 ]; then
     DOMAIN=$2
 fi
+
+DATABASE_NAME="${USER}_roundcube"
 
 if [ -z "$USER" ] || [ -z "$DOMAIN" ]; then
     echo "Usage:"

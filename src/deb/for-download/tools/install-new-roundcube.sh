@@ -20,7 +20,7 @@ if [ $# -gt 1 ]; then
     DOMAIN=$2
 fi
 
-DATABASE_NAME="${USER}_roundcube"
+DATABASE_NAME="${USER}_${DATABASE_NAME_WITHOUT_PREFIX}"
 
 if [ -z "$USER" ] || [ -z "$DOMAIN" ]; then
     echo "Usage:"

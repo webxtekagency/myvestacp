@@ -1,3 +1,9 @@
+Version 0.9.8-26-55 [26-Apr-2022]
+==================================================
+* Support for MySQL 8
+* Preventing brute-force resetting password
+* Many minor bugfixes
+
 Version 0.9.8-26-54 [17-Dec-2021]
 ==================================================
 * Checking if FreshClam is started after installation

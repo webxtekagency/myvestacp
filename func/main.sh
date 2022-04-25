@@ -152,7 +152,7 @@ generate_password() {
         matrix=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
     fi
     if [ -z "$lenght" ]; then
-        lenght=10
+        lenght=16
     fi
     i=1
     while [ $i -le $lenght ]; do

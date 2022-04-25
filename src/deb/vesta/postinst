@@ -25,6 +25,12 @@ fi
 echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+
+# Making sure yescrypt is disabled
+if [ "$release" -eq 11 ]; then
+    sed -i "s/yescrypt/sha512/g" /etc/pam.d/common-password
+fi
+
 # Checking if FreshClam is started after installation
 if [ ! -f "/usr/local/vesta/data/upgrades/freshclam_start" ]; then
     clamavup=$(/usr/local/vesta/bin/v-list-sys-services | grep 'clamav-daemon' | grep -c 'running')

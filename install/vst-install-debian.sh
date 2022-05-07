@@ -1610,7 +1610,7 @@ fi
 # Vesta data sessions permissions
 chown admin:admin $VESTA/data/sessions
 
-echo "== Configuring system ips"
+echo "== Configuring system ips (this can take a few minutes, relax)"
 $VESTA/bin/v-update-sys-ip
 
 echo "== Get main ip"

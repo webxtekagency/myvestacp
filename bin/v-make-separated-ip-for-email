@@ -137,18 +137,41 @@ $VESTA/bin/v-make-ip-ssl "$MAIL_USER" "$MAIL_HOSTNAME"
 check_grep=$(grep -c 'smtp_active_hostname' /etc/exim4/exim4.conf.template)
 if [ "$check_grep" -eq 0 ]; then
     echo "=== patching exim4.conf.template"
-    patch /etc/exim4/exim4.conf.template < /usr/local/vesta/src/deb/for-download/tools/patches/separate-mail-ip.patch
+    mv /etc/exim4/exim4.conf.template /etc/exim4/exim4.conf.template-backup
+    cp /usr/local/vesta/install/debian/11/exim/exim4.conf.template-RC /etc/exim4/exim4.conf.template
+    sed -i "s|FIRSTIP|$HOST_IP|g" /etc/exim4/exim4.conf.template
+    sed -i "s|SECONDIP|$MAIL_IP|g" /etc/exim4/exim4.conf.template
+    sed -i "s|FIRSTHOST|$HOSTNAME|g" /etc/exim4/exim4.conf.template
+    sed -i "s|SECONDHOST|$MAIL_HOSTNAME|g" /etc/exim4/exim4.conf.template
+    sed -i "s|#local_interfaces|local_interfaces|g" /etc/exim4/exim4.conf.template
+    sed -i "s|#smtp_active_hostname|smtp_active_hostname|g" /etc/exim4/exim4.conf.template
+    sed -i "s|#smtp_banner|smtp_banner|g" /etc/exim4/exim4.conf.template
+    sed -i "s|#interface =|interface =|g" /etc/exim4/exim4.conf.template
+    sed -i "s|#helo_data =|helo_data =|g" /etc/exim4/exim4.conf.template
+    touch /etc/exim4/limit_per_email_account_max_sent_emails_per_hour
+    touch /etc/exim4/limit_per_email_account_max_recipients
+    touch /etc/exim4/limit_per_hosting_account_max_sent_emails_per_hour
+    touch /etc/exim4/limit_per_hosting_account_max_recipients
+    check_grep=$(grep -c '#SPAMASSASSIN' /etc/exim4/exim4.conf.template-backup)
+    if [ "$check_grep" -eq 0 ]; then
+        sed -i "s|#SPAMASSASSIN|SPAMASSASSIN|g" /etc/exim4/exim4.conf.template
+    fi
+    check_grep=$(grep -c '#SPAM_SCORE' /etc/exim4/exim4.conf.template-backup)
+    if [ "$check_grep" -eq 0 ]; then
+        sed -i "s|#SPAM_SCORE|SPAM_SCORE|g" /etc/exim4/exim4.conf.template
+    fi
+    check_grep=$(grep -c '#CLAMD' /etc/exim4/exim4.conf.template-backup)
+    if [ "$check_grep" -eq 0 ]; then
+        sed -i "s|#CLAMD|CLAMD|g" /etc/exim4/exim4.conf.template
+    fi
+    systemctl restart exim4
     if [ $? -ne 0 ]; then
+        cp /etc/exim4/exim4.conf.template-backup /etc/exim4/exim4.conf.template
+        systemctl restart exim4
         echo "=== Patching failed, aborting"
         exit 1
-    else
-        echo "=== Patching successful"
-        sed -i "s|IP1|$HOST_IP|g" /etc/exim4/exim4.conf.template
-        sed -i "s|IP2|$MAIL_IP|g" /etc/exim4/exim4.conf.template
-        sed -i "s|HOST1|$HOSTNAME|g" /etc/exim4/exim4.conf.template
-        sed -i "s|HOST2|$MAIL_HOSTNAME|g" /etc/exim4/exim4.conf.template
-        service exim4 restart
     fi
+    echo "=== Patching successful"
 else
     echo "=== exim4.conf.template already patched"
 fi

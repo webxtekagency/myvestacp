@@ -1207,6 +1207,14 @@ fi
 #----------------------------------------------------------#
 
 if [ "$mysql" = 'yes' ] || [ "$mysql8" = 'yes' ]; then
+
+    if [ "$mysql" = 'yes' ]; then
+        touch $VESTA/conf/mariadb_installed
+    fi
+    if [ "$mysql8" = 'yes' ]; then
+        touch $VESTA/conf/mysql8_installed
+    fi
+
     if [ "$mysql" = 'yes' ]; then
         echo "=== Configure MariaDB"
         mycnf="my-small.cnf"

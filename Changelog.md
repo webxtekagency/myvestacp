@@ -1,3 +1,8 @@
+Version 0.9.8-26-57 [06-Jul-2022]
+==================================================
+* Fix for GMail SMTP timeouts on Debian11
+* [Security] Fix for Local Sed Injection Vulnerability ( credits to @cleemy-desu-wayo )
+
 Version 0.9.8-26-56 [28-May-2022]
 ==================================================
 * Adding Barracuda RBL to SpamAssassin
@@ -7,7 +12,7 @@ Version 0.9.8-26-56 [28-May-2022]
 Version 0.9.8-26-55 [26-Apr-2022]
 ==================================================
 * Support for MySQL 8
-* Preventing brute-force resetting password  (thanks to HestiaCP @hestiacp for fix)
+* [Security] Preventing brute-force resetting password  (thanks to HestiaCP @hestiacp for fix)
 * Many minor bugfixes
 
 Version 0.9.8-26-54 [17-Dec-2021]

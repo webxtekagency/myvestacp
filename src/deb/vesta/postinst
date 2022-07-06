@@ -31,6 +31,24 @@ if [ "$release" -eq 11 ]; then
     sed -i "s/yescrypt/sha512/g" /etc/pam.d/common-password
 fi
 
+# Fixing Gmail hosts_try_fastopen in Exim4
+if [ "$release" -eq 11 ]; then
+	if [ -f "/etc/exim4/exim4.conf.template" ]; then 
+		check_grep=$(grep -c 'hosts_try_fastopen' /etc/exim4/exim4.conf.template)
+		if [ "$check_grep" -eq 0 ]; then
+					echo "=== Fixing Gmail hosts_try_fastopen in Exim4"
+					FIND="dkim_strict = 0"
+					ADD="  hosts_try_fastopen = \!\*.l.google.com"
+					sed -i "s#$FIND#$FIND\n$ADD#g" /etc/exim4/exim4.conf.template
+					systemctl restart exim4
+					
+					sed -i "s/net.ipv4.tcp_window_scaling/#net.ipv4.tcp_window_scaling/g" /etc/sysctl.conf
+					echo 1 > /proc/sys/net/ipv4/tcp_window_scaling
+		fi
+	fi
+fi
+
+
 # Adding Barracuda RBL to SpamAssassin
 if [ ! -f "/usr/local/vesta/data/upgrades/barracuda_rbl" ]; then
     spamassassin_installed=$(/usr/local/vesta/bin/v-list-sys-services | grep -c 'spamassassin')

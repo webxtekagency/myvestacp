@@ -25,7 +25,7 @@ if ($_GET['type'] == 'error') $type = 'error';
 
 
 $cmd = implode(" ", array(
-    escapeshellarg(VESTA_CMD . "v-list-web-domain-" . $type . "log"),
+    VESTA_CMD . "v-list-web-domain-" . $type . "log",
     escapeshellarg($user),
     escapeshellarg($v_domain),
     "5000",

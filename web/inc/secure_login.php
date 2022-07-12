@@ -63,7 +63,8 @@ function prevent_post_csrf ($hard_check=false) {
             if (isset($_SERVER['HTTP_ORIGIN']) == false) $_SERVER['HTTP_ORIGIN'] = '';
         }
         $_SERVER['HTTP_HOST'] = strtolower($_SERVER['HTTP_HOST']);
-        $_SERVER['HTTP_ORIGIN'] = strtolower($_SERVER['HTTP_ORIGIN']);
+        if (isset($_SERVER['HTTP_ORIGIN'])) $_SERVER['HTTP_ORIGIN'] = strtolower($_SERVER['HTTP_ORIGIN']);
+        else $_SERVER['HTTP_ORIGIN']='';
         if ($hard_check == false) {
             if (substr($_SERVER['HTTP_ORIGIN'], 0, 8) != "file:///" && substr($_SERVER['HTTP_ORIGIN'], 0, 7) != "http://" && substr($_SERVER['HTTP_ORIGIN'], 0, 8) != "https://") return;
         }

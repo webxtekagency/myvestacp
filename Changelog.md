@@ -1,6 +1,7 @@
 Version 0.9.8-26-58 [12-Jul-2022]
 ==================================================
 * [Security] hash_equals() in /reset/mail/ (credits to @divinity76 )
+* Avoid out-of-memory while downloading large log files from panel (credits to @divinity76 )
 * Fix for an boring PHP Notice in vesta-php
 
 Version 0.9.8-26-57 [06-Jul-2022]

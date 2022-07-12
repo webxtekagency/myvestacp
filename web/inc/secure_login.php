@@ -91,7 +91,8 @@ function prevent_get_csrf () {
     if (isset($_SERVER['SERVER_PORT']) == false) return;
     if (isset($_SERVER['HTTP_REFERER']) == false) return;
     $_SERVER['HTTP_HOST'] = strtolower($_SERVER['HTTP_HOST']);
-    $_SERVER['HTTP_ORIGIN'] = strtolower($_SERVER['HTTP_ORIGIN']);
+    if (isset($_SERVER['HTTP_ORIGIN'])) $_SERVER['HTTP_ORIGIN'] = strtolower($_SERVER['HTTP_ORIGIN']);
+    else $_SERVER['HTTP_ORIGIN']='';
     if (substr($_SERVER['HTTP_REFERER'], 0, 8) != "file:///" && substr($_SERVER['HTTP_REFERER'], 0, 7) != "http://" && substr($_SERVER['HTTP_REFERER'], 0, 8) != "https://") return;
     $host_arr = explode(":", $_SERVER['HTTP_HOST']);
     $hostname = $host_arr[0];

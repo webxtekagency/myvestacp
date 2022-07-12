@@ -10,8 +10,6 @@ if ((!isset($_GET['token'])) || ($_SESSION['token'] != $_GET['token'])) {
     exit();
 }
 
-$v_domain = $_GET['domain'];
-$v_domain = escapeshellarg($_GET['domain']);
 if ($_GET['type'] == 'access') $type = 'access';
 if ($_GET['type'] == 'error') $type = 'error';
 
@@ -21,7 +19,7 @@ header("Content-Disposition: attachment; filename=".$_GET['domain'].".".$type."-
 header("Content-Type: application/octet-stream; "); 
 header("Content-Transfer-Encoding: binary");
 
-$v_domain = escapeshellarg($_GET['domain']);
+$v_domain = $_GET['domain'];
 if ($_GET['type'] == 'access') $type = 'access';
 if ($_GET['type'] == 'error') $type = 'error';
 

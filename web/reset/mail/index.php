@@ -149,7 +149,7 @@ if ((!empty($_POST['email'])) && (!empty($_POST['password'])) && (!empty($_POST[
         $n_hash = '{MD5}'.$n_hash;
 
         // Change password
-        if ( $v_hash == $n_hash ) {
+        if ( hash_equals($v_hash, $n_hash ) ) {
             $v_new_password = tempnam("/tmp","vst");
             $fp = fopen($v_new_password, "w");
             fwrite($fp, $_POST['new']."\n");

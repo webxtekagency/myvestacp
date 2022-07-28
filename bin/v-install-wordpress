@@ -51,7 +51,7 @@ if [ -z "$database" ]; then
     database="wp"
 fi
 
-if [ -z "$emil" ]; then
+if [ -z "$email" ]; then
     email="info@$domain";
 fi
 

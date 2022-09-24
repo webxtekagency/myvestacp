@@ -29,6 +29,7 @@ find /home/*/web/*/public_html/wp-content/envato-backups/ -type f -not -name ".h
 find /home/*/web/*/public_html/wp-content/ai1wm-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
 find /home/*/web/*/public_html/wp-content/wpvividbackups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
 find /home/*/web/*/public_html/wp-content/updraft/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+find /home/*/web/*/public_html/ -type f -name "*.wpress" -delete
 find /home/*/web/*/public_html/ -type f -name "error_log" -exec truncate -s 0 {} \;
 find /home/*/web/*/public_html/ -type f -name "error_log.txt" -exec truncate -s 0 {} \;
 find /home/ -type f -name "*.log" -exec truncate -s 0 {} \;

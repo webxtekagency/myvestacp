@@ -200,6 +200,7 @@ for auth in $authz; do
             echo "[$(date)] : EXIT=DNS _acme-challenge record wasn't created" >> /usr/local/vesta/log/letsencrypt.log
         fi
         check_result $exitstatus "DNS _acme-challenge record wasn't created"
+        $BIN/v-restart-dns
     else
         if [ "$WEB_SYSTEM" = 'nginx' ] || [ ! -z "$PROXY_SYSTEM" ]; then
             if [ -f "/usr/local/vesta/web/inc/nginx_proxy" ]; then

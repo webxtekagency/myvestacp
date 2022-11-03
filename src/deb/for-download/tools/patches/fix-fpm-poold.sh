@@ -28,7 +28,7 @@ if [ -d "/etc/php" ]; then
 
     OLDVAL='php_admin_value\[max_execution_time\] = 30'
     NEWVAL='php_admin_value\[max_execution_time\] = 300'
-    find /etc/php/*/fpm/pool.d/ -name "*.conf" -type f -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL|$NEWVAL|g"
+    find /etc/php/*/fpm/pool.d/ -name "*.conf" -type f -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL$|$NEWVAL|g"
     find /usr/local/vesta/data/templates/web/apache2/ -type f -name "*.sh" -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL|$NEWVAL|g"
 
     systemctl --full --type service --all | grep "php...-fpm" | awk '{print $1}' | xargs systemctl restart

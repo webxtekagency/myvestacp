@@ -34,7 +34,7 @@ if [ -d "/etc/php" ]; then
     systemctl --full --type service --all | grep "php...-fpm" | awk '{print $1}' | xargs systemctl restart
 fi
 
-if [ -f "/etc/apache2/mods-enabled/mpm_event.conf"]; then
+if [ -f "/etc/apache2/mods-enabled/mpm_event.conf" ]; then
     sed -i "s#MaxRequestWorkers.*#MaxRequestWorkers        600#g" /etc/apache2/mods-enabled/mpm_event.conf
     systemctl restart apache2
 fi

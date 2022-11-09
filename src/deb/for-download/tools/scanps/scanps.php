@@ -1,10 +1,12 @@
 <?php
 
-/*
-The script is checking if MySQL/MariaDB server process is up.
-If it's not, it assumes that it was killed by Kernel OOM Killer, and reboots the server, in order to bring the back server to a normal state.
-It can detect 'apt upgrade' process and avoid a reboot.
-*/
+// The script is checking if MySQL/MariaDB server process is up.
+// If it's not, it assumes that it was killed by Kernel OOM Killer, and reboots the server, in order to bring the back server to a normal state.
+// It can detect 'apt upgrade' process and avoid a reboot.
+
+// You can put this script in cronjob every 5 minutes:
+// Run 'crontab -e' and add the following:
+// */5 * * * * php /home/scanps.php > /dev/null 2>&1
 
 function my_exec($command) {
     $out=array();
@@ -37,21 +39,21 @@ if ($v1==false && $v2==false) {
     echo "- reboot\n";
     $buffer="- reboot\n".$list;
     $sufix="_".time();
-    $fp = fopen('/home/cron'.$sufix.'.log', 'w');
+    $fp = fopen('/var/log/scanps_cron'.$sufix.'.log', 'w');
     fwrite($fp, $buffer);
     fclose($fp);
     $out=array();
     $ret_no=0;
     $uname_arr=posix_uname();
     $hostname=$uname_arr['nodename'];
-    $email=my_exec("/usr/local/vesta/bin/v-list-user 'admin' | grep 'EMAIL' | awk '{print $2}'");
+    $email=my_exec("export VESTA=/usr/local/vesta && /usr/local/vesta/bin/v-list-user 'admin' | grep 'EMAIL' | awk '{print $2}'");
     mail($email, 'VPS reboot - '.$hostname, $buffer, "From: ".$hostname." <admin@".$hostname.">");
     sleep(10);
     $ret = exec("sudo reboot", $out, $ret_no);
     exit;
 } else {
     echo "- mysql ok\n";
-    $fp = fopen('/home/cron.log', 'w');
+    $fp = fopen('/var/log/scanps_cron.log', 'w');
     fwrite($fp, "- mysql ok");
     fclose($fp);
     exit;

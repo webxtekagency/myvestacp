@@ -35,6 +35,6 @@ if [ -d "/etc/php" ]; then
 fi
 
 if [ -f "/etc/apache2/mods-enabled/mpm_event.conf" ]; then
-    sed -i "s#MaxRequestWorkers.*#MaxRequestWorkers        600#g" /etc/apache2/mods-enabled/mpm_event.conf
+    sed -i "s#MaxRequestWorkers.*#MaxRequestWorkers        400#g" /etc/apache2/mods-enabled/mpm_event.conf
     systemctl restart apache2
 fi

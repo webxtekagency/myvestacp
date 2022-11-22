@@ -36,6 +36,12 @@ for user in $($BIN/v-list-users plain |cut -f 1); do
         limit_check=1
         fail_counter=$(get_web_counter "$user" "$domain" 'LETSENCRYPT_FAIL_COUNT')
 
+        proxy_tpl=$(/usr/local/vesta/bin/v-list-web-domain "$user" "$domain" "shell" | grep 'PROXY:' | cut -d ' ' -f11-)
+        if [ "$proxy_tpl" = "forward" ]; then
+            echo "[$(date)] : $domain is using forward proxy, skipping" >> /usr/local/vesta/log/letsencrypt_cron.log
+            continue;
+        fi
+
         if [[ "$hostname" = "$domain" ]]; then
             if [[ "$fail_counter" -eq 7 ]]; then
                 limit_check=0

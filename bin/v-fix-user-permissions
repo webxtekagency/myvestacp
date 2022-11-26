@@ -36,9 +36,15 @@ is_object_valid 'user' 'USER' "$user"
 find /home/$user/conf/mail/ -type d -exec chown Debian-exim:mail {} \;
 find /home/$user/conf/mail/*/ -type f -exec chown Debian-exim:mail {} \;
 find /home/$user/conf/mail/*/ -name "passwd" -type f -exec chown dovecot:mail {} \;
+
 find /home/$user/mail/ -type d -exec chown $user:mail {} \;
 find /home/$user/mail/*/ -type d -exec chown $user:mail {} \;
 find /home/$user/mail/*/ -type f -exec chown $user:mail {} \;
+find /home/$user/mail/*/ -type d -exec chmod u+rwx {} \;
+find /home/$user/mail/*/ -type d -exec chmod g+rwx {} \;
+find /home/$user/mail/*/ -type f -exec chmod u+rw {} \;
+find /home/$user/mail/*/ -type f -exec chmod g+rw {} \;
+
 
 find /home/$user/conf/dns/ -type f -exec chown root:bind {} \;
 find /home/$user/conf/ -type d -exec chown root:root {} \;

@@ -43,8 +43,8 @@ if [ ! -d "$PARENTFOLDER" ]; then
     PUSER=$(stat -c '%U' "$PARENTFOLDER")
     PGROUP=$(stat -c '%G' "$PARENTFOLDER")
     echo "= Creating parent folder..."
-    mkdir -p $PARENTFOLDER
-    chown $PUSER:$PGROUP $PARENTFOLDER
+    mkdir -p "$PARENTFOLDER"
+    chown $PUSER:$PGROUP "$PARENTFOLDER"
 fi
 
 #----------------------------------------------------------#

@@ -45,6 +45,11 @@ if [ -d "$TOFOLDER" ]; then
     exit 1
 fi
 
+if [ -L "$TOFOLDER" ]; then
+    echo "Folder $TOFOLDER already exists (as symlink), aborting"
+    exit 1
+fi
+
 USER=$(stat -c '%U' "$FROMFOLDER")
 GROUP=$(stat -c '%G' "$FROMFOLDER")
 PARENTFOLDER=$(dirname "$TOFOLDER")

@@ -1633,7 +1633,7 @@ local_ip=$ip
 echo "== Writing '$ip $servername' to /etc/hosts"
 sed -i "/$servername/d" /etc/hosts
 subdomain=$(echo "$servername" | cut -d . -f-1)
-if [ "servername" != "$subdomain" ]; then
+if [ "$servername" != "$subdomain" ]; then
     echo "$ip $servername $subdomain" >> /etc/hosts
 else
     echo "$ip $servername" >> /etc/hosts

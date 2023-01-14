@@ -524,6 +524,8 @@ if ! [[ "$servername" =~ ^${mask1}${mask2}$ ]]; then
     fi
     echo "127.0.0.1 $servername" >> /etc/hosts
 fi
+echo "$servername" > /etc/hostname
+hostname $servername
 
 # Set email if it wasn't set
 if [ -z "$email" ]; then
@@ -1627,9 +1629,15 @@ echo "== Get main ip"
 ip=$(ip addr|grep 'inet '|grep global|head -n1|awk '{print $2}'|cut -f1 -d/)
 local_ip=$ip
 
+# Writing '$ip $servername' to /etc/hosts
 echo "== Writing '$ip $servername' to /etc/hosts"
 sed -i "/$servername/d" /etc/hosts
-echo "$ip $servername" >> /etc/hosts
+subdomain=$(echo "$servername" | cut -d . -f-1)
+if [ "servername" != "$subdomain" ]; then
+    echo "$ip $servername $subdomain" >> /etc/hosts
+else
+    echo "$ip $servername" >> /etc/hosts
+fi
 
 # Firewall configuration
 if [ "$iptables" = 'yes' ]; then

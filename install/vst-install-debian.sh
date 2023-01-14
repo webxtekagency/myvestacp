@@ -1627,6 +1627,10 @@ echo "== Get main ip"
 ip=$(ip addr|grep 'inet '|grep global|head -n1|awk '{print $2}'|cut -f1 -d/)
 local_ip=$ip
 
+echo "== Writing '$ip $servername' to /etc/hosts"
+sed -i "/$servername/d" /etc/hosts
+echo "$ip $servername" >> /etc/hosts
+
 # Firewall configuration
 if [ "$iptables" = 'yes' ]; then
     echo "== Firewall configuration"

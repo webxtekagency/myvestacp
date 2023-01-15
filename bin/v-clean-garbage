@@ -34,4 +34,15 @@ find /home/*/web/*/public_html/ -type f -name "error_log" -exec truncate -s 0 {}
 find /home/*/web/*/public_html/ -type f -name "error_log.txt" -exec truncate -s 0 {} \;
 find /home/ -type f -name "*.log" -exec truncate -s 0 {} \;
 
+fail2ban_running=$(/usr/local/vesta/bin/v-list-sys-services | grep 'fail2ban' | grep -c 'running')
+if [ $fail2ban_running -eq 1 ]; then
+    systemctl stop fail2ban
+fi
+if [ -f "/var/lib/fail2ban/fail2ban.sqlite3" ]; then
+    rm /var/lib/fail2ban/fail2ban.sqlite3
+fi
+if [ $fail2ban_running -eq 1 ]; then
+    systemctl start fail2ban
+fi
+
 echo "=== Garbage cleaned ==="

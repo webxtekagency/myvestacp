@@ -14,14 +14,6 @@ if [ "$whoami" != "root" ]; then
     exit 1
 fi
 
-# Argument definition
-domain=$1
-
-user=$(/usr/local/vesta/bin/v-search-domain-owner $domain)
-if [ -z "$user" ]; then
-    check_result $E_NOTEXIST "domain $domain doesn't exist"
-fi
-
 # Importing system environment
 source /etc/profile
 
@@ -29,6 +21,13 @@ source /etc/profile
 source /usr/local/vesta/func/main.sh
 source /usr/local/vesta/func/db.sh
 
+# Argument definition
+domain=$1
+
+user=$(/usr/local/vesta/bin/v-search-domain-owner $domain)
+if [ -z "$user" ]; then
+    check_result $E_NOTEXIST "domain $domain doesn't exist"
+fi
 
 if [[ $(is_package_full 'DATABASES') = *reached* ]]; then
         echo "Database limit is reached. Delete database or upgrade user package."

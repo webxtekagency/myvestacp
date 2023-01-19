@@ -1,6 +1,6 @@
 #!/bin/bash
 # info: WordPress installer in one command line
-# options: DOMAIN USER
+# options: DOMAIN
 #
 # Credits to Luka Paunović for wp-cli implememtation
 

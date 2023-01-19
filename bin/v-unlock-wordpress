@@ -49,7 +49,7 @@ fi
 #                       Action                             #
 #----------------------------------------------------------#
 
-cd /home/$user/web/$domain/public_html
+cd /home/$user/web/$domain
 
 # lock files
 chown -R $user:$user public_html/

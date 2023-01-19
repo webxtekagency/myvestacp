@@ -1,5 +1,5 @@
 #!/bin/bash
-# info: Unlock previously locked WordPress files if they were potentially infected (somewhere) by PHP malware, in order to stop further infection
+# info: Unlock previously locked WordPress files if they were potentially infected (somewhere) by PHP malware
 # options: DOMAIN
 
 #----------------------------------------------------------#

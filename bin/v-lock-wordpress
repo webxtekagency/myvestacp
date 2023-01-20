@@ -15,13 +15,15 @@ fi
 # Importing system environment
 source /etc/profile
 
-# Includes
-source /usr/local/vesta/func/main.sh
-
 # Argument definition
 domain=$1
 
 user=$(/usr/local/vesta/bin/v-search-domain-owner $domain)
+USER=$user
+
+# Includes
+source /usr/local/vesta/func/main.sh
+
 if [ -z "$user" ]; then
     check_result $E_NOTEXIST "domain $domain doesn't exist"
 fi

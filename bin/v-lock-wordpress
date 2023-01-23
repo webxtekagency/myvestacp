@@ -68,6 +68,10 @@ cd /home/$user/web/$domain
 # lock files
 chown -R www-data:www-data public_html/
 
+# set correct chmod just in case
+find public_html/ -type d -exec chmod 755 {} +
+find public_html/ -type f -exec chmod 644 {} +
+
 # unlock /wp-content/uploads/ for uploading
 if [ -d "/home/$user/web/$domain/public_html/wp-content/uploads" ]; then
     unlock_folder "public_html/wp-content/uploads"

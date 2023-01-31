@@ -3,6 +3,7 @@ Version 0.9.8-26-59 [01-Feb-2023]
 * Support for PHP 8.2
 * New script: v-move-folder-and-make-symlink
 * New script: v-lock-wordpress (to prevent PHP malware) and v-unlock-wordpress
+* v-install-wordpress: Installing WordPress to user_domain_com database instead of installing to user_wp database
 * Many minor bugfixes
 
 Version 0.9.8-26-58 [12-Jul-2022]

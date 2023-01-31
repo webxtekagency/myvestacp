@@ -39,5 +39,4 @@ server {
     disable_symlinks if_not_owner from=%docroot%;
 
     include %home%/%user%/conf/web/snginx.%domain%.conf*;
-    include rocket-nginx/conf.d/default.conf;
 }

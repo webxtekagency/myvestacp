@@ -12,6 +12,7 @@ inst_73=0
 inst_74=0
 inst_80=0
 inst_81=0
+inst_82=0
 
 #######################################################################
 
@@ -52,8 +53,11 @@ fi
 if [ $# -gt 8 ]; then
     inst_81=$9
 fi
+if [ $# -gt 9 ]; then
+    inst_82=$10
+fi
 
-if [ $inst_56 -eq 1 ] || [ $inst_70 -eq 1 ] || [ $inst_71 -eq 1 ] || [ $inst_72 -eq 1 ] || [ $inst_73 -eq 1 ] || [ $inst_74 -eq 1 ] || [ $inst_80 -eq 1 ] || [ $inst_81 -eq 1 ]; then
+if [ $inst_56 -eq 1 ] || [ $inst_70 -eq 1 ] || [ $inst_71 -eq 1 ] || [ $inst_72 -eq 1 ] || [ $inst_73 -eq 1 ] || [ $inst_74 -eq 1 ] || [ $inst_80 -eq 1 ] || [ $inst_81 -eq 1 ] || [ $inst_82 -eq 1 ]; then
     inst_repo=1
 fi
 
@@ -82,6 +86,7 @@ echo "inst_73=$inst_73"
 echo "inst_74=$inst_74"
 echo "inst_80=$inst_80"
 echo "inst_81=$inst_81"
+echo "inst_82=$inst_82"
 echo "wait_to_press_enter=$wait_to_press_enter"
 
 press_enter "=== Press enter to continue ==============================================================================="
@@ -115,7 +120,7 @@ service apache2 restart
 
 if [ "$inst_56" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 5.6 ==============================================================================="
-    apt -y install php5.6-mbstring php5.6-bcmath php5.6-cli php5.6-curl php5.6-fpm php5.6-gd php5.6-intl php5.6-mcrypt php5.6-mysql php5.6-soap php5.6-xml php5.6-zip php5.6-memcache php5.6-memcached
+    apt -y install php5.6-mbstring php5.6-bcmath php5.6-cli php5.6-curl php5.6-fpm php5.6-gd php5.6-intl php5.6-mcrypt php5.6-mysql php5.6-soap php5.6-xml php5.6-zip php5.6-memcache php5.6-memcached php5.6-imagick
     update-rc.d php5.6-fpm defaults
     a2enconf php5.6-fpm
     systemctl restart apache2
@@ -134,7 +139,7 @@ fi
 
 if [ "$inst_70" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 7.0 ==============================================================================="
-    apt -y install php7.0-mbstring php7.0-bcmath php7.0-cli php7.0-curl php7.0-fpm php7.0-gd php7.0-intl php7.0-mcrypt php7.0-mysql php7.0-soap php7.0-xml php7.0-zip php7.0-memcache php7.0-memcached
+    apt -y install php7.0-mbstring php7.0-bcmath php7.0-cli php7.0-curl php7.0-fpm php7.0-gd php7.0-intl php7.0-mcrypt php7.0-mysql php7.0-soap php7.0-xml php7.0-zip php7.0-memcache php7.0-memcached php7.0-imagick
     update-rc.d php7.0-fpm defaults
     a2enconf php7.0-fpm
     systemctl restart apache2
@@ -158,7 +163,7 @@ fi
 
 if [ "$inst_71" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 7.1 ==============================================================================="
-    apt -y install php7.1-mbstring php7.1-bcmath php7.1-cli php7.1-curl php7.1-fpm php7.1-gd php7.1-intl php7.1-mcrypt php7.1-mysql php7.1-soap php7.1-xml php7.1-zip php7.1-memcache php7.1-memcached
+    apt -y install php7.1-mbstring php7.1-bcmath php7.1-cli php7.1-curl php7.1-fpm php7.1-gd php7.1-intl php7.1-mcrypt php7.1-mysql php7.1-soap php7.1-xml php7.1-zip php7.1-memcache php7.1-memcached php7.1-imagick
     update-rc.d php7.1-fpm defaults
     a2enconf php7.1-fpm
     systemctl restart apache2
@@ -182,7 +187,7 @@ fi
 
 if [ "$inst_72" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 7.2 ==============================================================================="
-    apt -y install php7.2-mbstring php7.2-bcmath php7.2-cli php7.2-curl php7.2-fpm php7.2-gd php7.2-intl php7.2-mysql php7.2-soap php7.2-xml php7.2-zip php7.2-memcache php7.2-memcached
+    apt -y install php7.2-mbstring php7.2-bcmath php7.2-cli php7.2-curl php7.2-fpm php7.2-gd php7.2-intl php7.2-mysql php7.2-soap php7.2-xml php7.2-zip php7.2-memcache php7.2-memcached php7.2-imagick
     update-rc.d php7.2-fpm defaults
     a2enconf php7.2-fpm
     systemctl restart apache2
@@ -206,7 +211,7 @@ fi
 
 if [ "$inst_73" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 7.3 ==============================================================================="
-    apt -y install php7.3-mbstring php7.3-bcmath php7.3-cli php7.3-curl php7.3-fpm php7.3-gd php7.3-intl php7.3-mysql php7.3-soap php7.3-xml php7.3-zip php7.3-memcache php7.3-memcached
+    apt -y install php7.3-mbstring php7.3-bcmath php7.3-cli php7.3-curl php7.3-fpm php7.3-gd php7.3-intl php7.3-mysql php7.3-soap php7.3-xml php7.3-zip php7.3-memcache php7.3-memcached php7.3-imagick
     update-rc.d php7.3-fpm defaults
     a2enconf php7.3-fpm
     systemctl restart apache2
@@ -231,7 +236,7 @@ fi
 
 if [ "$inst_74" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 7.4 ==============================================================================="
-    apt -y install php7.4-mbstring php7.4-bcmath php7.4-cli php7.4-curl php7.4-fpm php7.4-gd php7.4-intl php7.4-mysql php7.4-soap php7.4-xml php7.4-zip php7.4-memcache php7.4-memcached
+    apt -y install php7.4-mbstring php7.4-bcmath php7.4-cli php7.4-curl php7.4-fpm php7.4-gd php7.4-intl php7.4-mysql php7.4-soap php7.4-xml php7.4-zip php7.4-memcache php7.4-memcached php7.4-imagick
     update-rc.d php7.4-fpm defaults
     a2enconf php7.4-fpm
     apt-get -y remove libapache2-mod-php7.4
@@ -257,7 +262,7 @@ fi
 
 if [ "$inst_80" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 8.0 ==============================================================================="
-    apt -y install php8.0-mbstring php8.0-bcmath php8.0-cli php8.0-curl php8.0-fpm php8.0-gd php8.0-intl php8.0-mysql php8.0-soap php8.0-xml php8.0-zip php8.0-memcache php8.0-memcached
+    apt -y install php8.0-mbstring php8.0-bcmath php8.0-cli php8.0-curl php8.0-fpm php8.0-gd php8.0-intl php8.0-mysql php8.0-soap php8.0-xml php8.0-zip php8.0-memcache php8.0-memcached php8.0-imagick
     update-rc.d php8.0-fpm defaults
     a2enconf php8.0-fpm
     a2dismod php8.0
@@ -284,7 +289,7 @@ fi
 
 if [ "$inst_81" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 8.1 ==============================================================================="
-    apt -y install php8.1-mbstring php8.1-bcmath php8.1-cli php8.1-curl php8.1-fpm php8.1-gd php8.1-intl php8.1-mysql php8.1-soap php8.1-xml php8.1-zip php8.1-memcache php8.1-memcached
+    apt -y install php8.1-mbstring php8.1-bcmath php8.1-cli php8.1-curl php8.1-fpm php8.1-gd php8.1-intl php8.1-mysql php8.1-soap php8.1-xml php8.1-zip php8.1-memcache php8.1-memcached php8.1-imagick
     update-rc.d php8.1-fpm defaults
     a2enconf php8.1-fpm
     a2dismod php8.1
@@ -309,6 +314,33 @@ if [ "$inst_81" -eq 1 ]; then
     press_enter "=== PHP 8.1 installed, press enter to continue ==============================================================================="
 fi
 
+if [ "$inst_82" -eq 1 ]; then
+    press_enter "=== Press enter to install PHP 8.2 ==============================================================================="
+    apt -y install php8.2-mbstring php8.2-bcmath php8.2-cli php8.2-curl php8.2-fpm php8.2-gd php8.2-intl php8.2-mysql php8.2-soap php8.2-xml php8.2-zip php8.2-memcache php8.2-memcached php8.2-imagick
+    update-rc.d php8.2-fpm defaults
+    a2enconf php8.2-fpm
+    a2dismod php8.2
+    apt-get -y remove libapache2-mod-php8.2
+    systemctl restart apache2
+    cp -r /etc/php/8.2/ /root/vst_install_backups/php8.2/
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-82.stpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.stpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-82.tpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.tpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-82.sh -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-82-public.stpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82-public.stpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-82-public.tpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82-public.tpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-82-public.sh -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82-public.sh
+    chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh
+    chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82-public.sh
+    echo "=== Patching php.ini for php8.2"
+    wget -nv https://c.myvestacp.com/tools/patches/php8.1.patch -O /root/php8.1.patch
+    patch /etc/php/8.2/fpm/php.ini < /root/php8.1.patch
+    if [ $memory -gt 9999999 ]; then
+        sed -i "s|opcache.memory_consumption=512|opcache.memory_consumption=2048|g" /etc/php/8.2/fpm/php.ini
+    fi
+    service php8.2-fpm restart
+    press_enter "=== PHP 8.2 installed, press enter to continue ==============================================================================="
+fi
+
 
 apt update > /dev/null 2>&1
 apt upgrade -y > /dev/null 2>&1
@@ -324,6 +356,7 @@ if [ $debian_version -ge 10 ]; then
     a2dismod php7.4 > /dev/null 2>&1
     a2dismod php8.0 > /dev/null 2>&1
     a2dismod php8.1 > /dev/null 2>&1
+    a2dismod php8.2 > /dev/null 2>&1
     a2dismod mpm_prefork > /dev/null 2>&1
     a2enmod mpm_event > /dev/null 2>&1
     apt-get -y remove libapache2-mod-php* > /dev/null 2>&1

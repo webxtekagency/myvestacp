@@ -31,6 +31,11 @@ if [ "$release" -eq 11 ]; then
     sed -i "s/yescrypt/sha512/g" /etc/pam.d/common-password
 fi
 
+# Creating /etc/nginx/.htpasswd if it does not exist
+if [ ! -f "/etc/nginx/.htpasswd" ]; then
+    echo 'private:$apr1$0MYnchM5$yVi/OTfp7o3lGNst/a8.90' > /etc/nginx/.htpasswd
+fi
+
 # Fixing Gmail hosts_try_fastopen in Exim4
 if [ "$release" -eq 11 ]; then
 	if [ -f "/etc/exim4/exim4.conf.template" ]; then 

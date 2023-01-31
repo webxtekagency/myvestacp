@@ -5,5 +5,4 @@ server {
         rewrite ^(.*) https://%domain_idn%$1 permanent;
     }
 include %home%/%user%/conf/web/*nginx.%domain_idn%.conf_letsencrypt;
-include rocket-nginx/conf.d/default.conf;
 }

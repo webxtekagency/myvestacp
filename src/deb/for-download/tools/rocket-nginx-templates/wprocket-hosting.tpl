@@ -3,10 +3,13 @@ server {
     server_name %domain_idn% %alias_idn%;
     error_log  /var/log/%web_system%/domains/%domain%.error.log error;
 
+    root           %docroot%;
+    # Rocket-Nginx configuration
+    include rocket-nginx/conf.d/default.conf;
+
     location / {
         proxy_pass      http://%ip%:%web_port%;
         location ~* ^.+\.(%proxy_extentions%)$ {
-            root           %docroot%;
             access_log     /var/log/%web_system%/domains/%domain%.log combined;
             access_log     /var/log/%web_system%/domains/%domain%.bytes bytes;
             expires        max;
@@ -32,5 +35,4 @@ server {
     disable_symlinks if_not_owner from=%docroot%;
 
     include %home%/%user%/conf/web/nginx.%domain%.conf*;
-    include rocket-nginx/conf.d/default.conf;
 }

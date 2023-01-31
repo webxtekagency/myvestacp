@@ -1071,6 +1071,10 @@ if [ "$nginx" = 'yes' ]; then
     cp -f $vestacp/nginx/phppgadmin.inc /etc/nginx/conf.d/
     cp -f $vestacp/nginx/webmail.inc /etc/nginx/conf.d/
     cp -f $vestacp/logrotate/nginx /etc/logrotate.d/
+    
+    # default user/pass for private-hosting.tpl: private / folder
+    echo 'private:$apr1$0MYnchM5$yVi/OTfp7o3lGNst/a8.90' > /etc/nginx/.htpasswd
+    
     echo > /etc/nginx/conf.d/vesta.conf
     mkdir -p /var/log/nginx/domains
     #update-rc.d nginx defaults

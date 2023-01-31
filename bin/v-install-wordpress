@@ -49,7 +49,7 @@ is_object_unsuspended 'user' 'USER' "$user"
 source /usr/local/vesta/func/handle_parameters.sh
 
 if [ -z "$database" ]; then
-    database="wp"
+    database=$(echo "$domain" | sed 's#\.#_#g')
 fi
 
 if [ -z "$email" ]; then

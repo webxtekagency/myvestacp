@@ -67,7 +67,7 @@ fi
 #                       Action                             #
 #----------------------------------------------------------#
 
-# Chaning Proxy Template
+# Changing Proxy Template
 echo "Do you want to force-https in your Proxy Template or not (y/n):"
 read answer
 if [ "$answer" == "y" ]; then

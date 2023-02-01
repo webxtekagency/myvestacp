@@ -112,5 +112,7 @@ esac
 #                       Vesta                              #
 #----------------------------------------------------------#
 echo "Installation is completed."
+echo "Checking RESPONSE HEADERS (You should see x-rocket-nginx-serving-static if the WP Rocket plugin is activated):"
+curl -I https://$domain
 
 exit

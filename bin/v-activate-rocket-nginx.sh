@@ -49,6 +49,11 @@ if [ ! -d "/home/$user/web/$domain/public_html" ]; then
     exit 1;
 fi
 
+if [ ! -f "/home/$user/web/$domain/public_html/wp-config.php" ]; then
+    echo 'Please install WordPress first.'
+    exit 1;
+fi
+
 if [ ! -d "/etc/nginx/rocket-nginx" ]; then
     echo "rocket-nginx is not installed";
     echo "Do you want to install it now (y/n)?"
@@ -76,12 +81,6 @@ else
     /usr/local/vesta/bin/v-change-web-domain-proxy-tpl "$user" "$domain" "wprocket-hosting"
 fi
 echo "Proxy Template is ready"
-
-# Checking if the website is WordPress
-if [ ! -f "/home/$user/web/$domain/public_html/wp-config.php" ]; then
-    echo 'Please install WordPress first.'
-    exit 1;
-fi
 
 # Disabling wp-cron in wp-config.php
 echo "Disabling WP-Cron in your wp-config.php..."

@@ -201,6 +201,7 @@ $LANG['cn'] = array(
     'SSL Home Directory' => 'SSL主目录',
     'Lets Encrypt Support' => '采用 Let&#39s Encrypt',
     'Lets Encrypt' => 'Let&#39s Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => '证书将在5分钟内自动完成签发',
     'Proxy Support' => '反向代理',
     'Proxy Extensions' => '需代理的文件扩展名',

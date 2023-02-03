@@ -108,6 +108,8 @@ $LANG['ur'] = array(
     'reread IP'  => 'IP پھر سے پڑھنا',
     'enable autoupdate'  => 'آٹو اپ ڈیٹ کو چالو',
     'disable autoupdate'  => 'غیر فعال آٹو اپ ڈیٹ',
+    'turn on notifications' => 'turn on notifications',
+    'turn off notifications' => 'turn off notifications',
     'configure'  => 'ترتیب دے',
     
     'Adding User'   => 'شامل کرنے صارف',
@@ -194,6 +196,7 @@ $LANG['ur'] = array(
     'SSL Home Directory'   => 'SSL ہوم',
     'Lets Encrypt Support'   => 'ینکریپٹ سپورٹ کی اجازت دیتا ہے',
     'Lets Encrypt'   => 'ینکریپٹ کی اجازت دیتا ہے',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes'  => 'آپ کے سرٹیفکیٹ خود بخود 5 منٹ میں جاری کیا جائے گا',
     'Proxy Support'   => 'پراکسی سپورٹ',
     'Proxy Extensions'   => 'پراکسی ایکسٹنشن',
@@ -747,7 +750,7 @@ $LANG['ur'] = array(
     'Use server hostname'  => 'سرور استعمال میزبان نام',
     'Use domain hostname'  => 'ڈومین کا استعمال میزبان نام',
     'Use STARTTLS'  => 'STARTTLS استعمال',
-    'Use SSL'  => 'SSL استعمال کریں',
+    'Use SSL / TLS'  => 'SSL استعمال کریں',
     'No encryption'  => 'کوئی خفیہ کاری',
     'Do not use encryption'  => 'خفیہ کاری کا استعمال نہ کریں',
     

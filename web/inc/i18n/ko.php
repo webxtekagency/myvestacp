@@ -195,6 +195,7 @@ $LANG['ko'] = array(
     'SSL Home Directory'  => 'SSL 홈 디렉토리',
     'Lets Encrypt Support'  => 'Lets Encrypt 지원',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => '인증서는 5분 안에 자동으로 발급될 것입니다',
     'Proxy Support'  => '프록시 지원',
     'Proxy Extensions'  => '프록시 확장',

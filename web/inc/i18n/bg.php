@@ -40,6 +40,8 @@ $LANG['bg'] = array(
     'NETWORK'  => 'МРЕЖА',
     'Web Log Manager'  => 'МЕНИДЖЪР НА УЕБ ЛОГОВЕ',
 
+    'no notifications'  => 'no notifications',
+
     'Add User'  => 'Добави потребител',
     'Add Domain'  => 'Добави домейн',
     'Add Web Domain'  => 'Добави уеб домейн',
@@ -107,6 +109,7 @@ $LANG['bg'] = array(
     'disable autoupdate' => 'забрани автоматичното обновяване',
     'turn on notifications' => 'включи известията',
     'turn off notifications' => 'изключи известията',
+    'configure' => 'configure',
 
     'Adding User'  => 'Добавяне на потребител',
     'Editing User'  => 'Редактиране на потребител',
@@ -191,6 +194,8 @@ $LANG['bg'] = array(
     'SSL Home Directory'  => 'SSL начало',
     'Lets Encrypt Support'  => 'Lets Encrypt поддръжка',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
+    'Your certificate will be automatically issued in 5 minutes' => 'Your certificate will be automatically issued in 5 minutes',
     'Proxy Support'  => 'Прокси поддръжка',
     'Proxy Extensions'  => 'Прокси разширения',
     'Web Statistics'  => 'Уеб статистики',
@@ -688,7 +693,7 @@ $LANG['bg'] = array(
     'Select Bunch of Files' => 'Избери няколко файла',
     'Add File to the Current Selection' => 'Добави файла към текущата селекция',
     'Select All Files' => 'Избери всички файлове',
-    'shortcuts are inspired by magnificent GNU <a href="https://www.midnight-commander.org/">Midnight Commander</a> файлов мениджър' =>
+    'shortcuts are inspired by magnificent GNU <a href="https://www.midnight-commander.org/">Midnight Commander</a> file manager' =>
     'преките пътища са вдъхновени от великолепният GNU <a href="https://www.midnight-commander.org/">Midnight Commander</a> файлов мениджър',
     'Licence Key' => 'Лицензен ключ',
     'Enter License Key' => 'Въведете лицензен ключ',

@@ -197,6 +197,7 @@ $LANG['tw'] = array(
     'SSL Home Directory'  => 'SSL 主目錄',
     'Lets Encrypt Support'  => 'Lets Encrypt 支援',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => '您的憑證會在五分鐘內完成簽發',
     'Proxy Support'  => 'Proxy 支援',
     'Proxy Extensions'  => 'Proxy 副檔名',

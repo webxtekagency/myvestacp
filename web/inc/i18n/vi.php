@@ -198,6 +198,7 @@ $LANG['vi'] = array(
     'SSL Home Directory'  => 'Trang chủ SSL',
     'Lets Encrypt Support'  => 'Hỗ trợ Lets Encrypt',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => 'Chứng chỉ của bạn sẽ được tự động cấp phát trong 5 phút',
     'Proxy Support'  => 'Hỗ trợ Nginx',
     'Proxy Extensions'  => 'Phần mở rộng Nginx',

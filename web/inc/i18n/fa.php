@@ -190,6 +190,7 @@ $LANG['fa'] = array(
     'SSL Home Directory' => 'پوشه خانه SSL',
     'Lets Encrypt Support'  => 'پشتیبانی از Lets Encrypt',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => 'گواهینامه شما به صورت خودکار در طی 5 دقیقه صادر خواهد شد',
     'Proxy Support' => 'پشتیبانی پراکسی',
     'Proxy Extensions' => 'فرمت های پراکسی',

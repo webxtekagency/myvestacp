@@ -196,6 +196,7 @@ $LANG['id'] = array(
     'SSL Home Directory'  => 'Direktori Home SSL',
     'Lets Encrypt Support'  => 'Dukungan Lets Encrypt',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => 'Sertifikat anda akan otomatis diterbitkan dalam 5 menit',
     'Proxy Support'  => 'Dukungan Proxy',
     'Proxy Extensions'  => 'Ekstensi Proxy',

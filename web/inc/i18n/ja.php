@@ -195,6 +195,7 @@ $LANG['ja'] = array(
     'SSL Home Directory'  => 'SSLホームディレクトリ',
     'Lets Encrypt Support'  => "Let's Encryptのサポート",
     'Lets Encrypt'  => "Let's Encrypt",
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => '証明書は5分以内に自動的に発行されます',
     'Proxy Support'  => 'プロキシのサポート',
     'Proxy Extensions'  => 'プロキシ対象拡張子',

@@ -195,6 +195,7 @@ $LANG['ka'] = array(
     'SSL Home Directory'  => 'SSL მთავარი დირექტორია',
     'Lets Encrypt Support'  => 'Lets Encrypt Support',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => 'Your certificate will be automatically issued in 5 minutes',
     'Proxy Support'  => 'პროქსის მხარდაჭერა',
     'Proxy Extensions'  => 'პროქსის გაფართოებები',

@@ -196,6 +196,7 @@ $LANG['ar'] = array(
     'SSL Home Directory'  => 'المجلد الرئيسي لـ SSL',
     'Lets Encrypt Support'  => 'دعم Lets Encrypt',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => 'سوف يتم اصدار الترخيص الخاص بك خلال 5 دقائق',
     'Proxy Support'  => 'دغم بروكسي',
     'Proxy Extensions'  => 'توسعات بروكسي',

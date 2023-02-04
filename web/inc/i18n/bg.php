@@ -40,6 +40,8 @@ $LANG['bg'] = array(
     'NETWORK'  => 'МРЕЖА',
     'Web Log Manager'  => 'МЕНИДЖЪР НА УЕБ ЛОГОВЕ',
 
+    'no notifications'  => 'no notifications',
+
     'Add User'  => 'Добави потребител',
     'Add Domain'  => 'Добави домейн',
     'Add Web Domain'  => 'Добави уеб домейн',
@@ -107,6 +109,7 @@ $LANG['bg'] = array(
     'disable autoupdate' => 'забрани автоматичното обновяване',
     'turn on notifications' => 'включи известията',
     'turn off notifications' => 'изключи известията',
+    'configure' => 'configure',
 
     'Adding User'  => 'Добавяне на потребител',
     'Editing User'  => 'Редактиране на потребител',
@@ -191,6 +194,8 @@ $LANG['bg'] = array(
     'SSL Home Directory'  => 'SSL начало',
     'Lets Encrypt Support'  => 'Lets Encrypt поддръжка',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
+    'Your certificate will be automatically issued in 5 minutes' => 'Your certificate will be automatically issued in 5 minutes',
     'Proxy Support'  => 'Прокси поддръжка',
     'Proxy Extensions'  => 'Прокси разширения',
     'Web Statistics'  => 'Уеб статистики',
@@ -688,7 +693,7 @@ $LANG['bg'] = array(
     'Select Bunch of Files' => 'Избери няколко файла',
     'Add File to the Current Selection' => 'Добави файла към текущата селекция',
     'Select All Files' => 'Избери всички файлове',
-    'shortcuts are inspired by magnificent GNU <a href="https://www.midnight-commander.org/">Midnight Commander</a> файлов мениджър' =>
+    'shortcuts are inspired by magnificent GNU <a href="https://www.midnight-commander.org/">Midnight Commander</a> file manager' =>
     'преките пътища са вдъхновени от великолепният GNU <a href="https://www.midnight-commander.org/">Midnight Commander</a> файлов мениджър',
     'Licence Key' => 'Лицензен ключ',
     'Enter License Key' => 'Въведете лицензен ключ',
@@ -702,9 +707,6 @@ $LANG['bg'] = array(
     'This is a commercial module, you would need to purchace license key to enable it.' => 'Това е комерсиален модул, за чиито ползване е нужно да поръчате лицензионен ключ.',
     'Minutes' => 'Минути',
     'Hourly' => 'Всеки час',
-    'Daily' => 'Всеки ден ',
-    'Weekly' => 'Всяка седмица',
-    'Monthly' => 'Всеки месец',
     'Run Command' => 'Изпълни команда',
     'every month' => 'всеки месец',
     'every odd month' => 'всеки нечетен месец',

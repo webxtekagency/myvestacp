@@ -198,6 +198,7 @@ $LANG['nl'] = array(
     'SSL Home Directory'  => 'SSL Map',
     'Lets Encrypt Support'  => 'Lets Encrypt Ondersteuning',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => 'Het certificaat wordt automatisch aangemaakt in 5 minuten',
     'Proxy Support'  => 'Proxy Ondersteuning',
     'Proxy Extensions'  => 'Proxy Extensies',

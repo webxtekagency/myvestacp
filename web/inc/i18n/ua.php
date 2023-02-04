@@ -196,6 +196,7 @@ $LANG['ua'] = array(
     'SSL Home Directory' => 'Домашня тека SSL',
     'Lets Encrypt Support'  => 'Підтримка Lets Encrypt',
     'Lets Encrypt'  => 'Lets Encrypt',
+    'You can add LetsEncrypt after adding domain, just EDIT this domain later' => 'You can add LetsEncrypt after adding domain, just EDIT this domain later',
     'Your certificate will be automatically issued in 5 minutes' => 'Ваш сертифікат буде автоматично виданий протягом 5-ти хвилин',
     'Proxy Support' => 'Підтримка Proxy',
     'Proxy Extensions' => 'Розширення Proxy',

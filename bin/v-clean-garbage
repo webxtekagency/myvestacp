@@ -50,7 +50,7 @@ clean_home() {
     find $1/*/web/*/public_html/wp-content/ai1wm-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/wpvividbackups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/updraft/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
-    find $1/*/web/*/public_html/wp-content/ezpz-one-click-backup/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete > /dev/null 2>&1
+    find $1/*/web/*/public_html/wp-content/plugins/ezpz-one-click-backup/backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete > /dev/null 2>&1
     find $1/*/web/*/public_html/ -type f -name "*.wpress" -delete
     nice -n 19 ionice -c 3 find $1/*/web/*/public_html/ -type f -name "error_log" -exec truncate -s 0 {} \;
     nice -n 19 ionice -c 3 find $1/*/web/*/public_html/ -type f -name "error_log.txt" -exec truncate -s 0 {} \;

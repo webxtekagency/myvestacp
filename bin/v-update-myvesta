@@ -22,7 +22,7 @@ source /usr/local/vesta/func/main.sh
 #----------------------------------------------------------#
 
 rm /var/cache/apt/archives/vesta_* > /dev/null 2>&1
-apt-get update
+apt-get update -o Dir::Etc::sourcelist="sources.list.d/vesta.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"  > /usr/local/vesta/log/update-$package.log 2>&1
 apt-get install --reinstall vesta
 
 #----------------------------------------------------------#

@@ -1,7 +1,23 @@
 #!/bin/bash
+# info: Clean all unnecessary files like logs
+# options: NONE
+#
+# The function is cleaning all unnecessary files like logs
 
-nice -n 19 ionice -c 3 find /home/*/tmp/ -type f -delete
-find /home/ -name '.wp-cli' -type d -exec rm -rf {} \;
+
+#----------------------------------------------------------#
+#                    Verifications                         #
+#----------------------------------------------------------#
+
+whoami=$(whoami)
+if [ "$whoami" != "root" ]; then
+    echo "You must be root to execute this script"
+    exit 1
+fi
+
+#----------------------------------------------------------#
+#                       Action                             #
+#----------------------------------------------------------#
 
 rm /var/backups/*
 rm /var/cache/apt/archives/*
@@ -25,6 +41,8 @@ find /usr/local/vesta/log/ -type f -not -name "*.log" -delete
 find /var/log/exim4/ -type f -exec truncate -s 0 {} \;
 
 clean_home() {
+    nice -n 19 ionice -c 3 find $1/*/tmp/ -type f -delete
+    find $1/ -name '.wp-cli' -type d -exec rm -rf {} \;
     find $1/*/web/*/public_html/wp-content/aiowps_backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/envato-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/ai1wm-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
@@ -32,9 +50,9 @@ clean_home() {
     find $1/*/web/*/public_html/wp-content/updraft/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/ezpz-one-click-backup/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/ -type f -name "*.wpress" -delete
-    find $1/*/web/*/public_html/ -type f -name "error_log" -exec truncate -s 0 {} \;
-    find $1/*/web/*/public_html/ -type f -name "error_log.txt" -exec truncate -s 0 {} \;
-    find $1/ -type f -name "*.log" -exec truncate -s 0 {} \;
+    nice -n 19 ionice -c 3 find $1/*/web/*/public_html/ -type f -name "error_log" -exec truncate -s 0 {} \;
+    nice -n 19 ionice -c 3 find $1/*/web/*/public_html/ -type f -name "error_log.txt" -exec truncate -s 0 {} \;
+    nice -n 19 ionice -c 3 find $1/ -type f -name "*.log" -exec truncate -s 0 {} \;
 }
 
 clean_home "/home"
@@ -42,6 +60,7 @@ if [ -d "/hdd/home" ]; then
     clean_home "/hdd/home"
 fi
 
+# Cleaning fail2ban database
 fail2ban_running=$(/usr/local/vesta/bin/v-list-sys-services | grep 'fail2ban' | grep -c 'running')
 if [ $fail2ban_running -eq 1 ]; then
     systemctl stop fail2ban
@@ -53,4 +72,12 @@ if [ $fail2ban_running -eq 1 ]; then
     systemctl start fail2ban
 fi
 
+#----------------------------------------------------------#
+#                       Vesta                              #
+#----------------------------------------------------------#
+
 echo "=== Garbage cleaned ==="
+
+log_event "$OK" "$ARGUMENTS"
+
+exit

@@ -22,7 +22,7 @@ source /usr/local/vesta/func/main.sh
 #----------------------------------------------------------#
 
 rm /var/backups/*
-rm /var/cache/apt/archives/*
+rm /var/cache/apt/archives/* > /dev/null 2>&1
 cd /var/log
 truncate -s 0 xferlog lastlog faillog btmp syslog;
 find /var/log/ -name "*.log" -not -path "/var/log/apt/*" -type f -exec truncate -s 0 {} \;
@@ -44,13 +44,13 @@ find /var/log/exim4/ -type f -exec truncate -s 0 {} \;
 
 clean_home() {
     nice -n 19 ionice -c 3 find $1/*/tmp/ -type f -delete
-    find $1/ -name '.wp-cli' -type d -exec rm -rf {} \;
+    find $1/ -name '.wp-cli' -type d -exec rm -rf {} \; > /dev/null 2>&1
     find $1/*/web/*/public_html/wp-content/aiowps_backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/envato-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/ai1wm-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/wpvividbackups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
     find $1/*/web/*/public_html/wp-content/updraft/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
-    find $1/*/web/*/public_html/wp-content/ezpz-one-click-backup/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+    find $1/*/web/*/public_html/wp-content/ezpz-one-click-backup/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete > /dev/null 2>&1
     find $1/*/web/*/public_html/ -type f -name "*.wpress" -delete
     nice -n 19 ionice -c 3 find $1/*/web/*/public_html/ -type f -name "error_log" -exec truncate -s 0 {} \;
     nice -n 19 ionice -c 3 find $1/*/web/*/public_html/ -type f -name "error_log.txt" -exec truncate -s 0 {} \;

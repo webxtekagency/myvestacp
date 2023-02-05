@@ -24,15 +24,23 @@ find /usr/local/vesta/log/ -type f -name "*.log" -exec truncate -s 0 {} \;
 find /usr/local/vesta/log/ -type f -not -name "*.log" -delete
 find /var/log/exim4/ -type f -exec truncate -s 0 {} \;
 
-find /home/*/web/*/public_html/wp-content/aiowps_backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
-find /home/*/web/*/public_html/wp-content/envato-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
-find /home/*/web/*/public_html/wp-content/ai1wm-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
-find /home/*/web/*/public_html/wp-content/wpvividbackups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
-find /home/*/web/*/public_html/wp-content/updraft/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
-find /home/*/web/*/public_html/ -type f -name "*.wpress" -delete
-find /home/*/web/*/public_html/ -type f -name "error_log" -exec truncate -s 0 {} \;
-find /home/*/web/*/public_html/ -type f -name "error_log.txt" -exec truncate -s 0 {} \;
-find /home/ -type f -name "*.log" -exec truncate -s 0 {} \;
+clean_home() {
+    find $1/*/web/*/public_html/wp-content/aiowps_backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+    find $1/*/web/*/public_html/wp-content/envato-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+    find $1/*/web/*/public_html/wp-content/ai1wm-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+    find $1/*/web/*/public_html/wp-content/wpvividbackups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+    find $1/*/web/*/public_html/wp-content/updraft/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+    find $1/*/web/*/public_html/wp-content/ezpz-one-click-backup/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete
+    find $1/*/web/*/public_html/ -type f -name "*.wpress" -delete
+    find $1/*/web/*/public_html/ -type f -name "error_log" -exec truncate -s 0 {} \;
+    find $1/*/web/*/public_html/ -type f -name "error_log.txt" -exec truncate -s 0 {} \;
+    find $1/ -type f -name "*.log" -exec truncate -s 0 {} \;
+}
+
+clean_home "/home"
+if [ -d "/hdd/home" ]; then
+    clean_home "/hdd/home"
+fi
 
 fail2ban_running=$(/usr/local/vesta/bin/v-list-sys-services | grep 'fail2ban' | grep -c 'running')
 if [ $fail2ban_running -eq 1 ]; then

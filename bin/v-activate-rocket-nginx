@@ -83,21 +83,23 @@ fi
 echo "Proxy Template is ready"
 
 # Disabling wp-cron in wp-config.php
+checkstring_disable="define('DISABLE_WP_CRON', true)"
+checkstring_enable="define('DISABLE_WP_CRON', false)"
 string_disable="define( 'DISABLE_WP_CRON', true );"
-string_enable="define( 'DISABLE_WP_CRON', false );"
 line="<?php"
-file="/home/$user/web/$domain/public_html/wp-config.php"
+file="wp-config.php"
 
-if grep -q "$string_disable" "$file"; then
+if grep -q -w -i -F "$checkstring_disable" "$file"; then
   echo "WP-Cron is already disabled in your wp-config.php"
-elif grep -q "$string_enable" "$file"; then
+elif grep -q -w -i -F "$checkstring_enable" "$file"; then
   echo "Disabling WP-Cron in your wp-config.php..."
-  sed -i "/$string_enable/d" $file
-  sed -i "/$line/a $string_disable" $file
+  sed -i "/$checkstring_enable/d" "$file"
+  sed -i "/$line/Ia $string_disable" "$file"
 else
   echo "Disabling WP-Cron in your wp-config.php..."
-  sed -i "/$line/a $string_disable" $file
+  sed -i "/$line/Ia $string_disable" "$file"
 fi
+
 
 
 # Adding cron job

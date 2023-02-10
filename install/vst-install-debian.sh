@@ -595,6 +595,8 @@ fi
 #                         Backup                           #
 #----------------------------------------------------------#
 
+mkdir /backup
+
 echo "=== Creating backup directory tree"
 mkdir -p $vst_backups
 cd $vst_backups

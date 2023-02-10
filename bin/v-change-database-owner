@@ -60,6 +60,10 @@ if [ ! -z "$check_db" ]; then
     exit $E_EXISTS
 fi
 
+if [ ! -d "/backup" ]; then
+  echo "There is no /backup folder, creating it now..."
+  mkdir /backup
+fi
 
 #----------------------------------------------------------#
 #                       Action                             #

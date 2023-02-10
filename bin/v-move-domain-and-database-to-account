@@ -42,6 +42,11 @@ fi
 
 USER_TO=$user
 
+if [ ! -d "/backup" ]; then
+  echo "There is no /backup folder, creating it now..."
+  mkdir /backup
+fi
+
 #----------------------------------------------------------#
 #                       Action                             #
 #----------------------------------------------------------#

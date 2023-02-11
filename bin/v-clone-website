@@ -9,7 +9,7 @@
 if [ $# -lt 2 ]; then
     echo "USAGE: v-clone-website FROM_DOMAIN TO_DOMAIN"
     echo "Available parameters:"
-    echo "--DATABASE_SUFIX=... (default is '_migrated')"
+    echo "--DATABASE_SUFIX=... (will be added to database name)"
     echo "--TO_DATABASE=... (this will override --TO_DATABASE_NAME, --TO_DATABASE_USERNAME and --DATABASE_SUFIX)"
     echo "--FROM_DATABASE_NAME=..."
     echo "--FROM_DATABASE_USERNAME=..."
@@ -42,6 +42,7 @@ source /etc/profile
 # Includes
 source /usr/local/vesta/func/main.sh
 source /usr/local/vesta/func/db.sh
+source /usr/local/vesta/conf/vesta.conf
 
 FROM_DATABASE_NAME=''
 FROM_DATABASE_USERNAME=''
@@ -54,6 +55,10 @@ DATABASE_SUFIX='_migrated'
 SITE_SUBFOLDER=''
 SEARCH_FOR_CONFIGS_DATABASE_NAME=''
 SEARCH_FOR_CONFIGS_DATABASE_USERNAME=''
+
+if [ ! -z "$MAX_DBUSER_LEN" ] && [ "$MAX_DBUSER_LEN" -ge 80  ]; then
+    DATABASE_SUFIX=''
+fi
 
 #----------------------------------------------------------#
 #                    Verifications                         #
@@ -174,33 +179,40 @@ fi
 
 TO_CONFIG_FILE_FULL_PATH="$TO_FOLDER/$FROM_CONFIG_FILE"
 
-LENGTH_OF_DATABASE_SUFIX=${#DATABASE_SUFIX}
-if [ -z "$TO_DATABASE_NAME" ]; then
-    LENGTH_OF_TO_DATABASE_NAME=${#FROM_DATABASE_NAME}
-    START_FROM=$((LENGTH_OF_TO_DATABASE_NAME-LENGTH_OF_DATABASE_SUFIX))
-    CHECK_PREFIX=${FROM_DATABASE_NAME:START_FROM}
-    if [ "$CHECK_PREFIX" = "${DATABASE_SUFIX}" ]; then
-        TO_DATABASE_NAME="${TO_USER}_${FROM_DATABASE_NAME_WITHOUT_PREFIX}"
-        LENGTH_OF_TO_DATABASE_NAME=${#TO_DATABASE_NAME}
-        CUT_TO=$((LENGTH_OF_TO_DATABASE_NAME-LENGTH_OF_DATABASE_SUFIX))
-        TO_DATABASE_NAME=${TO_DATABASE_NAME:0:CUT_TO}
-    else
-        TO_DATABASE_NAME="${TO_USER}_${FROM_DATABASE_NAME_WITHOUT_PREFIX}${DATABASE_SUFIX}"
+if [ ! -z "$MAX_DBUSER_LEN" ] && [ "$MAX_DBUSER_LEN" -ge 80  ] && [ -z "$DATABASE_SUFIX" ]; then
+    TO_DATABASE_NAME=$(echo "$TO_DOMAIN" | sed 's#\.#_#g')
+    TO_DATABASE_NAME="${TO_USER}_$TO_DATABASE_NAME"
+    TO_DATABASE_USERNAME=$TO_DATABASE_NAME
+else
+    LENGTH_OF_DATABASE_SUFIX=${#DATABASE_SUFIX}
+    if [ -z "$TO_DATABASE_NAME" ]; then
+        LENGTH_OF_TO_DATABASE_NAME=${#FROM_DATABASE_NAME}
+        START_FROM=$((LENGTH_OF_TO_DATABASE_NAME-LENGTH_OF_DATABASE_SUFIX))
+        CHECK_PREFIX=${FROM_DATABASE_NAME:START_FROM}
+        if [ "$CHECK_PREFIX" = "${DATABASE_SUFIX}" ]; then
+            TO_DATABASE_NAME="${TO_USER}_${FROM_DATABASE_NAME_WITHOUT_PREFIX}"
+            LENGTH_OF_TO_DATABASE_NAME=${#TO_DATABASE_NAME}
+            CUT_TO=$((LENGTH_OF_TO_DATABASE_NAME-LENGTH_OF_DATABASE_SUFIX))
+            TO_DATABASE_NAME=${TO_DATABASE_NAME:0:CUT_TO}
+        else
+            TO_DATABASE_NAME="${TO_USER}_${FROM_DATABASE_NAME_WITHOUT_PREFIX}${DATABASE_SUFIX}"
+        fi
+    fi
+    if [ -z "$TO_DATABASE_USERNAME" ]; then
+        LENGTH_OF_TO_DATABASE_USERNAME=${#FROM_DATABASE_USERNAME}
+        START_FROM=$((LENGTH_OF_TO_DATABASE_USERNAME-LENGTH_OF_DATABASE_SUFIX))
+        CHECK_PREFIX=${FROM_DATABASE_USERNAME:START_FROM}
+        if [ "$CHECK_PREFIX" = "${DATABASE_SUFIX}" ]; then
+            TO_DATABASE_USERNAME="${TO_USER}_${FROM_DATABASE_USERNAME_WITHOUT_PREFIX}"
+            LENGTH_OF_TO_DATABASE_USERNAME=${#TO_DATABASE_USERNAME}
+            CUT_TO=$((LENGTH_OF_TO_DATABASE_USERNAME-LENGTH_OF_DATABASE_SUFIX))
+            TO_DATABASE_USERNAME=${TO_DATABASE_USERNAME:0:CUT_TO}
+        else
+            TO_DATABASE_USERNAME="${TO_USER}_${FROM_DATABASE_USERNAME_WITHOUT_PREFIX}${DATABASE_SUFIX}"
+        fi
     fi
 fi
-if [ -z "$TO_DATABASE_USERNAME" ]; then
-    LENGTH_OF_TO_DATABASE_USERNAME=${#FROM_DATABASE_USERNAME}
-    START_FROM=$((LENGTH_OF_TO_DATABASE_USERNAME-LENGTH_OF_DATABASE_SUFIX))
-    CHECK_PREFIX=${FROM_DATABASE_USERNAME:START_FROM}
-    if [ "$CHECK_PREFIX" = "${DATABASE_SUFIX}" ]; then
-        TO_DATABASE_USERNAME="${TO_USER}_${FROM_DATABASE_USERNAME_WITHOUT_PREFIX}"
-        LENGTH_OF_TO_DATABASE_USERNAME=${#TO_DATABASE_USERNAME}
-        CUT_TO=$((LENGTH_OF_TO_DATABASE_USERNAME-LENGTH_OF_DATABASE_SUFIX))
-        TO_DATABASE_USERNAME=${TO_DATABASE_USERNAME:0:CUT_TO}
-    else
-        TO_DATABASE_USERNAME="${TO_USER}_${FROM_DATABASE_USERNAME_WITHOUT_PREFIX}${DATABASE_SUFIX}"
-    fi
-fi
+
 if [ ! -z "$TO_DATABASE" ]; then
     TO_DATABASE_USERNAME=$TO_DATABASE
     TO_DATABASE_NAME=$TO_DATABASE
@@ -304,7 +316,7 @@ read -p "=== Press Enter to continue ==="
 if [ $CREATE_TO_USER -eq 1 ]; then
     pass=$(vesta_generate_pass 10)
     echo "=== Create user $TO_USER, pass=$pass"
-    /usr/local/vesta/bin/v-add-user "$TO_USER" "$pass" "info@$TO_DOMAIN" "default" "Migrated" "site"
+    /usr/local/vesta/bin/v-add-user "$TO_USER" "$pass" "info@$TO_DOMAIN" "default" "cloned" "site"
 fi
 
 if [ $CREATE_TO_DOMAIN -eq 1 ]; then

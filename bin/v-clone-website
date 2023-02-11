@@ -271,6 +271,12 @@ else
     fi
 fi
 
+CREATE_TO_DATABASE=0
+object=$(grep "DB='$TO_DATABASE_NAME'" $VESTA/data/users/$TO_USER/db.conf)
+if [ -z "$object" ]; then
+    CREATE_TO_DATABASE=1
+fi
+
 # ----------- PRINT -------------
 
 echo "==============================================================================="
@@ -299,6 +305,7 @@ echo "TO_DATABASE_USERNAME_WITHOUT_PREFIX   = $TO_DATABASE_USERNAME_WITHOUT_PREF
 echo "DATABASE_SUFIX        = $DATABASE_SUFIX"
 echo "CREATE_TO_USER        = $CREATE_TO_USER"
 echo "CREATE_TO_DOMAIN      = $CREATE_TO_DOMAIN"
+echo "CREATE_TO_DATABASE    = $CREATE_TO_DATABASE"
 echo "SHOULD_INSTALL_SSL    = $SHOULD_INSTALL_SSL"
 echo "FROM_DOMAIN_TPL       = $FROM_DOMAIN_TPL"
 echo "FROM_FPM_VER          = $FROM_FPM_VER"
@@ -316,7 +323,7 @@ read -p "=== Press Enter to continue ==="
 if [ $CREATE_TO_USER -eq 1 ]; then
     pass=$(vesta_generate_pass 10)
     echo "=== Create user $TO_USER, pass=$pass"
-    /usr/local/vesta/bin/v-add-user "$TO_USER" "$pass" "info@$TO_DOMAIN" "default" "cloned" "site"
+    /usr/local/vesta/bin/v-add-user "$TO_USER" "$pass" "info@$TO_DOMAIN" "default" "Cloned" "site"
 fi
 
 if [ $CREATE_TO_DOMAIN -eq 1 ]; then
@@ -352,8 +359,7 @@ if [ ! -z "$FROM_DOMAIN_PROXY_TPL" ]; then
     /usr/local/vesta/bin/v-change-web-domain-proxy-tpl "$TO_USER" "$TO_DOMAIN" "$FROM_DOMAIN_PROXY_TPL" "$FROM_DOMAIN_PROXY_EXT" "yes"
 fi
 
-object=$(grep "DB='$TO_DATABASE_NAME'" $VESTA/data/users/$TO_USER/db.conf)
-if [ -z "$object" ]; then
+if [ $CREATE_TO_DATABASE -eq 1 ]; then
     echo "=== Create database $TO_DATABASE_NAME"
     /usr/local/vesta/bin/v-add-database "$TO_USER" "$TO_DATABASE_NAME_WITHOUT_PREFIX" "$TO_DATABASE_USERNAME_WITHOUT_PREFIX" "$TO_DATABASE_PASSWORD" 'mysql' 'localhost' 'utf8'
 fi

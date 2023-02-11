@@ -54,7 +54,7 @@ if [ $# -gt 8 ]; then
     inst_81=$9
 fi
 if [ $# -gt 9 ]; then
-    inst_82=$10
+    inst_82=${10}
 fi
 
 if [ $inst_56 -eq 1 ] || [ $inst_70 -eq 1 ] || [ $inst_71 -eq 1 ] || [ $inst_72 -eq 1 ] || [ $inst_73 -eq 1 ] || [ $inst_74 -eq 1 ] || [ $inst_80 -eq 1 ] || [ $inst_81 -eq 1 ] || [ $inst_82 -eq 1 ]; then

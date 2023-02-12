@@ -1,3 +1,11 @@
+Version 0.9.8-26-60 [12-Feb-2023]
+==================================================
+* New script: v-commander (useful for maintaining the server)
+* New script: v-activate-rocket-nginx (serve WP-Rocket cache directly from nginx)
+* New script: v-update-myvesta (get the very latest build of myVesta)
+* v-clone-website: By default cloning to database: user_domain_com (instead of cloning to database: user_old_db_migrated)
+* Many minor bugfixes
+
 Version 0.9.8-26-59 [01-Feb-2023]
 ==================================================
 * Support for PHP 8.2

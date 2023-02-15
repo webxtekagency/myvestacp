@@ -83,6 +83,7 @@ fi
 echo "Proxy Template is ready"
 
 # Disabling wp-cron in wp-config.php
+cd /home/$user/web/$domain/public_html
 checkstring_disable="define('DISABLE_WP_CRON', true)"
 checkstring_enable="define('DISABLE_WP_CRON', false)"
 string_disable="define( 'DISABLE_WP_CRON', true );"

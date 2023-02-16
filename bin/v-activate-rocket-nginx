@@ -122,11 +122,7 @@ else
     echo "Adding cron job..."
 ​
     # Add the cron job
-    TPL=$(/usr/local/vesta/bin/v-list-web-domain $user $domain shell | grep 'TEMPLATE:' | awk '{print $2}')
-    if [[ $TPL == "PHP-FPM-"* ]]; then
-        fpm_tpl_ver=${TPL:8:2}
-        fpm_ver="${TPL:8:1}.${TPL:9:1}"
-    fi
+    fpm_ver=$(/usr/local/vesta/bin/v-get-php-version-of-domain "$domain")
 ​
     touch /home/$user/web/$domain/cron.log
     chown $user:$user /home/$user/web/$domain/cron.log

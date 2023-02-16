@@ -73,14 +73,24 @@ fi
 #----------------------------------------------------------#
 
 # Changing Proxy Template
-echo "Do you want to force-https in your Proxy Template or not (y/n):"
-read answer
-if [ "$answer" == "y" ]; then
-    /usr/local/vesta/bin/v-change-web-domain-proxy-tpl "$user" "$domain" "wprocket-force-https"
+# Check if the proxy template is already set correctly
+current_template=$(/usr/local/vesta/bin/v-list-web-domain $user $domain | grep 'PROXY:' | awk '{print $2}')
+if [ "$current_template" == "wprocket-force-https" ] || [ "$current_template" == "wprocket-hosting" ]; then
+    echo "Proxy Template is already set up correctly"
 else
-    /usr/local/vesta/bin/v-change-web-domain-proxy-tpl "$user" "$domain" "wprocket-hosting"
+    # Prompt the user to choose whether to force HTTPS or not
+    echo "Do you want to force-https in your Proxy Template or not (y/n):"
+    read answer
+
+    # Change the proxy template based on the user's choice
+    if [ "$answer" == "y" ]; then
+        /usr/local/vesta/bin/v-change-web-domain-proxy-tpl "$user" "$domain" "wprocket-force-https"
+    else
+        /usr/local/vesta/bin/v-change-web-domain-proxy-tpl "$user" "$domain" "wprocket-hosting"
+    fi
+
+    echo "Proxy Template is ready"
 fi
-echo "Proxy Template is ready"
 
 # Disabling wp-cron in wp-config.php
 cd /home/$user/web/$domain/public_html

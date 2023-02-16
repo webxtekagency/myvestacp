@@ -112,10 +112,9 @@ else
 fi
 
 
-
 # Adding cron job
 # Check if a cron job already exists for any of the specified PHP-FPM versions
-existing_cron=$(crontab -l -u $user | grep "*/15.*wp-cron.php.*php[5-8].[6-9]\|8.[0-2]" | grep -v "grep")
+existing_cron=$(crontab -l -u $user | grep -o "wp-cron.php >/home/$user/web/$domain/cron.log" | grep -v "grep")
 ​
 if [ ! -z "$existing_cron" ]; then
     echo "There is already a cron job added for user $user and domain $domain."

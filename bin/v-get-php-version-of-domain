@@ -40,12 +40,12 @@ is_object_valid 'user' 'USER' "$user"
 is_object_unsuspended 'user' 'USER' "$user"
 
 if [ ! -d "/home/$user" ]; then
-    echo "User doesn't exist";
+    # echo "User doesn't exist";
     exit 1;
 fi
 
 if [ ! -d "/home/$user/web/$domain/public_html" ]; then
-    echo "Domain doesn't exist";
+    # echo "Domain doesn't exist";
     exit 1;
 fi
 
@@ -59,11 +59,12 @@ TPL=$(/usr/local/vesta/bin/v-list-web-domain $user $domain shell | grep 'TEMPLAT
 if [[ $TPL == "PHP-FPM-"* ]]; then
     fpm_tpl_ver=${TPL:8:2}
     fpm_ver="${TPL:8:1}.${TPL:9:1}"
+    echo "$fpm_ver"
+    exit 0;
 fi
 
 #----------------------------------------------------------#
 #                       Vesta                              #
 #----------------------------------------------------------#
-echo "PHP-FPM version running on given domain is: $fpm_ver"
 
-exit
+exit 1;

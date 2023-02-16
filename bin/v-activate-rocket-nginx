@@ -104,22 +104,30 @@ fi
 
 
 # Adding cron job
-echo "Adding cron job..."
-
-TPL=$(/usr/local/vesta/bin/v-list-web-domain $user $domain shell | grep 'TEMPLATE:' | awk '{print $2}')
-if [[ $TPL == "PHP-FPM-"* ]]; then
-    fpm_tpl_ver=${TPL:8:2}
-    fpm_ver="${TPL:8:1}.${TPL:9:1}"
+# Check if a cron job already exists for any of the specified PHP-FPM versions
+existing_cron=$(crontab -l -u $user | grep "*/15.*wp-cron.php.*php[5-8].[6-9]\|8.[0-2]" | grep -v "grep")
+​
+if [ ! -z "$existing_cron" ]; then
+    echo "There is already a cron job added for user $user and domain $domain."
+else
+    echo "Adding cron job..."
+​
+    # Add the cron job
+    TPL=$(/usr/local/vesta/bin/v-list-web-domain $user $domain shell | grep 'TEMPLATE:' | awk '{print $2}')
+    if [[ $TPL == "PHP-FPM-"* ]]; then
+        fpm_tpl_ver=${TPL:8:2}
+        fpm_ver="${TPL:8:1}.${TPL:9:1}"
+    fi
+​
+    touch /home/$user/web/$domain/cron.log
+    chown $user:$user /home/$user/web/$domain/cron.log
+​
+    case $fpm_ver in
+        5.6 | 7.0 | 7.1 | 7.2 | 7.3 | 7.4 | 8.0 | 8.1 | 8.2) 
+            /usr/local/vesta/bin/v-add-cron-job "$user" "*/15" "*" "*" "*" "*" "cd /home/$user/web/$domain/public_html; /usr/bin/php$fpm_ver wp-cron.php >/home/$user/web/$domain/cron.log 2>&1"
+            ;;
+    esac
 fi
-
-touch /home/$user/web/$domain/cron.log
-chown $user:$user /home/$user/web/$domain/cron.log
-
-case $fpm_ver in
-    5.6 | 7.0 | 7.1 | 7.2 | 7.3 | 7.4 | 8.0 | 8.1 | 8.2) 
-    /usr/local/vesta/bin/v-add-cron-job "$user" "*/15" "*" "*" "*" "*" "cd /home/$user/web/$domain/public_html; /usr/bin/php$fpm_ver wp-cron.php >/home/$user/web/$domain/cron.log 2>&1"
-    ;;
-esac
 
 #----------------------------------------------------------#
 #                       Vesta                              #

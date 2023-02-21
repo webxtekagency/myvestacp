@@ -115,18 +115,16 @@ fi
 # Adding cron job
 # Check if a cron job already exists for any of the specified PHP-FPM versions
 existing_cron=$(crontab -l -u $user | grep -o "wp-cron.php >/home/$user/web/$domain/cron.log" | grep -v "grep")
-​
+
 if [ ! -z "$existing_cron" ]; then
     echo "There is already a cron job added for user $user and domain $domain."
 else
     echo "Adding cron job..."
-​
     # Add the cron job
     fpm_ver=$(/usr/local/vesta/bin/v-get-php-version-of-domain "$domain")
-​
     touch /home/$user/web/$domain/cron.log
     chown $user:$user /home/$user/web/$domain/cron.log
-​
+
     case $fpm_ver in
         5.6 | 7.0 | 7.1 | 7.2 | 7.3 | 7.4 | 8.0 | 8.1 | 8.2) 
             /usr/local/vesta/bin/v-add-cron-job "$user" "*/15" "*" "*" "*" "*" "cd /home/$user/web/$domain/public_html; /usr/bin/php$fpm_ver wp-cron.php >/home/$user/web/$domain/cron.log 2>&1"

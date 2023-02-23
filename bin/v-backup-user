@@ -265,7 +265,7 @@ if [ ! -z "$WEB_SYSTEM" ] && [ "$WEB" != '*' ]; then
         set +f
 
         # Backup files
-        tar --anchored -cpf- ${fargs[@]} --exclude={'./','../'} . |gzip -$BACKUP_GZIP - > $tmpdir/web/$domain/domain_data.tar.gz
+        tar --anchored -cpf- ${fargs[@]} * |gzip -$BACKUP_GZIP - > $tmpdir/web/$domain/domain_data.tar.gz
     done
 
     # Print total

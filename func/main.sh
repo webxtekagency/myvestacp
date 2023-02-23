@@ -86,7 +86,9 @@ log_history() {
 # Result checker
 check_result() {
     if [ $1 -ne 0 ]; then
-        echo "Error: $2"
+        if [ -z "$SILENT_MODE" ]; then
+            echo "Error: $2"
+        fi
         if [ ! -z "$3" ]; then
             log_event "$3" "$ARGUMENTS"
             exit $3
@@ -100,7 +102,9 @@ check_result() {
 # Argument list checker
 check_args() {
     if [ "$1" -gt "$2" ]; then
-        echo "Usage: $(basename $0) $3"
+        if [ -z "$SILENT_MODE" ]; then
+            echo "Usage: $(basename $0) $3"
+        fi
         check_result $E_ARGS "not enought arguments" >/dev/null
     fi
 }

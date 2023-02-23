@@ -37,6 +37,6 @@ fi
 if [ -f "/etc/apache2/mods-enabled/mpm_event.conf" ]; then
     rm /etc/apache2/mods-enabled/mpm_event.conf
     ln -s /etc/apache2/mods-available/mpm_event.conf /etc/apache2/mods-enabled/mpm_event.conf
-    sed -i "s#MaxRequestWorkers.*#MaxRequestWorkers        200#g" /etc/apache2/mods-enabled/mpm_event.conf
+    sed -i "s#MaxRequestWorkers.*#MaxRequestWorkers        200#g" /etc/apache2/mods-available/mpm_event.conf
     systemctl restart apache2
 fi

@@ -9,6 +9,8 @@
 #                    Variable&Function                     #
 #----------------------------------------------------------#
 
+SILENT_MODE=1
+
 # Argument definition
 domain=$(idn -t --quiet -u "$1" )
 type=${2-any}

@@ -251,6 +251,11 @@ if [ ! -z "$WEB_SYSTEM" ] && [ "$WEB" != '*' ]; then
         if [ ! -z "$exlusion" ]; then
             xdirs="$(echo -e "$exlusion" |tr ':' '\n' |grep -v $domain)"
             for xpath in $xdirs; do
+                # Add ./ at the beginning of the path if the path is in old pattern
+                if [[ $xpath != ./* ]]; then
+                    xpath=(./$xpath)
+                fi
+            
                 if [ -d "$xpath" ]; then
                     fargs+=(--exclude=$xpath/*)
                     echo "$(date "+%F %T") excluding directory $xpath"
@@ -265,7 +270,7 @@ if [ ! -z "$WEB_SYSTEM" ] && [ "$WEB" != '*' ]; then
         set +f
 
         # Backup files
-        tar --anchored -cpf- ${fargs[@]} * |gzip -$BACKUP_GZIP - > $tmpdir/web/$domain/domain_data.tar.gz
+        tar --anchored -cpf- ${fargs[@]} --exclude={'./','../'} . |gzip -$BACKUP_GZIP - > $tmpdir/web/$domain/domain_data.tar.gz
     done
 
     # Print total

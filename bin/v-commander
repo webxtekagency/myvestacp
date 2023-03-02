@@ -391,8 +391,8 @@ do
     if [ "$answer" = 'm' ] || [ "$answer" = 'M' ]; then
         echo "============================="
         echo "== installing php-memcache modules"
-        apt-get install -y $(systemctl --full --type service --all | grep "php...-fpm" | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcache ")
-        apt-get install -y $(systemctl --full --type service --all | grep "php...-fpm" | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcached ")
+        apt-get install -y $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcache ")
+        apt-get install -y $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcached ")
     fi
 
     if [ "$answer" = 'd' ] || [ "$answer" = 'D' ]; then

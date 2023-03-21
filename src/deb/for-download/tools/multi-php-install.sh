@@ -332,8 +332,8 @@ if [ "$inst_82" -eq 1 ]; then
     chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh
     chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82-public.sh
     echo "=== Patching php.ini for php8.2"
-    wget -nv https://c.myvestacp.com/tools/patches/php8.1.patch -O /root/php8.1.patch
-    patch /etc/php/8.2/fpm/php.ini < /root/php8.1.patch
+    wget -nv https://c.myvestacp.com/tools/patches/php8.2.patch -O /root/php8.2.patch
+    patch /etc/php/8.2/fpm/php.ini < /root/php8.2.patch
     if [ $memory -gt 9999999 ]; then
         sed -i "s|opcache.memory_consumption=512|opcache.memory_consumption=2048|g" /etc/php/8.2/fpm/php.ini
     fi

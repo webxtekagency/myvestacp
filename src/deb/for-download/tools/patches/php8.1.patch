@@ -1,5 +1,5 @@
---- /etc/php/8.1/fpm/php.ini.orig	2021-11-25 21:48:52.000000000 +0100
-+++ /etc/php/8.1/fpm/php.ini	2021-12-12 20:25:01.000000000 +0100
+--- /etc/php/8.1/fpm/php.ini.orig	2023-03-16 15:37:38.000000000 +0100
++++ /etc/php/8.1/fpm/php.ini	2023-03-22 14:58:38.000000000 +0100
 @@ -320,7 +320,7 @@
  ; This directive allows you to disable certain functions.
  ; It receives a comma-delimited list of function names.
@@ -9,12 +9,16 @@
  
  ; This directive allows you to disable certain classes.
  ; It receives a comma-delimited list of class names.
-@@ -423,11 +423,11 @@
+@@ -423,7 +423,7 @@
  ;max_input_nesting_level = 64
  
  ; How many GET/POST/COOKIE input variables may be accepted
 -;max_input_vars = 1000
 +max_input_vars = 6000
+ 
+ ; How many multipart body parts (combined input variable and file uploads) may
+ ; be accepted.
+@@ -432,7 +432,7 @@
  
  ; Maximum amount of memory a script may consume
  ; https://php.net/memory-limit
@@ -23,7 +27,7 @@
  
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  ; Error handling and logging ;
-@@ -695,7 +695,7 @@
+@@ -700,7 +700,7 @@
  ; Its value may be 0 to disable the limit. It is ignored if POST data reading
  ; is disabled through enable_post_data_reading.
  ; https://php.net/post-max-size
@@ -32,7 +36,7 @@
  
  ; Automatically add files before PHP document.
  ; https://php.net/auto-prepend-file
-@@ -847,7 +847,7 @@
+@@ -852,7 +852,7 @@
  
  ; Maximum allowed size for uploaded files.
  ; https://php.net/upload-max-filesize
@@ -41,7 +45,7 @@
  
  ; Maximum number of files that can be uploaded via a single request
  max_file_uploads = 20
-@@ -1093,7 +1093,7 @@
+@@ -1103,7 +1103,7 @@
  
  ; The path to a log file that will log all mail() calls. Log entries include
  ; the full path of the script, line number, To address and headers.
@@ -50,7 +54,7 @@
  ; Log mail to syslog (Event Log on Windows).
  ;mail.log = syslog
  
-@@ -1764,20 +1764,20 @@
+@@ -1774,20 +1774,20 @@
  
  [opcache]
  ; Determines if Zend OPCache is enabled

@@ -82,6 +82,8 @@ myhelp() {
     echo "inst p   = install multi-php"
     echo "inst pgw = install php-gate"
     echo "inst r   = install new Roundcube"
+    echo "inst memcached = install memcached"
+    echo "inst redis     = install Redis"
     echo "dis fb   = stop and disable fail2ban"
     echo "dis dove = stop and disable dovecot"
     echo "dis spam = stop and disable spam"
@@ -428,6 +430,46 @@ do
         wget -nv http://dl.myvestacp.com/vesta/install-phpgate.sh -O /root/install-phpgate.sh
         chmod u+x /root/install-phpgate.sh
         /root/install-phpgate.sh
+    fi
+
+    if [ "$answer" = 'inst memcache' ] || [ "$answer" = 'inst memcached' ] || [ "$answer" = 'INST MEMCACHE' ] || [ "$answer" = 'INST MEMCACHED' ]; then
+        echo "============================="
+        echo "== Installing memcached"
+        memory=$(grep 'MemTotal' /proc/meminfo |tr ' ' '\n' |grep [0-9])
+        apt-get update
+        apt-get -y install memcached 
+        apt-get install $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcache ")
+        apt-get install $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcached ")
+        if [ $memory -lt 15000000 ]; then
+            sed -i "s/-m 64/-m 256/" /etc/memcached.conf
+        else
+            sed -i "s/-m 64/-m 1024/" /etc/memcached.conf
+        fi
+        systemctl restart memcached
+        echo "== memcached installed."
+        echo "-----------------------"
+    fi
+
+    if [ "$answer" = 'inst redis' ] || [ "$answer" = 'INST REDIS' ]; then
+        echo "============================="
+        echo "== Installing Redis"
+        memory=$(grep 'MemTotal' /proc/meminfo |tr ' ' '\n' |grep [0-9])
+        apt-get update
+        apt-get install -y redis-server
+        apt-get install $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-redis ")
+
+        sed -i "s|^supervised no|supervised systemd|g" /etc/redis/redis.conf
+        sed -i "s|^save |# save |g" /etc/redis/redis.conf
+        if [ $memory -lt 15000000 ]; then
+            sed -i "s|^# maxmemory .*|maxmemory 256m|g" /etc/redis/redis.conf
+        else
+            sed -i "s|^# maxmemory .*|maxmemory 1g|g" /etc/redis/redis.conf
+        fi
+        sed -i "s|^# maxmemory-policy .*|maxmemory-policy allkeys-lru|g" /etc/redis/redis.conf
+        systemctl restart redis
+        redis-cli info memory
+        echo "== Redis installed."
+        echo "-------------------"
     fi
 
     if [ "$answer" = 'check fc' ] || [ "$answer" = 'CHECK FC' ]; then

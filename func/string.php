@@ -11,7 +11,8 @@ function myvesta_replace_in_file($file, $find, $replace) {
 
     $buf=str_replace($find, $replace, $buf);
     $r=file_put_contents($file, $buf);
-    return $r;
+	if ($r===false) return false;
+    return true;
 }
 
 function myvesta_get_between_in_file($file, $left_substring, $right_substring, $start=0, $return_left_substring=0, $return_right_substring=0, $left_substring_necessary=1, $right_substring_necessary=1) {
@@ -25,7 +26,8 @@ function myvesta_replace_in_file_once_between_including_borders($file, $left, $r
     $text=file_get_contents($file);
 	$buf=myvesta_str_replace_once_between_including_borders($text, $left, $right, $replace_with);
     $r=file_put_contents($file, $buf);
-    return $r;
+	if ($r===false) return false;
+    return true;
 }
 
 function myvesta_strip_once_in_file_between_including_borders($file, $left, $right) {
@@ -33,7 +35,8 @@ function myvesta_strip_once_in_file_between_including_borders($file, $left, $rig
     $text=file_get_contents($file);
 	$buf=myvesta_str_strip_once_between_including_borders($text, $left, $right);
     $r=file_put_contents($file, $buf);
-    return $r;
+	if ($r===false) return false;
+    return true;
 }
 
 function myvesta_replace_in_file_between_including_borders($file, $left, $right, $replace_with) {
@@ -41,7 +44,8 @@ function myvesta_replace_in_file_between_including_borders($file, $left, $right,
     $text=file_get_contents($file);
 	$buf=myvesta_str_replace_between_including_borders($text, $left, $right, $replace_with);
     $r=file_put_contents($file, $buf);
-    return $r;
+	if ($r===false) return false;
+    return true;
 }
 
 function myvesta_strip_in_file_between_including_borders($file, $left, $right) {
@@ -49,7 +53,8 @@ function myvesta_strip_in_file_between_including_borders($file, $left, $right) {
     $text=file_get_contents($file);
 	$buf=myvesta_str_strip_between_including_borders($text, $left, $right);
     $r=file_put_contents($file, $buf);
-    return $r;
+	if ($r===false) return false;
+    return true;
 }
 
 // --- string functions ---
@@ -71,7 +76,7 @@ function myvesta_str_get_between (&$text, $left_substring, $right_substring, $st
     {
         if ($from_null==0) $pos1=$pos1+strlen($left_substring);
     }
-    $pos2=strpos($text, $right_substring, $pos1+1);
+    $pos2=strpos($text, $right_substring, $pos1+strlen($left_substring));
     if ($pos2===FALSE)
     {
         if ($right_substring_necessary==1) return "";
@@ -92,7 +97,7 @@ function myvesta_str_get_between (&$text, $left_substring, $right_substring, $st
 function myvesta_str_replace_once_between_including_borders(&$text, $left, $right, $replace_with) {
     $pos1=strpos($text, $left);
     if ($pos1===false) return $text;
-    $pos2=strpos($text, $right, $left+strlen($left));
+    $pos2=strpos($text, $right, $pos1+strlen($left));
     if ($pos2===false) return $text;
     return substr($text, 0, $pos1).$replace_with.substr($text, $pos2+strlen($right));
 }
@@ -100,7 +105,7 @@ function myvesta_str_replace_once_between_including_borders(&$text, $left, $righ
 function myvesta_str_strip_once_between_including_borders(&$text, $left, $right) {
     $pos1=strpos($text, $left);
     if ($pos1===false) return $text;
-    $pos2=strpos($text, $right, $left+strlen($left));
+    $pos2=strpos($text, $right, $pos1+strlen($left));
     if ($pos2===false) return $text;
     return substr($text, 0, $pos1).substr($text, $pos2+strlen($right));
 }
@@ -112,7 +117,7 @@ function myvesta_str_replace_between_including_borders($text, $left, $right, $re
     while (true) {
         $pos1=strpos($text, $left);
         if ($pos1===false) break;
-        $pos2=strpos($text, $right, $left+$left_len);
+        $pos2=strpos($text, $right, $pos1+$left_len);
         if ($pos2===false) break;
         $text=substr($text, 0, $pos1).$replace_with.substr($text, $pos2+$right_len);
     }
@@ -125,7 +130,7 @@ function myvesta_str_strip_between_including_borders($text, $left, $right) {
     while (true) {
         $pos1=strpos($text, $left);
         if ($pos1===false) break;
-        $pos2=strpos($text, $right, $left+$left_len);
+        $pos2=strpos($text, $right, $pos1+$left_len);
         if ($pos2===false) break;
         $text=substr($text, 0, $pos1).substr($text, $pos2+$right_len);
     }

@@ -9,3 +9,4 @@
 #----------------------------------------------------------#
 
 php /usr/local/vesta/func/bash-to-php-interpreter.php "$@"
+exit $?

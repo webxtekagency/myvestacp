@@ -12,7 +12,7 @@ define('MYVESTA_ERROR_GENERAL', 5);
 
 function myvesta_throw_error($code, $message) {
     global $myvesta_exit_on_error;
-    echo "ERROR: ".$message."\n";
+    if ($message!=='') echo "ERROR: ".$message."\n";
     if ($myvesta_exit_on_error) myvesta_exit($code);
     return $code;
 }

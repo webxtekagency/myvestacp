@@ -6,7 +6,7 @@ include ("/usr/local/vesta/func/main.php");
 include ("/usr/local/vesta/func/string.php");
 
 $counter=count($argv);
-if ($counter<1) myvesta_throw_error(2, 'Function is missing');
+if ($counter<2) myvesta_throw_error(2, 'Function is missing');
 
 $func="myvesta_".$argv[1];
 if (!function_exists($func)) myvesta_throw_error(2, 'Function does not exists');

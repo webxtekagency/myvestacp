@@ -1,6 +1,6 @@
 <?php
 
-if (!isset($argv)) exit 5;
+if (!isset($argv)) exit(5);
 
 include ("/usr/local/vesta/func/main.php");
 include ("/usr/local/vesta/func/string.php");

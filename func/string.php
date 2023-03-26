@@ -11,49 +11,49 @@ function myvesta_replace_in_file($file, $find, $replace) {
 
     $buf=str_replace($find, $replace, $buf);
     $r=file_put_contents($file, $buf);
-	if ($r===false) return false;
+    if ($r===false) return false;
     return true;
 }
 
 function myvesta_get_between_in_file($file, $left_substring, $right_substring, $start=0, $return_left_substring=0, $return_right_substring=0, $left_substring_necessary=1, $right_substring_necessary=1) {
     if (!file_exists($file)) return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File '$file' not found");
     $text=file_get_contents($file);
-	return myvesta_str_get_between ($text, $left_substring, $right_substring, $start, $return_left_substring, $return_right_substring, $left_substring_necessary, $right_substring_necessary);
+    return myvesta_str_get_between ($text, $left_substring, $right_substring, $start, $return_left_substring, $return_right_substring, $left_substring_necessary, $right_substring_necessary);
 }
 
 function myvesta_replace_in_file_once_between_including_borders($file, $left, $right, $replace_with) {
     if (!file_exists($file)) return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File '$file' not found");
     $text=file_get_contents($file);
-	$buf=myvesta_str_replace_once_between_including_borders($text, $left, $right, $replace_with);
+    $buf=myvesta_str_replace_once_between_including_borders($text, $left, $right, $replace_with);
     $r=file_put_contents($file, $buf);
-	if ($r===false) return false;
+    if ($r===false) return false;
     return true;
 }
 
 function myvesta_strip_once_in_file_between_including_borders($file, $left, $right) {
     if (!file_exists($file)) return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File '$file' not found");
     $text=file_get_contents($file);
-	$buf=myvesta_str_strip_once_between_including_borders($text, $left, $right);
+    $buf=myvesta_str_strip_once_between_including_borders($text, $left, $right);
     $r=file_put_contents($file, $buf);
-	if ($r===false) return false;
+    if ($r===false) return false;
     return true;
 }
 
 function myvesta_replace_in_file_between_including_borders($file, $left, $right, $replace_with) {
     if (!file_exists($file)) return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File '$file' not found");
     $text=file_get_contents($file);
-	$buf=myvesta_str_replace_between_including_borders($text, $left, $right, $replace_with);
+    $buf=myvesta_str_replace_between_including_borders($text, $left, $right, $replace_with);
     $r=file_put_contents($file, $buf);
-	if ($r===false) return false;
+    if ($r===false) return false;
     return true;
 }
 
 function myvesta_strip_in_file_between_including_borders($file, $left, $right) {
     if (!file_exists($file)) return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File '$file' not found");
     $text=file_get_contents($file);
-	$buf=myvesta_str_strip_between_including_borders($text, $left, $right);
+    $buf=myvesta_str_strip_between_including_borders($text, $left, $right);
     $r=file_put_contents($file, $buf);
-	if ($r===false) return false;
+    if ($r===false) return false;
     return true;
 }
 

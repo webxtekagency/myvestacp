@@ -18,10 +18,10 @@ function myvesta_throw_error($code, $message) {
 }
 
 function myvesta_fix_backslashes($s) {
-	$s=str_replace("\\n", "\n", $s);
-	$s=str_replace("\\r", "\r", $s);
-	$s=str_replace("\\t", "\t", $s);
-	return $s;
+    $s=str_replace("\\n", "\n", $s);
+    $s=str_replace("\\r", "\r", $s);
+    $s=str_replace("\\t", "\t", $s);
+    return $s;
 }
 
 function myvesta_check_args ($requried_arguments, $arguments) {
@@ -45,11 +45,11 @@ function myvesta_check_args ($requried_arguments, $arguments) {
 
 function myvesta_fix_args() {
     global $argv;
-	$i=0;
+    $i=0;
     foreach ($argv as $argument) {
-		if ($i==0) {$i++; continue;}
+        if ($i==0) {$i++; continue;}
         $argv[$i]=myvesta_fix_backslashes($argv[$i]);
-		$i++;
+        $i++;
     }
 }
 
@@ -60,8 +60,8 @@ function myvesta_exit($code) {
 }
 
 function myvesta_test_func () {
-	$args=func_get_args();
-	echo "You said: ";
-	print_r ($args);
-	echo "\n";
+    $args=func_get_args();
+    echo "You said: ";
+    print_r ($args);
+    echo "\n";
 }

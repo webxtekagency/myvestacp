@@ -28,7 +28,7 @@ function myvesta_check_args ($requried_arguments, $arguments) {
     $argument_counter=count($argv);
     $argument_counter--;
     $argv[0]=str_replace('/usr/local/vesta/bin/', '', $argv[0]);
-    echo "-------------------- ".$argv[0]." --------------------\n";
+    // echo "-------------------- ".$argv[0]." --------------------\n";
     if ($argument_counter<$requried_arguments) {
         $arguments=str_replace(" ", "' '", $arguments);
         $arguments="'".$arguments."'";
@@ -42,8 +42,25 @@ function myvesta_check_args ($requried_arguments, $arguments) {
     }
 }
 
+function myvesta_fix_args() {
+    global $argv;
+	$i=0;
+    foreach ($argv as $argument) {
+		if ($i==0) {$i++; continue;}
+        $argv[$i]=myvesta_fix_backslashes($argv[$i]);
+		$i++;
+    }
+}
+
 function myvesta_exit($code) {
     global $argv;
-    echo "==================== ".$argv[0].": ".$code." ====================\n";
+    // echo "==================== ".$argv[0].": ".$code." ====================\n";
     exit($code);
+}
+
+function myvesta_test_func () {
+	$args=func_get_args();
+	echo "You said: ";
+	print_r ($args);
+	echo "\n";
 }

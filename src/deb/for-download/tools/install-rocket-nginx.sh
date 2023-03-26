@@ -17,6 +17,8 @@ fi
 cd rocket-nginx
 cp rocket-nginx.ini.disabled rocket-nginx.ini
 php rocket-parser.php
+/usr/local/vesta/bin/v-php-func 'strip_once_in_file_between_including_borders' '/etc/nginx/rocket-nginx/conf.d/default.conf' '# BROWSER MEDIA CACHE' '}'
+
 wget -nv -O /usr/local/vesta/data/templates/web/nginx/wprocket-force-https.tpl https://c.myvestacp.com/tools/rocket-nginx-templates/wprocket-force-https.tpl
 wget -nv -O /usr/local/vesta/data/templates/web/nginx/wprocket-force-https.stpl https://c.myvestacp.com/tools/rocket-nginx-templates/wprocket-force-https.stpl
 wget -nv -O /usr/local/vesta/data/templates/web/nginx/wprocket-hosting.tpl https://c.myvestacp.com/tools/rocket-nginx-templates/wprocket-hosting.tpl

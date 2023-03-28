@@ -128,7 +128,9 @@ sudo -H -u$user wp core config --dbname=$DBUSER --dbuser=$DBUSER --dbpass=$PASSW
 
 password=$(LC_CTYPE=C tr -dc A-Za-z0-9_\!\@\#\$\%\^\&\*\(\)-+= < /dev/urandom | head -c 12)
 
-sudo -H -u$user wp core install --url="$domain" --title="$domain" --admin_user="admin" --admin_password="$password" --admin_email="$email" --path=$WORKINGDIR
+wpadmin=$(echo "$domain" | sed 's#\.#_#g')_4dm1n
+
+sudo -H -u$user wp core install --url="$domain" --title="$domain" --admin_user="$wpadmin" --admin_password="$password" --admin_email="$email" --path=$WORKINGDIR
 
 mysql -u$DBUSER -p$PASSWDDB -e "USE $DBUSER; update wp_options set option_value = '$PROTOCOL://$domain' where option_name = 'siteurl'; update wp_options set option_value = '$PROTOCOL://$domain' where option_name = 'home';"
 
@@ -138,7 +140,7 @@ echo ""
 echo "Site: $PROTOCOL://$domain/"
 echo ""
 echo "Login: $PROTOCOL://$domain/wp-admin/"
-echo "Username: admin"
+echo "Username: $wpadmin"
 echo "Password: $password"
 echo ""
 echo "================================================================="

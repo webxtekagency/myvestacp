@@ -54,7 +54,7 @@ function myvesta_fix_args() {
 }
 
 function myvesta_exit($code) {
-    global $argv;
+    // global $argv;
     // echo "==================== ".$argv[0].": ".$code." ====================\n";
     exit($code);
 }
@@ -62,6 +62,5 @@ function myvesta_exit($code) {
 function myvesta_test_func () {
     $args=func_get_args();
     echo "You said: ";
-    print_r ($args);
-    echo "\n";
+    echo trim(print_r ($args, true));
 }

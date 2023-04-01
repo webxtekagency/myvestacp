@@ -1,5 +1,7 @@
 <?php
 
+$myvesta_echo_done=false;
+
 if (isset($_SERVER['SHLVL'])) $SHLVL=intval($_SERVER['SHLVL']);
 else $SHLVL=3;
 
@@ -27,14 +29,11 @@ for ($i=2; $i<$counter; $i++) {
 $r=call_user_func_array($func, $params);
 if (is_bool($r)) {
     if ($r) {
-        if ($SHLVL<3) echo "\n";
-        exit(0);
+        myvesta_exit (0);
     } else {
-        if ($SHLVL<3) echo "\n";
-        exit(MYVESTA_ERROR_GENERAL);
+        myvesta_exit (MYVESTA_ERROR_GENERAL);
     }
 } else {
-    echo $r;
-    if ($SHLVL<3) echo "\n";
-    exit(0);
+    myvesta_echo ($r);
+    myvesta_exit (0);
 }

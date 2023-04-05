@@ -1,6 +1,7 @@
 Version 0.9.8-26-61 [05-Apr-2023]
 ==================================================
 * Many bugfixes
+* Hotfix for LetsEncrypt to prevent Apache falling 
 
 Version 0.9.8-26-60 [12-Feb-2023]
 ==================================================

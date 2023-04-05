@@ -1,3 +1,7 @@
+Version 0.9.8-26-61 [05-Apr-2023]
+==================================================
+* Many bugfixes
+
 Version 0.9.8-26-60 [12-Feb-2023]
 ==================================================
 * New script: v-commander (useful for maintaining the server)

@@ -17,6 +17,10 @@ aliases=$3
 # LE API
 API='https://acme-v02.api.letsencrypt.org'
 
+if [[ "$LE_STAGING" = 'yes' ]]; then
+	LE_API='https://acme-staging-v02.api.letsencrypt.org'
+fi
+
 # Includes
 source $VESTA/func/main.sh
 source $VESTA/func/domain.sh

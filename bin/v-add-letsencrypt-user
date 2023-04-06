@@ -15,6 +15,10 @@ user=$1
 # LE API
 API='https://acme-v02.api.letsencrypt.org'
 
+if [[ "$LE_STAGING" = 'yes' ]]; then
+	API='https://acme-staging-v02.api.letsencrypt.org'
+fi
+
 # Includes
 source $VESTA/func/main.sh
 source $VESTA/conf/vesta.conf

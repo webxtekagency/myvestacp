@@ -1,4 +1,8 @@
-Version 0.9.8-26-61 [05-Apr-2023]
+Version 0.9.8-26-62 [05-Apr-2023]
+==================================================
+* Fix for LetsEncrypt Asynchronous Order Finalization (in collaboration with @HestiaCP )
+
+Version 0.9.8-26-61 [04-Apr-2023]
 ==================================================
 * Many bugfixes
 * Hotfix for LetsEncrypt to prevent Apache falling 

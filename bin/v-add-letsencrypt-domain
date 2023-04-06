@@ -18,7 +18,7 @@ aliases=$3
 API='https://acme-v02.api.letsencrypt.org'
 
 if [[ "$LE_STAGING" = 'yes' ]]; then
-	LE_API='https://acme-staging-v02.api.letsencrypt.org'
+	API='https://acme-staging-v02.api.letsencrypt.org'
 fi
 
 # Includes

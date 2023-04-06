@@ -15,6 +15,10 @@ user=$1
 # LE API
 API='https://acme-v02.api.letsencrypt.org'
 
+if [[ "$LE_STAGING" = 'yes' ]]; then
+	API='https://acme-staging-v02.api.letsencrypt.org'
+fi
+
 # Includes
 source $VESTA/func/main.sh
 source $VESTA/conf/vesta.conf
@@ -41,7 +45,7 @@ query_le_v2() {
     post_data=$post_data'"payload":"'"$payload_"'",'
     post_data=$post_data'"signature":"'"$signature_"'"}'
 
-    curl -s -i -d "$post_data" "$1" -H "$content"
+    curl --user-agent "myVesta" -s -i -d "$post_data" "$1" -H "$content"
 }
 
 

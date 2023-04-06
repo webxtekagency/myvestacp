@@ -60,8 +60,8 @@ query_le_v2() {
     # Save http response to file passed as "$4" arg or print to stdout if not provided
     # http response headers are always sent to stdout
     local save_to_file=${4:-"/dev/stdout"}
-    curl --location --user-agent "MyVestaCP" --insecure --retry 5 --retry-connrefused --silent --dump-header /dev/stdout --data "$post_data" "$1" --header "$content" --output "$save_to_file"
-}
+    curl --location --user-agent "myVesta" --insecure --retry 5 --retry-connrefused --silent --dump-header /dev/stdout --data "$post_data" "$1" --header "$content" --output "$save_to_file"
+ }
 
 
 
@@ -127,7 +127,7 @@ fi
 # Requesting nonce / STEP 1
 echo "[$(date)] : --- Requesting nonce / STEP 1 ---" >> /usr/local/vesta/log/letsencrypt.log
 echo "[$(date)] : curl -s -I \"$API/directory\"" >> /usr/local/vesta/log/letsencrypt.log
-answer=$(curl -s -I "$API/directory")
+answer=$(curl --user-agent "myVesta" -s -I "$API/directory")
 echo "[$(date)] : answer=$answer" >> /usr/local/vesta/log/letsencrypt.log
 nonce=$(echo "$answer" |grep -i nonce |cut -f2 -d \ |tr -d '\r\n')
 echo "[$(date)] : nonce=$nonce" >> /usr/local/vesta/log/letsencrypt.log
@@ -294,7 +294,7 @@ for auth in $authz; do
             check_result $E_CONNECT "Let's Encrypt domain validation timeout"
         fi
         echo "[$(date)] : curl: $url2 :" >> /usr/local/vesta/log/letsencrypt.log
-        get_answer=$(curl --silent -S "$url2")
+        get_answer=$(curl --user-agent "myVesta" --silent -S "$url2")
         echo "[$(date)] : get_answer=$get_answer" >> /usr/local/vesta/log/letsencrypt.log
         sleeping=$((i*2))
         echo "[$(date)] : sleep $sleeping (i=$i)" >> /usr/local/vesta/log/letsencrypt.log

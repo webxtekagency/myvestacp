@@ -329,6 +329,12 @@ if [[ "$status" -ne 200 ]]; then
     echo "[$(date)] : EXIT=Let's Encrypt finalize bad status $status" >> /usr/local/vesta/log/letsencrypt.log
     check_result $E_CONNECT "Let's Encrypt finalize bad status $status"
 fi
+
+if [ "$nonce" = "" ]; then
+    echo "[$(date)] : EXIT=Let's Encrypt 'nonce' is empty after step 6" >> /usr/local/vesta/log/letsencrypt.log
+    check_result $E_CONNECT "Let's Encrypt 'nonce' is empty after step 6"
+fi
+
 if [ "$certificate" = "" ]; then
     validation="processing"
 	i=1
@@ -351,9 +357,10 @@ if [ "$certificate" = "" ]; then
 		fi
 	done
 fi
-if [ "$nonce" = "" ]; then
-    echo "[$(date)] : EXIT=Let's Encrypt 'nonce' is empty on step 6" >> /usr/local/vesta/log/letsencrypt.log
-    check_result $E_CONNECT "Let's Encrypt 'nonce' is empty on step 6"
+
+if [ "$certificate" = "" ]; then
+    echo "[$(date)] : EXIT=Let's Encrypt 'certificate' is empty after step 7" >> /usr/local/vesta/log/letsencrypt.log
+    check_result $E_CONNECT "Let's Encrypt 'certificate' is empty after step 7"
 fi
 
 # Downloading signed certificate / STEP 8

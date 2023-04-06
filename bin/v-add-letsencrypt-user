@@ -45,7 +45,7 @@ query_le_v2() {
     post_data=$post_data'"payload":"'"$payload_"'",'
     post_data=$post_data'"signature":"'"$signature_"'"}'
 
-    curl -s -i -d "$post_data" "$1" -H "$content"
+    curl --user-agent "myVesta" -s -i -d "$post_data" "$1" -H "$content"
 }
 
 

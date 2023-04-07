@@ -75,6 +75,20 @@ bash vst-install-debian.sh
 
 Or use our <a href="https://www.myvestacp.com/install_generator.html">installer generator</a>.
 
+<h1>UUseful scripts</h1>
+<ul>
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=24&t=50">How to move accounts from one (my)Vesta server to another myVesta server</a></li>
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=17&t=386">WordPress installer in one second </a></li>(v-install-wordpress)
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=17&t=385">Cloning script that will copy the whole site from one (sub)domain to another (sub)domain </a></li>(v-clone-website)
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=17&t=382">Script that will migrate your site from http to https, replacing http to https URLs in database </a></li>(v-migrate-site-to-https)
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=24&t=63">Script for importing cPanel backups to Vesta (thanks to Maks Usmanov - Skamasle) </a></li> (v-import-cpanel-backup)
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=18&t=52">Script that will install multiple PHP versions on your server</a></li>
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=20&t=350">How to host NodeJS apps</a></li>
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=20&t=51">Script that will install nginx templates that can prevent denial-of-service on your server</a></li>
+  <li><a href="https://forum.myvestacp.com/viewtopic.php?f=15&t=47">Official VestaCP Softaculous installer</a></li>
+</ul>
+
+
 <h1>Licence</h1>
 myVesta is licensed under <a href="https://github.com/serghey-rodin/vesta/blob/master/LICENSE">GPL v3</a> license.
 

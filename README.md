@@ -36,7 +36,7 @@
         <li>Literally no PHP scripts will be alive on your hosting panel (won't be able to get executed), unless you access the hosting panel with secret URL parameter. Thus, when it happens that, let's say, some zero-day exploit pops up - attackers won't be able to access it without knowing your secret URL - PHP scripts from VestaCP will be simply dead - no one will be able to interact with your panel unless they have the secret URL.</li>
         <li>You can see for yourself how this mechanism was built by looking at:</li>
         <ul>
-          <li><a href="https://www.myvestacp.com/#details:~:text=src/deb/for%2Ddownload/php/php.ini">src/deb/for-download/php/php.ini</a></li>
+          <li><a href="https://github.com/myvesta/vesta/blob/master/src/deb/for-download/php/php.ini#L496">src/deb/for-download/php/php.ini</a></li>
           <li><a href="https://github.com/myvesta/vesta/blob/master/web/inc/secure_login.php">web/inc/secure_login.php</a></li>
         </ul>
         <li>If you didn't set the secret URL during installation, you can do it anytime. Just execute in shell: <code>echo "<?php \$login_url='MY-SECRET-URL';" > /usr/local/vesta/web/inc/login_url.php</code></li>

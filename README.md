@@ -75,7 +75,7 @@ bash vst-install-debian.sh
 
 Or use our <a href="https://www.myvestacp.com/install_generator.html">installer generator</a>.
 
-<h1>UUseful scripts</h1>
+<h1>Useful scripts</h1>
 <ul>
   <li><a href="https://forum.myvestacp.com/viewtopic.php?f=24&t=50">How to move accounts from one (my)Vesta server to another myVesta server</a></li>
   <li><a href="https://forum.myvestacp.com/viewtopic.php?f=17&t=386">WordPress installer in one second </a></li>(v-install-wordpress)

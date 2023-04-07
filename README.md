@@ -11,7 +11,7 @@
 
 <p align="center">myVesta is a security and stability-focused fork of VestaCP, exclusively supporting Debian in order to maintain a streamlined ecosystem. Boasting a clean, clutter-free interface and the latest innovative technologies, our project is committed to staying synchronized with official VestaCP commits. We work independently to enhance security and develop new features, driven by our passion for contributing to the open-source community rather than monetary gain. As such, we will offer all features built for myVesta to the official VestaCP project through pull requests, without interfering with their development milestones.</p>
 
-<p align="center"><b>Latest stable release: Version 1.7.0 | <a href="https://github.com/myvesta/vesta/blob/master/Changelog.md">View Changelog</a>
+<p align="center"><b>Latest stable release: Version 0.9.8-26-62 | <a href="https://github.com/myvesta/vesta/blob/master/Changelog.md">View Changelog</a>
 </b></p>
 
 <h1>Links</h1>

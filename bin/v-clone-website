@@ -420,12 +420,6 @@ if [ $IT_IS_WP -eq 0 ]; then
     fi
 else
     cd $TO_FOLDER
-    if [ -d "wp-content/plugins/w3-total-cache" ]; then
-        rm -f wp-content/object-cache.php
-        rm -f wp-content/db.php
-        rm -f wp-content/advanced-cache.php
-        rm -rf wp-content/w3tc-config
-        rm -rf wp-content/plugins/w3-total-cache
     fi
     echo "=== Replacing $FROM_DOMAIN to $TO_DOMAIN in database $TO_DATABASE_NAME"
     sudo -H -u$TO_USER wp search-replace "$FROM_DOMAIN" "$TO_DOMAIN" --precise --all-tables --skip-columns=guid

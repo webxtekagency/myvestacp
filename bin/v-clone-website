@@ -420,7 +420,6 @@ if [ $IT_IS_WP -eq 0 ]; then
     fi
 else
     cd $TO_FOLDER
-    fi
     echo "=== Replacing $FROM_DOMAIN to $TO_DOMAIN in database $TO_DATABASE_NAME"
     sudo -H -u$TO_USER wp search-replace "$FROM_DOMAIN" "$TO_DOMAIN" --precise --all-tables --skip-columns=guid
     if [ "$FROM_USER" != "$TO_USER" ]; then
@@ -428,7 +427,6 @@ else
         sudo -H -u$TO_USER wp search-replace "/home/$FROM_USER/" "/home/$TO_USER/" --precise --all-tables --skip-columns=guid
     fi
     sudo -H -u$TO_USER wp cache flush
-    cd $TO_FOLDER
     sudo -H -u$TO_USER wp config shuffle-salts WP_CACHE_KEY_SALT --force
     sudo -H -u$TO_USER wp config shuffle-salts
 fi

@@ -29,6 +29,7 @@ if (!function_exists($func)) {
 
 $params=array();
 
+if ($myvesta_stdin!='') $params[]=$myvesta_stdin;
 for ($i=2; $i<$counter; $i++) {
     $argv[$i]=myvesta_fix_backslashes($argv[$i]);
     $params[]=$argv[$i];

@@ -2,14 +2,18 @@
 
 // --- file functions ---
 
-function myvesta_find_in_file($file, $find) {
-    if (!file_exists($file)) return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File '$file' not found");
-
+function myvesta_find_in_file($file, $find, $quiet=false) {
+    if (!file_exists($file)) {
+        if ($quiet) return false;
+        return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File '$file' not found");
+    }
+    
     $buf=file_get_contents($file);
 
     $pos=strpos($buf, $find);
+    
     if ($pos===false) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "");
-
+    if ($quiet) return true;
     return $pos;
 }
 
@@ -219,9 +223,11 @@ function myvesta_str_find() {
         $args_i++; $text=$args[$args_i];
     }
     $args_i++; $find=$args[$args_i];
+    $args_i++; $quiet=false; if (!empty($args[$args_i])) $quiet=boolval($args[$args_i]);
 
     $pos=strpos($text, $find);
     if ($pos===false) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "");
+    if ($quiet) return true;
     return $pos;
 }
 

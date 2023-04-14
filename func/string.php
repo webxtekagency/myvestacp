@@ -248,3 +248,19 @@ function myvesta_str_lowercase() {
     }
     return strtolower($text);
 }
+
+function myvesta_str_substring() {
+    global $myvesta_stdin;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    $args_i++; $start=$args[$args_i];
+    $args_i++; $length=null; if (!empty($args[$args_i])) $length=intval($args[$args_i]);
+    
+    if ($length===null) return substr($text, $start);
+    if ($length!==null) return substr($text, $start, $length);
+}

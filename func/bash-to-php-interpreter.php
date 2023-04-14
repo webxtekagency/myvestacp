@@ -7,6 +7,14 @@ else $SHLVL=3;
 
 if (!isset($argv)) exit(5);
 
+stream_set_blocking(STDIN, false);
+$myvesta_stdin='';
+$myvesta_f = fopen( 'php://stdin', 'r' );
+while( $myvesta_line = fgets( $myvesta_f ) ) {
+  $myvesta_stdin .= $myvesta_line;
+}
+fclose( $myvesta_f );
+
 include ("/usr/local/vesta/func/main.php");
 include ("/usr/local/vesta/func/string.php");
 

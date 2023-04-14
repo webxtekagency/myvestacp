@@ -70,8 +70,23 @@ function myvesta_strip_in_file_between_including_borders($file, $left, $right) {
 
 // --- string functions ---
 
-function myvesta_str_get_between (&$text, $left_substring, $right_substring, $start=0, $return_left_substring=0, $return_right_substring=0, $left_substring_necessary=1, $right_substring_necessary=1) {
-    global $myvesta_str_found_at, $myvesta_str_end_at;
+function myvesta_str_get_between () {
+    global $myvesta_stdin, $myvesta_str_found_at, $myvesta_str_end_at;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    $args_i++; $left_substring=$args[$args_i];
+    $args_i++; $right_substring=$args[$args_i]; 
+    $args_i++; $start=0; if (!empty($args[$args_i])) $start=intval($args[$args_i]);
+    $args_i++; $return_left_substring=0; if (!empty($args[$args_i])) $return_left_substring=intval($args[$args_i]);
+    $args_i++; $return_right_substring=0; if (!empty($args[$args_i])) $return_right_substring=intval($args[$args_i]);
+    $args_i++; $left_substring_necessary=1; if (!empty($args[$args_i])) $left_substring_necessary=intval($args[$args_i]);
+    $args_i++; $right_substring_necessary=1; if (!empty($args[$args_i])) $right_substring_necessary=intval($args[$args_i]);
+
     $myvesta_str_found_at=0;
     $myvesta_str_end_at=0;
     $from_null=0;
@@ -105,7 +120,19 @@ function myvesta_str_get_between (&$text, $left_substring, $right_substring, $st
     return substr($text, $pos1, $len);
 }
 
-function myvesta_str_replace_once_between_including_borders(&$text, $left, $right, $replace_with) {
+function myvesta_str_replace_once_between_including_borders() {
+    global $myvesta_stdin;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    $args_i++; $left=$args[$args_i];
+    $args_i++; $right=$args[$args_i];
+    $args_i++; $replace_with=$args[$args_i];
+
     $pos1=strpos($text, $left);
     if ($pos1===false) return $text;
     $pos2=strpos($text, $right, $pos1+strlen($left));
@@ -113,7 +140,18 @@ function myvesta_str_replace_once_between_including_borders(&$text, $left, $righ
     return substr($text, 0, $pos1).$replace_with.substr($text, $pos2+strlen($right));
 }
 
-function myvesta_str_strip_once_between_including_borders(&$text, $left, $right) {
+function myvesta_str_strip_once_between_including_borders() {
+    global $myvesta_stdin;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    $args_i++; $left=$args[$args_i];
+    $args_i++; $right=$args[$args_i];
+
     $pos1=strpos($text, $left);
     if ($pos1===false) return $text;
     $pos2=strpos($text, $right, $pos1+strlen($left));
@@ -121,7 +159,19 @@ function myvesta_str_strip_once_between_including_borders(&$text, $left, $right)
     return substr($text, 0, $pos1).substr($text, $pos2+strlen($right));
 }
 
-function myvesta_str_replace_between_including_borders($text, $left, $right, $replace_with) {
+function myvesta_str_replace_between_including_borders() {
+    global $myvesta_stdin;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    $args_i++; $left=$args[$args_i];
+    $args_i++; $right=$args[$args_i];
+    $args_i++; $replace_with=$args[$args_i];
+
     $start=0;
     $left_len=strlen($left);
     $right_len=strlen($right);
@@ -135,7 +185,18 @@ function myvesta_str_replace_between_including_borders($text, $left, $right, $re
     return $text;
 }
 
-function myvesta_str_strip_between_including_borders($text, $left, $right) {
+function myvesta_str_strip_between_including_borders() {
+    global $myvesta_stdin;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    $args_i++; $left=$args[$args_i];
+    $args_i++; $right=$args[$args_i];
+
     $left_len=strlen($left);
     $right_len=strlen($right);
     while (true) {
@@ -146,4 +207,44 @@ function myvesta_str_strip_between_including_borders($text, $left, $right) {
         $text=substr($text, 0, $pos1).substr($text, $pos2+$right_len);
     }
     return $text;
+}
+
+function myvesta_str_find() {
+    global $myvesta_stdin;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    $args_i++; $find=$args[$args_i];
+
+    $pos=strpos($text, $find);
+    if ($pos===false) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "");
+    return $pos;
+}
+
+function myvesta_str_uppercase() {
+    global $myvesta_stdin;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    return strtoupper($text);
+}
+
+function myvesta_str_lowercase() {
+    global $myvesta_stdin;
+    $args=func_get_args();
+    $args_i=-1;
+    if ($myvesta_stdin!='') {
+        $text=$myvesta_stdin;
+    } else {
+        $args_i++; $text=$args[$args_i];
+    }
+    return strtolower($text);
 }

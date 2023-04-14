@@ -71,7 +71,9 @@ function myvesta_fix_args() {
 }
 
 function myvesta_test_func () {
+    global $myvesta_stdin;
     $args=func_get_args();
+    if ($myvesta_stdin!='') array_splice( $args, 0, 0, array($myvesta_stdin) );
     myvesta_echo ("You said: ");
     myvesta_echo (trim(print_r ($args, true)));
 }

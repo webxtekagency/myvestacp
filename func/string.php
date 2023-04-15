@@ -72,6 +72,40 @@ function myvesta_strip_in_file_between_including_borders($file, $left, $right) {
     return true;
 }
 
+// --- mixed functions ---
+
+function myvesta_grep($find, $file_or_stdin, $count=0, $quiet=0) {
+    global $myvesta_stdin, $myvesta_stdin_return_not_found;
+    if ($count=='-c') {$count=1; $quiet=0;}
+    if ($count=='-q') {$count=0; $quiet=1;}
+    //echo "find          = " . $find."\n"; echo "file_or_stdin = " . $file_or_stdin."\n"; echo "count         = " . $count."\n"; echo "quiet         = " . $quiet."\n"; exit;
+    if ($myvesta_stdin_return_not_found==true) {
+        if ($count==1) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "0");
+        return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "");
+    }
+    
+    $arr=explode("\n", $file_or_stdin);
+
+    $buf='';
+    $hits=0;
+    foreach ($arr as $line) {
+        if (strpos($line, $find)!==false) {
+            $hits++;
+            if ($quiet==false && $count==false) $buf.=$line."\n";
+        }
+    }
+    if ($count==1) {
+        if ($hits==0) return myvesta_exit (MYVESTA_ERROR_STRING_NOT_FOUND, "0");
+        return $hits;
+    }
+    if ($quiet==1) {
+        if ($hits==0) return myvesta_exit (MYVESTA_ERROR_STRING_NOT_FOUND, "");
+        return true;
+    }
+    if ($hits==0) return myvesta_exit (MYVESTA_ERROR_STRING_NOT_FOUND, "");
+    return $buf;
+}
+
 // --- string functions ---
 
 function myvesta_str_get_between (&$text, $left_substring, $right_substring, $start=0, $return_left_substring=0, $return_right_substring=0, $left_substring_necessary=1, $right_substring_necessary=1) {

@@ -2,7 +2,7 @@
 # info: calling myVesta PHP functions
 # options: FUNCTION
 #
-# The function is calling myVesta PHP functions.
+# The function is calling myVesta or standard PHP functions directly from bash
 
 #----------------------------------------------------------#
 #                       Action                             #

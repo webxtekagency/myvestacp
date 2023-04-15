@@ -1,0 +1,21 @@
+#!/bin/bash
+# info: calling myvesta_grep PHP function
+# options: PARAMETERS
+#
+# The function is calling myVesta PHP replacement for GNU 'grep' command (but without regular expression)
+
+#----------------------------------------------------------#
+#                       Action                             #
+#----------------------------------------------------------#
+
+
+if [ -p /dev/stdin ]; then
+    STDIN=$(cat -)
+    if [ ! -z "$STDIN" ]; then
+        echo "$STDIN" | php /usr/local/vesta/func/bash-to-php-interpreter.php 'myvesta_grep' "$@"
+        exit $?
+    fi
+fi
+
+php /usr/local/vesta/func/bash-to-php-interpreter.php 'myvesta_grep' "$@"
+exit $?

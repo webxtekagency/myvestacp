@@ -29,11 +29,13 @@ if (!function_exists($func)) {
 
 $insert_stdin_at_position=false;
 if ($func=="myvesta_grep") $insert_stdin_at_position=1;
+if ($func=="myvesta_sed") $insert_stdin_at_position=2;
 
 $params=array();
 
 $added=0;
 $stdin_content='';
+$myvesta_stdin_from_file='';
  $myvesta_stdin_return_not_found=false;
 if ($myvesta_stdin!='' && $insert_stdin_at_position===false) {$params[]=$myvesta_stdin; $added++;}
 
@@ -51,6 +53,7 @@ if ($insert_stdin_at_position!=false) {
             $myvesta_stdin='';
         } else {
             $myvesta_stdin=file_get_contents($file_or_stdin);
+            $myvesta_stdin_from_file=$file_or_stdin;
         }
     }
     if (isset($params[$insert_stdin_at_position])) array_splice($params, $insert_stdin_at_position, 0, array($myvesta_stdin));

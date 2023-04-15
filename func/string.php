@@ -75,9 +75,10 @@ function myvesta_strip_in_file_between_including_borders($file, $left, $right) {
 // --- mixed functions ---
 
 function myvesta_grep($find, $file_or_stdin, $count=0, $quiet=0) {
-    global $myvesta_stdin, $myvesta_stdin_return_not_found;
-    if ($count=='-c') {$count=1; $quiet=0;}
-    if ($count=='-q') {$count=0; $quiet=1;}
+    global $myvesta_stdin, $myvesta_stdin_return_not_found, $myvesta_quiet_mode;
+    if ($count==='-c') {$count=1; $quiet=0;}
+    if ($count==='-q') {$count=0; $quiet=1;}
+    $myvesta_quiet_mode=$quiet;
     //echo "find          = " . $find."\n"; echo "file_or_stdin = " . $file_or_stdin."\n"; echo "count         = " . $count."\n"; echo "quiet         = " . $quiet."\n"; exit;
     if ($myvesta_stdin_return_not_found==true) {
         if ($count==1) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "0");
@@ -104,6 +105,25 @@ function myvesta_grep($find, $file_or_stdin, $count=0, $quiet=0) {
     }
     if ($hits==0) return myvesta_exit (MYVESTA_ERROR_STRING_NOT_FOUND, "");
     return $buf;
+}
+
+function myvesta_sed($find, $replace, $file_or_stdin) {
+    global $myvesta_stdin, $myvesta_stdin_return_not_found, $myvesta_stdin_from_file;
+    //echo "find            = " . $find."\n"; echo "replace         = " . $replace."\n"; echo "file_or_stdin   = " . $file_or_stdin."\n"; echo "stdin_from_file = " . $myvesta_stdin_from_file."\n"; exit;
+    if ($myvesta_stdin_return_not_found==true) {
+        return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "File not found");
+    }
+
+    if (strpos($file_or_stdin, $find)===false) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "String '$find' not found");
+
+    $file_or_stdin=str_replace($find, $replace, $file_or_stdin);
+    if ($myvesta_stdin_from_file!='') {
+        $r=file_put_contents($myvesta_stdin_from_file, $file_or_stdin);
+        if ($r===false) return false;
+    } else {
+        myvesta_echo ($file_or_stdin);
+    }
+    return true;
 }
 
 // --- string functions ---

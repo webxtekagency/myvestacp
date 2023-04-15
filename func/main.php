@@ -1,6 +1,7 @@
 <?php
 
 $myvesta_exit_on_error=true;
+$myvesta_quiet_mode=0;
 define('MYVESTA_ERROR_PERMISSION_DENIED', 1);
 define('MYVESTA_ERROR_MISSING_ARGUMENTS', 2);
 define('MYVESTA_ERROR_FILE_DOES_NOT_EXISTS', 3);
@@ -8,19 +9,22 @@ define('MYVESTA_ERROR_STRING_NOT_FOUND', 4);
 define('MYVESTA_ERROR_GENERAL', 5);
 
 function myvesta_echo($str) {
-    global $myvesta_echo_done, $myvesta_last_echo;
+    global $myvesta_echo_done, $myvesta_last_echo, $myvesta_quiet_mode;
+    if ($myvesta_quiet_mode==1) return;
     $myvesta_echo_done=true;
     $myvesta_last_echo=$str;
     echo $str;
 }
 
 function myvesta_exit($code, $echo='') {
-    global $SHLVL, $myvesta_echo_done, $myvesta_last_echo;
+    global $SHLVL, $myvesta_echo_done, $myvesta_last_echo, $myvesta_quiet_mode;
     // myvesta_echo ("==================== ".$argv[0].": ".$code." ====================\n");
-    if ($echo!='') myvesta_echo($echo);
-    if ($SHLVL<3 && $myvesta_echo_done==true) {
-        $last_char=substr($myvesta_last_echo, -1, 1);
-        if ($last_char!="\n") echo "\n";
+    if ($myvesta_quiet_mode!=1) {
+        if ($echo!='') myvesta_echo($echo);
+        if ($SHLVL<3 && $myvesta_echo_done==true) {
+            $last_char=substr($myvesta_last_echo, -1, 1);
+            if ($last_char!="\n") echo "\n";
+        }
     }
     exit($code);
 }
@@ -29,8 +33,8 @@ $myvesta_current_user=exec('whoami', $myvesta_output, $myvesta_return_var);
 if ($myvesta_current_user != 'root') {myvesta_echo ("ERROR: You must be root to execute this script"); myvesta_exit(1);}
 
 function myvesta_throw_error($code, $message) {
-    global $myvesta_exit_on_error;
-    if ($message!=='') myvesta_echo ("ERROR: ".$message);
+    global $myvesta_exit_on_error, $myvesta_quiet_mode;
+    if ($message!=='' && $myvesta_quiet_mode!=1) myvesta_echo ("ERROR: ".$message);
     if ($myvesta_exit_on_error) myvesta_exit($code);
     return $code;
 }

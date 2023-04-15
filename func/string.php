@@ -81,8 +81,8 @@ function myvesta_grep($find, $file_or_stdin, $count=0, $quiet=0) {
     $myvesta_quiet_mode=$quiet;
     //echo "find          = " . $find."\n"; echo "file_or_stdin = " . $file_or_stdin."\n"; echo "count         = " . $count."\n"; echo "quiet         = " . $quiet."\n"; exit;
     if ($myvesta_stdin_return_not_found==true) {
-        if ($count==1) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "0");
-        return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "");
+        if ($count==1) return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "0");
+        return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "");
     }
     
     $arr=explode("\n", $file_or_stdin);
@@ -111,7 +111,7 @@ function myvesta_sed($find, $replace, $file_or_stdin) {
     global $myvesta_stdin, $myvesta_stdin_return_not_found, $myvesta_stdin_from_file;
     //echo "find            = " . $find."\n"; echo "replace         = " . $replace."\n"; echo "file_or_stdin   = " . $file_or_stdin."\n"; echo "stdin_from_file = " . $myvesta_stdin_from_file."\n"; exit;
     if ($myvesta_stdin_return_not_found==true) {
-        return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "File not found");
+        return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File not found");
     }
 
     if (strpos($file_or_stdin, $find)===false) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "String '$find' not found");

@@ -2,6 +2,8 @@
 
 $myvesta_exit_on_error=true;
 $myvesta_quiet_mode=0;
+if (isset($_SERVER['MYVESTA_QUIET'])) $myvesta_quiet_mode=intval($_SERVER['MYVESTA_QUIET']);
+
 define('MYVESTA_ERROR_PERMISSION_DENIED', 1);
 define('MYVESTA_ERROR_MISSING_ARGUMENTS', 2);
 define('MYVESTA_ERROR_FILE_DOES_NOT_EXISTS', 3);

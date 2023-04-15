@@ -41,13 +41,15 @@ if ($myvesta_stdin!='' && $insert_stdin_at_position===false) {$params[]=$myvesta
 
 for ($i=2; $i<$counter; $i++) {
     $argv[$i]=myvesta_fix_backslashes($argv[$i]);
-    if ($insert_stdin_at_position!==false && $myvesta_stdin=='') if ($insert_stdin_at_position==$added) {$stdin_content=$argv[$i]; $added++; continue;}
+    //if ($insert_stdin_at_position!==false && $myvesta_stdin=='') if ($insert_stdin_at_position==$added) {$stdin_content=$argv[$i]; $added++; continue;}
     $params[]=$argv[$i];
     $added++;
 }
+//print_r($params); exit;
+
 if ($insert_stdin_at_position!=false) {
     if ($myvesta_stdin=='') {
-        $file_or_stdin=$stdin_content;
+        $file_or_stdin=$params[$insert_stdin_at_position];
         if (!file_exists($file_or_stdin)) {
             $myvesta_stdin_return_not_found=true;
             $myvesta_stdin='';
@@ -55,9 +57,10 @@ if ($insert_stdin_at_position!=false) {
             $myvesta_stdin=file_get_contents($file_or_stdin);
             $myvesta_stdin_from_file=$file_or_stdin;
         }
+        $params[$insert_stdin_at_position]=$myvesta_stdin;
+    } else {
+        array_splice($params, $insert_stdin_at_position, 0, array($myvesta_stdin));
     }
-    if (isset($params[$insert_stdin_at_position])) array_splice($params, $insert_stdin_at_position, 0, array($myvesta_stdin));
-    else $params[$insert_stdin_at_position]=$myvesta_stdin;
 }
 //print_r($params); exit;
 

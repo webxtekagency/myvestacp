@@ -74,25 +74,25 @@ function myvesta_strip_in_file_between_including_borders($file, $left, $right) {
 
 // --- mixed functions ---
 
-function myvesta_grep($find, $file_or_stdin, $count=0, $quiet=0) {
+function myvesta_grep($find, $content, $count=0, $quiet=0) {
     global $myvesta_stdin, $myvesta_stdin_return_not_found, $myvesta_quiet_mode;
     if ($count==='-c') {$count=1; $quiet=0;}
     if ($count==='-q') {$count=0; $quiet=1;}
-    $myvesta_quiet_mode=$quiet;
-    //echo "find          = " . $find."\n"; echo "file_or_stdin = " . $file_or_stdin."\n"; echo "count         = " . $count."\n"; echo "quiet         = " . $quiet."\n"; exit;
+    if ($myvesta_quiet_mode==0) $myvesta_quiet_mode=$quiet;
+    //echo "find          = " . $find."\n"; echo "file_or_stdin = " . $content."\n"; echo "count         = " . $count."\n"; echo "quiet         = " . $quiet."\n"; exit;
     if ($myvesta_stdin_return_not_found==true) {
         if ($count==1) return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "0");
         return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "");
     }
     
-    $arr=explode("\n", $file_or_stdin);
+    $arr=explode("\n", $content);
 
-    $buf='';
+    $buffer='';
     $hits=0;
     foreach ($arr as $line) {
         if (strpos($line, $find)!==false) {
             $hits++;
-            if ($quiet==false && $count==false) $buf.=$line."\n";
+            if ($quiet==false && $count==false) $buffer.=$line."\n";
         }
     }
     if ($count==1) {
@@ -104,24 +104,24 @@ function myvesta_grep($find, $file_or_stdin, $count=0, $quiet=0) {
         return true;
     }
     if ($hits==0) return myvesta_exit (MYVESTA_ERROR_STRING_NOT_FOUND, "");
-    return $buf;
+    return $buffer;
 }
 
-function myvesta_sed($find, $replace, $file_or_stdin) {
+function myvesta_sed($find, $replace, $content) {
     global $myvesta_stdin, $myvesta_stdin_return_not_found, $myvesta_stdin_from_file;
-    //echo "find            = " . $find."\n"; echo "replace         = " . $replace."\n"; echo "file_or_stdin   = " . $file_or_stdin."\n"; echo "stdin_from_file = " . $myvesta_stdin_from_file."\n"; exit;
+    //echo "find            = " . $find."\n"; echo "replace         = " . $replace."\n"; echo "file_or_stdin   = " . $content."\n"; echo "stdin_from_file = " . $myvesta_stdin_from_file."\n"; exit;
     if ($myvesta_stdin_return_not_found==true) {
         return myvesta_throw_error (MYVESTA_ERROR_FILE_DOES_NOT_EXISTS, "File not found");
     }
 
-    if (strpos($file_or_stdin, $find)===false) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "String '$find' not found");
+    if (strpos($content, $find)===false) return myvesta_throw_error (MYVESTA_ERROR_STRING_NOT_FOUND, "String '$find' not found");
 
-    $file_or_stdin=str_replace($find, $replace, $file_or_stdin);
+    $content=str_replace($find, $replace, $content);
     if ($myvesta_stdin_from_file!='') {
-        $r=file_put_contents($myvesta_stdin_from_file, $file_or_stdin);
+        $r=file_put_contents($myvesta_stdin_from_file, $content);
         if ($r===false) return false;
     } else {
-        myvesta_echo ($file_or_stdin);
+        myvesta_echo ($content);
     }
     return true;
 }

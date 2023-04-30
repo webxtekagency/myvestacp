@@ -17,7 +17,7 @@
     <Directory %sdocroot%>
         AllowOverride All
         SSLRequireSSL
-        Options +Includes -Indexes +ExecCGI
+        Options +Includes -Indexes -FollowSymLinks +SymLinksIfOwnerMatch
 	</Directory>
     SSLEngine on
     SSLVerifyClient none

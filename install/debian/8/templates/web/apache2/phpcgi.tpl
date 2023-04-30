@@ -13,7 +13,7 @@
     ErrorLog /var/log/%web_system%/domains/%domain%.error.log
     <Directory %docroot%>
         AllowOverride All
-        Options +Includes -Indexes +ExecCGI
+        Options +Includes -Indexes -FollowSymLinks +SymLinksIfOwnerMatch
         php_admin_value open_basedir %docroot%:%home%/%user%/tmp
         php_admin_value upload_tmp_dir %home%/%user%/tmp
         php_admin_value session.save_path %home%/%user%/tmp

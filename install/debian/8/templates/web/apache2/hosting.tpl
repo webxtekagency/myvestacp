@@ -13,7 +13,7 @@
     ErrorLog /var/log/%web_system%/domains/%domain%.error.log
     <Directory %docroot%>
         AllowOverride All
-        Options +Includes -Indexes +ExecCGI
+        Options +Includes -Indexes -FollowSymLinks +SymLinksIfOwnerMatch
         php_admin_value upload_max_filesize 10M
         php_admin_value max_execution_time 20
         php_admin_value post_max_size  8M

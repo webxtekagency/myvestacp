@@ -16,7 +16,7 @@
     </Directory>
     <Directory %sdocroot%>
         AllowOverride All
-        Options +Includes -Indexes +ExecCGI
+        Options +Includes -Indexes -FollowSymLinks +SymLinksIfOwnerMatch
     </Directory>
 
     <FilesMatch \.php$>

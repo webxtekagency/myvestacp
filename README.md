@@ -39,7 +39,7 @@
           <li><a href="https://github.com/myvesta/vesta/blob/master/src/deb/for-download/php/php.ini#L496">src/deb/for-download/php/php.ini</a></li>
           <li><a href="https://github.com/myvesta/vesta/blob/master/web/inc/secure_login.php">web/inc/secure_login.php</a></li>
         </ul>
-        <li>If you didn't set the secret URL during installation, you can do it anytime. Just execute in shell: <code>echo "<?php \$login_url='MY-SECRET-URL';" > /usr/local/vesta/web/inc/login_url.php</code></li>
+        <li>If you didn't set the secret URL during installation, you can do it anytime. Just execute in shell: <code>echo "&lt;?php \$login_url='MY-SECRET-URL';" > /usr/local/vesta/web/inc/login_url.php</code></li>
       </ul>
     </li>
   <li>We <a href="https://github.com/myvesta/vesta/blob/master/install/debian/10/php/php7.3-dedi.patch#L9">disabled dangerous PHP functions</a> in php.ini, so even if, for example, your customer's CMS gets compromised, hacker will not be able to execute shell scripts from within PHP.</li>

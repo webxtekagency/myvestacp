@@ -1,3 +1,10 @@
+Version 0.9.9-0 [05-Jun-2023]
+==================================================
+* Redesign of hosting panel
+* Fix for WP_CACHE_KEY_SALTs in v-clone-website command
+* Fix for "Helo name contains a ip address" in Exim4
+* Fix for Exim4 for punycode domains (in collaboration with @HestiaCP )
+
 Version 0.9.8-26-62 [05-Apr-2023]
 ==================================================
 * Fix for LetsEncrypt Asynchronous Order Finalization (in collaboration with @HestiaCP )

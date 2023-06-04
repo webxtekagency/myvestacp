@@ -497,7 +497,7 @@ b, strong {
 .l-content .l-center .io-box .io-box-left {
   float: left;
   width: calc(100% - 800px);
-  min-width: 283px;
+  /*min-width: 283px;*/
   text-align: center;
 }
 .l-content .l-center .io-box .io-box-left .io-box-left-items {
@@ -508,6 +508,7 @@ b, strong {
   margin-bottom: 20px;
   background: #fff;
   border-radius: 3px;
+  min-width: 125px;
 }
 .l-content .l-center .io-box .io-box-left .io-box-left-items a {
   display: block;
@@ -541,6 +542,22 @@ b, strong {
 .l-content .l-center .io-box .io-box-left .io-4-homepage-block a {
   color: #58666f;
 }
+.l-content .l-center .io-box .io-box-left .io-1-homepage-block span {
+  padding: 5px;
+}
+.l-content .l-center .io-box .io-box-left .io-2-homepage-block span {
+  padding: 5px;
+}
+.l-content .l-center .io-box .io-box-left .io-3-homepage-block span {
+  padding: 5px;
+}
+.l-content .l-center .io-box .io-box-left .io-4-homepage-block span {
+  padding: 5px;
+}
+.l-content .l-center .io-box .io-box-left .io-5-homepage-block span {
+  padding: 5px;
+}
+
 .l-content .l-center .io-box .io-box-left .io-5-homepage-block {
   width: calc(100% - 20px);
   color: #98a6ac;

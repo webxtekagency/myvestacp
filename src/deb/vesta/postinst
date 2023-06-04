@@ -30,7 +30,7 @@ if [ "$release" -gt 8 ]; then
     if [ -f "/etc/exim4/exim4.conf.template" ]; then
         if ! grep -q 'smtputf8_advertise_hosts' /etc/exim4/exim4.conf.template; then
             echo 'Patching exim4.conf for: smtputf8_advertise_hosts'
-            sed -i  "/^domainlist local_domains = dsearch;\/etc\/exim4\/domains\//i smtputf8_advertise_hosts =" /etc/exim4/exim4.conf.template
+            sed -i  "/^domainlist local_domains/i smtputf8_advertise_hosts =" /etc/exim4/exim4.conf.template
             systemctl restart exim4
         fi
     fi

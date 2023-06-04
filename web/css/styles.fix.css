@@ -700,7 +700,7 @@ b, strong {
   background: #fff;
   word-break: break-word;
   overflow: hidden;
-  border-right: 10px solid #e3e3e3;
+  border-right: 8px solid #e3e3e3;
   box-sizing: border-box;
   /* Firefox */
   /* width */

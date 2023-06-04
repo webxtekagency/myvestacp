@@ -26,7 +26,7 @@ echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
 # Patching exim4.conf for: smtputf8_advertise_hosts
-if [ "$release" -gt 8 ]; then
+if [ "$release" -gt 10 ]; then
     if [ -f "/etc/exim4/exim4.conf.template" ]; then
         if ! grep -q 'smtputf8_advertise_hosts' /etc/exim4/exim4.conf.template; then
             echo 'Patching exim4.conf for: smtputf8_advertise_hosts'

@@ -1,8 +1,5 @@
 <?php
 
-$vesta_version=file_get_contents('/usr/local/vesta/version.txt');
-$vesta_build_date=file_get_contents('/usr/local/vesta/build_date.txt');
-
 if (file_exists("/usr/local/vesta/web/inc/switch_to_vesta_port") && isset($_SERVER['HTTP_X_REAL_IP'])) {
     header("Location: https://".$_SERVER['HTTP_HOST'].":".$_SERVER['SERVER_PORT']);
     exit;
@@ -11,7 +8,7 @@ if (file_exists("/usr/local/vesta/web/inc/switch_to_vesta_port") && isset($_SERV
 session_start();
 
 define('VESTA_CMD', '/usr/bin/sudo /usr/local/vesta/bin/');
-define('JS_LATEST_UPDATE', '1491697868');
+define('JS_LATEST_UPDATE', '1491697869');
 
 $i = 0;
 

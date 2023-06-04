@@ -32,15 +32,17 @@ $(document).ready(function(){
 
 
             // CREATE BUTTON
-              
-            $('.l-sort__create-btn').hover(function(){
-              $(".l-sort__create-btn").append("<div id='add-icon'></div>");
-              $(".l-sort__create-btn").append("<div id='tooltip'>"+$('.l-sort__create-btn').attr('title').replace(' ','&nbsp;')+"</div>");
-            }, function(){
-              $("#add-icon").remove();
-              $("#tooltip").remove();
-            });
-            
+            if ($(".l-sort__create-btn").length>0) {
+                $(".l-sort__create-btn").append("<div id='add-icon'></div>");
+                $(".l-sort__create-btn").append("<div id='tooltip'>"+$('.l-sort__create-btn').attr('title').replace(' ','&nbsp;')+"</div>");
+                $('.l-sort__create-btn').hover(function(){
+                    $("#tooltip").css('background-color', '#1ca2cc');
+                }, function() {
+                    $("#tooltip").css('background-color', '#34b5dd');
+                      //$("#add-icon").remove();
+                      //$("#tooltip").remove();
+                });
+            }
               
             // SEARCH BOX
                 

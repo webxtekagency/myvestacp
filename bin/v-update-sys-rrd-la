@@ -74,7 +74,7 @@ rrdtool graph $RRD/la/$period-la.png \
     -c "SHADEA#ffffff" \
     -c "SHADEB#ffffff" \
     -c "FONT#555555" \
-    -c "CANVAS#302c2d" \
+    -c "CANVAS#F2F2F2" \
     -c "GRID#666666" \
     -c "MGRID#AAAAAA" \
     -c "FRAME#777777" \
@@ -82,7 +82,7 @@ rrdtool graph $RRD/la/$period-la.png \
     DEF:la=$RRD/la/la.rrd:LA:AVERAGE \
     DEF:pr=$RRD/la/la.rrd:PR:AVERAGE \
     COMMENT:'\r' \
-    AREA:la#C8EA2E:"LA * 100"\
+    AREA:la#00CD2E:"LA * 100"\
     GPRINT:la:'LAST: Current\:''%8.0lf'  \
     GPRINT:la:'MIN: Min\:''%8.0lf'  \
     GPRINT:la:'MAX: Max\:''%8.0lf\j'  \

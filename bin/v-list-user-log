@@ -12,6 +12,7 @@
 # Argument definition
 user=$1
 format=${2-shell}
+limit=${3-300}
 
 # Includes
 source $VESTA/func/main.sh
@@ -34,6 +35,9 @@ json_list() {
         "TIME": "'$TIME'",
         "DATE": "'$DATE'"
     }'
+        if [ "$limit" -gt 0 ] && [ "$i" = "$limit" ]; then
+            break;
+        fi
         if [ "$i" -lt "$objects" ]; then
             echo ','
         else
@@ -83,7 +87,7 @@ csv_list() {
 #                    Verifications                         #
 #----------------------------------------------------------#
 
-check_args '1' "$#" 'USER [FORMAT]'
+check_args '1' "$#" 'USER [FORMAT] [LIMIT]'
 is_format_valid 'user'
 is_object_valid 'user' 'USER' "$user"
 
@@ -93,7 +97,7 @@ is_object_valid 'user' 'USER' "$user"
 #----------------------------------------------------------#
 
 # Parsing history log
-logs=$(tail -n 300 $USER_DATA/history.log 2>/dev/null)
+logs=$(tail -n $limit $USER_DATA/history.log | tac)
 
 case $format in
     json)   json_list ;;

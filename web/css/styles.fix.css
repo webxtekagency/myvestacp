@@ -497,7 +497,7 @@ b, strong {
 .l-content .l-center .io-box .io-box-left {
   float: left;
   width: calc(100% - 800px);
-  min-width: 410px;
+  min-width: 283px;
   text-align: center;
 }
 .l-content .l-center .io-box .io-box-left .io-box-left-items {

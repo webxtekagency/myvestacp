@@ -25,6 +25,26 @@ fi
 echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+# Patching exim4.conf for: smtputf8_advertise_hosts
+if [ "$release" -gt 8 ]; then
+    if [ -f "/etc/exim4/exim4.conf.template" ]; then
+        if ! grep -q 'smtputf8_advertise_hosts' /etc/exim4/exim4.conf.template; then
+            echo 'Patching exim4.conf for: smtputf8_advertise_hosts'
+            sed -i  "/^domainlist local_domains = dsearch;\/etc\/exim4\/domains\//i smtputf8_advertise_hosts =" /etc/exim4/exim4.conf.template
+            systemctl restart exim4
+        fi
+    fi
+fi
+
+# Patching exim4.conf for: Helo name contains a ip address
+if [ -f "/etc/exim4/exim4.conf.template" ]; then
+    if grep -q 'drop    message       = Helo name contains a ip address (HELO was $sender_helo_name) and not is valid' /etc/exim4/exim4.conf.template; then
+        echo 'Patching exim4.conf for: Helo name contains a ip address'
+        patch /etc/exim4/exim4.conf.template < /usr/local/vesta/src/deb/for-download/tools/patches/exim_helo_authenticated.patch
+        sed -i '/telenor\.rs/d' /etc/exim4/exim4.conf.template
+        systemctl restart exim4
+    fi
+fi
 
 # Making sure yescrypt is disabled
 if [ "$release" -eq 11 ]; then

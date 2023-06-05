@@ -6,7 +6,7 @@ input[type="checkbox"] {
 </style>
 <br /><br />
 <form action="/bulk/restore/" method="post" id="objects">
-    <div class="l-center">
+    <div class="l-center" style="margin-left: 240px; padding-right: 30px;">
       <div class="l-sort clearfix noselect">
         <a href="/schedule/restore/?backup=<?=htmlentities($_GET['backup'])?>" class="l-sort__create-btn restore" style="bottom: 0" title="<?=__('Restore All')?>"></a>
         <div class="l-sort-toolbar clearfix">
@@ -34,7 +34,7 @@ input[type="checkbox"] {
     <!-- /.l-separator -->
 
 
-    <div class="l-center units" style="margin-top:240px">
+    <div class="l-center units" style="margin-top:250px; margin-left: 240px; padding-right: 20px;">
     <div class="l-unit header">
       <div class="subtitle" style="color: black;"><?=__('Listing')?>  <?=htmlentities($_GET['backup'])?></div>
       <div class="subtitle"><?=__('First select what to restore')?>:</div>
@@ -50,7 +50,7 @@ input[type="checkbox"] {
 
       <div>
         <div class="l-unit-toolbar clearfix">
-          <div class="l-unit-toolbar__col l-unit-toolbar__col--left">
+          <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check<?=$i?>" class="ch-toggle" type="checkbox" name="web[]" value="<?=$key?>">
             
           </div>
@@ -101,7 +101,7 @@ input[type="checkbox"] {
 
       <div>
         <div class="l-unit-toolbar clearfix">
-          <div class="l-unit-toolbar__col l-unit-toolbar__col--left">
+          <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check2<?=$i?>" type="checkbox" name="mail[]" value="<?=$key?>">
             
           </div>
@@ -149,7 +149,7 @@ input[type="checkbox"] {
 
       <div>
         <div class="l-unit-toolbar clearfix">
-          <div class="l-unit-toolbar__col l-unit-toolbar__col--left">
+          <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check3<?=$i?>" type="checkbox" name="dns[]" value="<?=$key?>">
             
           </div>
@@ -196,7 +196,7 @@ input[type="checkbox"] {
 
       <div>
         <div class="l-unit-toolbar clearfix">
-          <div class="l-unit-toolbar__col l-unit-toolbar__col--left">
+          <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check4<?=$i?>" type="checkbox" name="db[]" value="<?=$key?>">
             
           </div>
@@ -244,7 +244,7 @@ input[type="checkbox"] {
 
       <div>
         <div class="l-unit-toolbar clearfix">
-          <div class="l-unit-toolbar__col l-unit-toolbar__col--left">
+          <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check5<?=$i?>" type="checkbox" name="check" value="<?=$key?>">
             
           </div>
@@ -292,7 +292,7 @@ input[type="checkbox"] {
 
       <div>
         <div class="l-unit-toolbar clearfix">
-          <div class="l-unit-toolbar__col l-unit-toolbar__col--left">
+          <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check6<?=$i?>" type="checkbox" name="udir[]" value="<?=$key?>">
             
           </div>
@@ -331,7 +331,7 @@ input[type="checkbox"] {
 
       <div>
         <div class="l-unit-toolbar clearfix">
-          <div class="l-unit-toolbar__col l-unit-toolbar__col--left">
+          <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check7<?=$i?>" type="checkbox" name="cron" value="<?=$i?>">
             
           </div>

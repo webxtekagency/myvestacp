@@ -7,8 +7,8 @@
 build_deb_package=1
 add_deb_to_apt_repo=0
 
-TARGET_DEB_NAME='bullseye'
-TARGET_DEB_VER='11'
+TARGET_DEB_NAME='bookworm'
+TARGET_DEB_VER='12'
 
 run_apt_update_and_install=1
 wait_to_press_enter=1
@@ -31,8 +31,8 @@ fi
 
 MAINTAINER_EMAIL='info@myvestacp.com'
 
-TARGET_DEB_NAME_MAIN='bullseye'
-TARGET_DEB_VER_MAIN='11'
+TARGET_DEB_NAME_MAIN='bookworm'
+TARGET_DEB_VER_MAIN='12'
 
 # Set compiling directory
 BUILD_DIR="/usr/src/$TARGET_DEB_NAME"
@@ -67,8 +67,12 @@ PHP_V='5.6.40'
 # Generate Links for sourcecode
 NGINX='https://nginx.org/download/nginx-'$NGINX_V'.tar.gz'
 OPENSSL='https://www.openssl.org/source/openssl-'$OPENSSL_V'.tar.gz'
-PCRE='https://ftp.pcre.org/pub/pcre/pcre-'$PCRE_V'.tar.gz'
-ZLIB='https://www.zlib.net/zlib-'$ZLIB_V'.tar.gz'
+# PRCE got moved to sourceforce.net
+# PRCE2 in the feature use 
+# PCRE='https://github.com/PCRE2Project/pcre2/releases/download/pcre2-'$PCRE_V'/pcre2-'$PCRE_V'.tar.gz'
+PCRE='https://sourceforge.net/projects/pcre/files/pcre/'$PCRE_V'/pcre-'$PCRE_V'.tar.gz/download'
+# Zlib moved archives to Github
+ZLIB='https://github.com/madler/zlib/archive/refs/tags/v'$ZLIB_V'.tar.gz'
 PHP='http://de2.php.net/distributions/php-'$PHP_V'.tar.gz'
 
 # Set package dependencies for compiling
@@ -408,6 +412,34 @@ if [ "$CWEB_B" = true ]; then
   fi
   tar -czf dovecot.tar.gz dovecot/
   echo "=== All done for Debian11"
+  ##########
+  cd $PATH_OF_C_WEB_FOLDER_ROOT/debian/12
+  
+  if [ -f "packages.tar.gz" ]; then
+    rm packages.tar.gz
+  fi
+  tar -czf packages.tar.gz packages/
+  
+  if [ -f "templates.tar.gz" ]; then
+    rm templates.tar.gz
+  fi
+  tar -czf templates.tar.gz templates/
+  
+  if [ -f "firewall.tar.gz" ]; then
+    rm firewall.tar.gz
+  fi
+  tar -czf firewall.tar.gz firewall/
+  
+  if [ -f "fail2ban.tar.gz" ]; then
+    rm fail2ban.tar.gz
+  fi
+  tar -czf fail2ban.tar.gz fail2ban/
+  
+  if [ -f "dovecot.tar.gz" ]; then
+    rm dovecot.tar.gz
+  fi
+  tar -czf dovecot.tar.gz dovecot/
+  echo "=== All done for Debian12"
   ##########
   
   cp /root/vesta/install/vst-install-debian.sh $PATH_OF_C_WEB_FOLDER_ROOT/vst-install-debian.sh

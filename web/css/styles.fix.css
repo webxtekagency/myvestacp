@@ -683,13 +683,12 @@ b, strong {
 }
 .l-content #vstobjects > .l-center {
   margin-left: 200px;
-  margin-right: 40px;
+  margin-right: 240px;
   padding-top: 0;
   padding-bottom: 1px;
 }
-.l-content .io-log {
-  color: #58666f;
-  border-left: 1px solid #dee5e8;
+
+.l-content .right_sidebar {
   width: 240px;
   position: fixed;
   display: block;
@@ -697,13 +696,24 @@ b, strong {
   z-index: 98;
   top: 50px;
   right: 0px;
+  box-sizing: border-box;
+  height: 100%;
+}
+.l-content .io-log {
+  color: #58666f;
+  border-left: 1px solid #dee5e8;
+  width: 240px;
+  position: relative;
+  display: block;
+  /*overflow-scrolling: auto;*/
+  z-index: 98;
+  top: 0px;
+  right: 0px;
   background: #fff;
   word-break: break-word;
   overflow: hidden;
   border-right: 8px solid #e3e3e3;
   box-sizing: border-box;
-  /* Firefox */
-  /* width */
 }
 .l-content .io-log::-webkit-scrollbar {
   width: 7px;
@@ -788,26 +798,23 @@ b, strong {
   background: #fbffe0;
 }
 
-
 .l-content .io-log2 {
   color: #58666f;
   border-left: 1px solid #dee5e8;
   border-top: 1px solid #cecece;
   width: 240px;
-  position: fixed;
+  position: relative;
   height: 100%;
   display: block;
   /*overflow-scrolling: auto;*/
   z-index: 98;
-  top: 380px;
+  top: 0px;
   right: 0px;
   background: #fff;
   word-break: break-word;
   overflow-y: scroll;
   scrollbar-width: thin;
   box-sizing: border-box;
-  /* Firefox */
-  /* width */
 }
 .l-content .io-log2::-webkit-scrollbar {
   width: 7px;

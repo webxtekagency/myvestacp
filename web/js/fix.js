@@ -26,15 +26,15 @@ function showIoLog(animate) {
         $(".l-content .l-center").css("margin-right", 240);
         $(".to-top").css("right", 285);
         $(".to-shortcuts").css("right", 330);
-        $(".io-log").css("right", 0);
-        $(".io-log2").css("right", 0);
+        $(".right_sidebar").css("right", 0);
+        //$(".io-log2").css("right", 0);
         //$("#myvesta_float").css("margin-right", 280);
     } else {
         $(".l-content .l-center").animate({"margin-right": 240});
         $(".to-top").animate({"right": 285});
         $(".to-shortcuts").animate({"right": 330});
-        $(".io-log").animate({"right": 0});
-        $(".io-log2").animate({"right": 0});
+        $(".right_sidebar").animate({"right": 0});
+        //$(".io-log2").animate({"right": 0});
         //$("#myvesta_float").animate({"margin-right": 280});
     }
 
@@ -53,15 +53,15 @@ function hideIoLog(animate){
         $(".l-content .l-center").css("margin-right", 40);
         $(".to-top").css("right", 85);
         $(".to-shortcuts").css("right", 130);
-        $(".io-log").css("right", -200);
-        $(".io-log2").css("right", -200);
+        $(".right_sidebar").css("right", -200);
+        //$(".io-log2").css("right", -200);
         $("#myvesta_float").css("margin-right", 100);
     } else {
         $(".l-content .l-center").animate({"margin-right": 40});
         $(".to-top").animate({"right": 85});
         $(".to-shortcuts").animate({"right": 130});
-        $(".io-log").animate({"right": -200});
-        $(".io-log2").animate({"right": -200});
+        $(".right_sidebar").animate({"right": -200});
+        //$(".io-log2").animate({"right": -200});
         $("#myvesta_float").animate({"margin-right": 100});
     }
 }
@@ -89,8 +89,8 @@ var iohtml = '<div class="io-box clearfix">\n' +
     '      </div>';
 
 $(document).ready(function(){
-    var sys_height=$(".io-log").height();
-    $(".io-log2").css("top", sys_height+50);
+    //var sys_height=$(".io-log").height();
+    //$(".io-log2").css("top", sys_height+50);
     setTimeout(function() {
         iolog = getCookie("iolog");
         /* //console.log('cookie: "'+iolog+'"');

@@ -20,13 +20,13 @@ b, strong {
   z-index: 100;
   top: unset;
   bottom: 30px;
-  right: 85px;
+  right: 285px;
 }
 .to-shortcuts {
   z-index: 100;
   top: unset;
   bottom: 30px;
-  right: 130px;
+  right: 330px;
 }
 .shortcuts {
   right: calc(50% - 400px);
@@ -676,7 +676,7 @@ b, strong {
 }
 .l-content > .l-center {
   margin-left: 200px;
-  margin-right: 40px;
+  margin-right: 240px;
 }
 .l-content > .l-center:first-child {
   margin-left: 0;
@@ -696,7 +696,7 @@ b, strong {
   /*overflow-scrolling: auto;*/
   z-index: 98;
   top: 50px;
-  right: -200px;
+  right: 0px;
   background: #fff;
   word-break: break-word;
   overflow: hidden;
@@ -800,7 +800,7 @@ b, strong {
   /*overflow-scrolling: auto;*/
   z-index: 98;
   top: 380px;
-  right: -200px;
+  right: 0px;
   background: #fff;
   word-break: break-word;
   overflow-y: scroll;

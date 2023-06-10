@@ -86,31 +86,6 @@ function checkCookie() {
 // }
 // var randomnumber=getRandomInt(100000000);
 var iohtml = '<div class="io-box clearfix">\n' +
-    '        <div class="io-box-left clearfix">\n' +
-    '          <div class="io-box-left-items io-1-homepage-block">\n' +
-    '            <a href="https://www.myvestacp.com/" target="_blank">myVesta</a>\n' +
-    '            <span class="io-description">website</span>\n' +
-    '          </div>\n' +
-    '          <div class="io-box-left-items io-2-homepage-block">\n' +
-    '            <a href="https://forum.myvestacp.com/" target="_blank">Forum</a>\n' +
-    '            <span class="io-description">Ask the questions on our forum</span>\n' +
-    '          </div>\n' +
-    '          <div class="io-box-left-items io-3-homepage-block">\n' +
-    '            <a href="https://github.com/myvesta/vesta" target="_blank">Git</a>\n' +
-    '            <span class="io-description">Become our code contributor</span>\n' +
-    '          </div>\n' +
-    '          <div class="io-box-left-items io-4-homepage-block">\n' +
-    '            <a href="https://forum.myvestacp.com/viewtopic.php?t=814" target="_self">Donate</a>\n' +
-    '            <span class="io-description">Buy us a coffe</span>\n' +
-    '          </div>\n' +
-    '          <div class="io-box-left-items io-5-homepage-block">\n' +
-    '            <a href="https://wiki.myvestacp.com/" target="_self">Wiki</a>\n' +
-    '            <span class="io-description">Find solution in our documentation</span>\n' +
-    '          </div>\n' +
-    '        </div>\n' +
-    '        <div class="io-box-right io-banner clearfix">\n' +
-    '          <a href="/list/rrd/"><img src="/list/rrd/image.php?/rrd/la/daily-la.png" alt="SysLoad"></a>\n' +
-    '        </div>\n' +
     '      </div>';
 
 $(document).ready(function(){
@@ -118,25 +93,25 @@ $(document).ready(function(){
     $(".io-log2").css("top", sys_height+50);
     setTimeout(function() {
         iolog = getCookie("iolog");
-        //console.log('cookie: "'+iolog+'"');
+        /* //console.log('cookie: "'+iolog+'"');
         if (iolog === '1') {
             showIoLog(0);
             return 1;
-        }
+        }*/
         if (iolog === '0') {
             //setCookie("iolog", 0, 365);
             hideIoLog(0);
             return 0;
         }
-        if (iolog == '') {
+        /*if (iolog == '') {
             //console.log('cookie is empty');
             //setCookie("iolog", 1, 365);
             showIoLog(0);
             return '';
-        }
+        }*/
     }, 1);
 
-    if (GLOBAL.CURRENT_USER_FINAL == 'admin') $(".body-user .l-content > .l-center.units").first().prepend( iohtml );
+    //if (GLOBAL.CURRENT_USER_FINAL == 'admin') $(".body-user .l-content > .l-center.units").first().prepend( iohtml );
 
     $(".io-log").on("click", function() {
         var showlog=checkCookie();

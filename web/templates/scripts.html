@@ -123,7 +123,7 @@
     <div>
 <?php
 $output='';
-exec (VESTA_CMD."v-list-user-log ".$CURRENT_USER_FINAL." json 25", $output, $return_var);
+exec (VESTA_CMD."v-list-user-log ".$CURRENT_USER_FINAL." json 15", $output, $return_var);
 check_error($return_var);
 $data = json_decode(implode('', $output), true);
 foreach ($data as $key => $value) {

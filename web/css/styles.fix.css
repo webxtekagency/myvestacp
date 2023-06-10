@@ -698,6 +698,7 @@ b, strong {
   right: 0px;
   box-sizing: border-box;
   height: 100%;
+  background: #fff;
 }
 .l-content .io-log {
   color: #58666f;
@@ -706,7 +707,7 @@ b, strong {
   position: relative;
   display: block;
   /*overflow-scrolling: auto;*/
-  z-index: 98;
+  z-index: 99;
   top: 0px;
   right: 0px;
   background: #fff;
@@ -807,7 +808,7 @@ b, strong {
   height: 100%;
   display: block;
   /*overflow-scrolling: auto;*/
-  z-index: 98;
+  z-index: 99;
   top: 0px;
   right: 0px;
   background: #fff;

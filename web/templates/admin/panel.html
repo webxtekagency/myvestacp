@@ -38,6 +38,7 @@
 
 
   <div class="l-content">
+  
     <div class="l-center">
       <div class="l-stat">
         <a href="/list/user/"><img src="/images/myvesta-large-white-130.png" style="display: block; width: 130px; height: 69px; margin-top: 5px; margin-left: 13px; position: relative;"></a>
@@ -129,10 +130,14 @@ $debian_ver=file_get_contents('/etc/debian_version');
             <span style="font-weight: bold;">Debian </span> <?php echo $debian_ver;?><br />
         </div>
         <div style="display: block; padding: 30px 0 0 19px; color: #b9bcbd;">
-            <a href="https://forum.myvestacp.com/viewtopic.php?f=23&t=819" target="_blank" style="text-decoration: underline;">Need emergency help?</a>
+            <a href="https://forum.myvestacp.com/viewtopic.php?f=23&t=819" target="_blank" style="text-decoration: underline; font-weight: bold;">Need urgent assistance?</a>
         </div>
       </div>
       <!-- /.l-stats -->
     </div>
+
+    <?php
+        include('/usr/local/vesta/web/templates/right.html');
+    ?>
     <div class="l-separator"></div>
     <!-- /.l-separator -->

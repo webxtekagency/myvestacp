@@ -4223,3 +4223,16 @@ div.ui-dialog + div div{
     background-color: #333 !important;
 }
 */
+
+.backup-items {
+    background-color: #f8f8f8;
+    margin: 10px 33px;
+    border-radius: 10px;
+}
+
+.upper_button {
+  background-color: #3AB5DD;
+  color: #fff !important;
+  padding: 5px 10px !important;
+  border-radius: 13px;
+}

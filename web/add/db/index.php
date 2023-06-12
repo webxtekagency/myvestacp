@@ -98,7 +98,7 @@ if (!empty($_POST['ok'])) {
     // Flush field values on success
     if (empty($_SESSION['error_msg'])) {
         $_SESSION['ok_msg'] = __('DATABASE_CREATED_OK',htmlentities($user)."_".htmlentities($_POST['v_database']),htmlentities($user)."_".htmlentities($_POST['v_database']));
-        $_SESSION['ok_msg'] .= " / <a href=".$db_admin_link." target='_blank'>" . __('open %s',$db_admin) . "</a>";
+        $_SESSION['ok_msg'] .= " / <a style=\"text-decoration: underline; color: #9c8cff;\" href=".$db_admin_link." target='_blank'>" . __('open %s',$db_admin) . "</a>";
         unset($v_database);
         unset($v_dbuser);
         unset($v_password);

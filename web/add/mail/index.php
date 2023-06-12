@@ -187,7 +187,7 @@ if (!empty($_POST['ok_acc'])) {
     // Flush field values on success
     if (empty($_SESSION['error_msg'])) {
         $_SESSION['ok_msg'] = __('MAIL_ACCOUNT_CREATED_OK',htmlentities(strtolower($_POST['v_account'])),htmlentities($_POST[v_domain]),htmlentities(strtolower($_POST['v_account'])),htmlentities($_POST[v_domain]));
-        $_SESSION['ok_msg'] .= " / <a href=".$webmail." target='_blank'>" . __('open webmail') . "</a>";
+        $_SESSION['ok_msg'] .= " / <a style=\"text-decoration: underline; color: #9c8cff;\" href=".$webmail." target='_blank'>" . __('open webmail') . "</a>";
         unset($v_account);
         unset($v_password);
         unset($v_password);

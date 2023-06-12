@@ -31,10 +31,11 @@ $(document).ready(function(){
             });
 
 
+            /*
             // CREATE BUTTON
             if ($(".l-sort__create-btn").length>0) {
-                $(".l-sort__create-btn").append("<div id='add-icon'></div>");
-                $(".l-sort__create-btn").append("<div id='tooltip'>"+$('.l-sort__create-btn').attr('title').replace(' ','&nbsp;')+"</div>");
+                //$(".l-sort__create-btn").append("<div id='add-icon'></div>");
+                //$(".l-sort__create-btn").append("<div id='tooltip'>"+$('.l-sort__create-btn').attr('title').replace(' ','&nbsp;')+"</div>");
                 $('.l-sort__create-btn').hover(function(){
                     $("#tooltip").css('background-color', '#1ca2cc');
                 }, function() {
@@ -43,6 +44,7 @@ $(document).ready(function(){
                       //$("#tooltip").remove();
                 });
             }
+            */
               
             // SEARCH BOX
                 

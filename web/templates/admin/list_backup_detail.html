@@ -8,7 +8,7 @@ input[type="checkbox"] {
 <form action="/bulk/restore/" method="post" id="objects">
     <div class="l-center" style="margin-left: 240px; padding-right: 270px;">
       <div class="l-sort clearfix noselect">
-        <a href="/schedule/restore/?backup=<?=htmlentities($_GET['backup'])?>" class="l-sort__create-btn restore" style="bottom: 0" title="<?=__('Restore All')?>"></a>
+        <a href="/schedule/restore/?backup=<?=htmlentities($_GET['backup'])?>" class="l-sort__create-btn restore" style="bottom: 14px;" title="<?=__('Restore All')?>"><div id="add-icon"></div><div id="tooltip"><?=__('Restore All')?></div></a>
         <div class="l-sort-toolbar clearfix">
           <table>
             <tr>

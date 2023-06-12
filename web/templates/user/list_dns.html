@@ -1,6 +1,6 @@
     <div class="l-center">
       <div class="l-sort clearfix noselect">
-        <a href="/add/dns/" title="<?=__('Add DNS Domain')?>" class="l-sort__create-btn"></a>
+        <a href="/add/dns/" title="<?=__('Add DNS Domain')?>" class="l-sort__create-btn"><div id="add-icon"></div><div id="tooltip"><?=__('Add DNS Domain')?></div></a>
         <ul class="context-menu sort-order" style="display:none;">
           <li entity="sort-date" sort_as_int="1"><span class="name active"><?=__('Date')?></span><span class="up">&nbsp;</span></li>
           <li entity="sort-expire" sort_as_int="1"><span class="name"><?=__('Expire')?></span><span class="up">&nbsp;</span></li>
@@ -98,28 +98,28 @@ sort-expire="<?=strtotime($data[$key]['EXP'])?>" sort-records="<?=(int)$data[$ke
           <div class="l-unit__date">
             <?=translate_date($data[$key]['DATE'])?>
           </div>
-          <div class="l-unit__suspended"><?__('suspended')?></div>
+          <div class="l-unit__suspended"><?=__('suspended')?></div>
           <div class="text-center">
             <i class="l-icon-star" title="<?=__('save to favorites')?>"></i>
           </div>
+
         </div>
         <!-- /.l-unit__col -->
         <div class="l-unit__col l-unit__col--right">
-          <div class="l-unit__name">
+          <div class="l-unit__name separate">
             <?=$key?> <? if(!empty($data[$key]['SRC'])) echo "<span>⇢ ".$data[$key]['SRC']."</span>&nbsp; &nbsp; ";  if($data[$key]['RECORDS']) echo '<span>/ '.$data[$key]['RECORDS'].'</span>';?>
           </div>
-          <div class="l-unit__ip">
-            <?=str_replace('.', '<span>.</span>', $data[$key]['IP'])?>
-          </div>
+          <!--div class="l-unit__ip">
+            <?=str_replace('.', '<span>.</span>', $data[$key]['IP'])?> <b class="step-left"><?=$data[$key]['SOA']?></b>
+          </div -->
           <!-- /.l-unit__ip -->
 
           <div class="l-unit__stats">
             <table>
                <tr>
                 <td>
-                  <div class="l-unit__stat-cols clearfix">
-                    <div class="l-unit__stat-col l-unit__stat-col--left"><b><?=$data[$key]['SOA']?></b></div>
-                    <div class="l-unit__stat-col l-unit__stat-col--right"></div>
+                  <div class="l-unit__stat-cols display-ip clearfix">
+                    <div class="l-unit__stat-col l-unit__stat-col--left compact"><?=str_replace('.', '<span>.</span>', $data[$key]['IP'])?></div>
                   </div>
                 </td>
                 <td>
@@ -138,18 +138,44 @@ sort-expire="<?=strtotime($data[$key]['EXP'])?>" sort-records="<?=(int)$data[$ke
                     </div>
                   </div>
                 </td>
+               </tr>
+               <tr>
+                <td>
+                  <div class="l-unit__stat-cols clearfix">
+                    <div class="l-unit__stat-col l-unit__stat-col--left compact"><b><?=$data[$key]['SOA']?></b></div>
+                  </div>
+                </td>
+                <td>
+                  <div class="l-unit__stat-cols clearfix">
+                    <div class="l-unit__stat-col l-unit__stat-col--left compact"><?=__('Serial')?>:</div>
+                    <div class="l-unit__stat-col l-unit__stat-col--right">
+                      <b><?=$data[$key]['SERIAL']?></b>
+                    </div>
+                  </div>
+                </td>
+                <td>
+
+                  <div class="l-unit__stat-cols clearfix">
+                    <div class="l-unit__stat-col l-unit__stat-col--left compact"><?=__('Expire')?>:</div>
+                    <div class="l-unit__stat-col l-unit__stat-col--right">
+                      <b><?=$data[$key]['EXP']?></b>
+                    </div>
+                  </div>
+                </td>
               </tr>
-              <tr>
+
+
+              <!-- tr>
                 <td>
                   <div class="l-unit__stat-cols clearfix last">
-                    <div class="l-unit__stat-col l-unit__stat-col--left"><?=__('Expire')?>:</div>
+                    <div class="l-unit__stat-col l-unit__stat-col--left "><?=$data[$key]['SOA']?></div>
                     <div class="l-unit__stat-col l-unit__stat-col--right">
                       <b><?=translate_date($data[$key]['EXP'])?></b>
                     </div>
                   </div>
                 </td>
                 <td>
-              </tr>
+              </tr-->
             </table>
           </div>
           <!-- /.l-unit__stats -->
@@ -157,7 +183,7 @@ sort-expire="<?=strtotime($data[$key]['EXP'])?>" sort-records="<?=(int)$data[$ke
         <!-- /.l-unit__col -->
       </div>
       <!-- /.l-unit -->
-      <!--div class="l-separator"></div-->
+      <!-- div class="l-separator"></div-->
       <!-- /.l-separator -->
       <? } ?>
 

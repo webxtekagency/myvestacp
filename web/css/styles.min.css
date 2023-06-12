@@ -4089,8 +4089,12 @@ b, strong {
 
 
 #tooltip {
-  background-color: #34b5dd;
+  background-color: #3AB5DD;
 }
+#tooltip:hover {
+  background-color: #1ca2cc;
+}
+
 .l-sort__create-btn.edit:hover #tooltip {
   background-color: #49c8ef;
 }

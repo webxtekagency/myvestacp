@@ -54,15 +54,13 @@ function hideIoLog(animate){
         $(".to-top").css("right", 85);
         $(".to-shortcuts").css("right", 130);
         $(".right_sidebar").css("right", -200);
-        //$(".io-log2").css("right", -200);
-        $("#myvesta_float").css("margin-right", 100);
+        //$("#myvesta_float").css("margin-right", 100);
     } else {
         $(".l-content .l-center").animate({"margin-right": 40});
         $(".to-top").animate({"right": 85});
         $(".to-shortcuts").animate({"right": 130});
         $(".right_sidebar").animate({"right": -200});
-        //$(".io-log2").animate({"right": -200});
-        $("#myvesta_float").animate({"margin-right": 100});
+        //$("#myvesta_float").animate({"margin-right": 100});
     }
 }
 
@@ -91,25 +89,16 @@ var iohtml = '<div class="io-box clearfix">\n' +
 $(document).ready(function(){
     //var sys_height=$(".io-log").height();
     //$(".io-log2").css("top", sys_height+50);
+    /*
     setTimeout(function() {
         iolog = getCookie("iolog");
-        /* //console.log('cookie: "'+iolog+'"');
-        if (iolog === '1') {
-            showIoLog(0);
-            return 1;
-        }*/
         if (iolog === '0') {
             //setCookie("iolog", 0, 365);
             hideIoLog(0);
             return 0;
         }
-        /*if (iolog == '') {
-            //console.log('cookie is empty');
-            //setCookie("iolog", 1, 365);
-            showIoLog(0);
-            return '';
-        }*/
     }, 1);
+    */
 
     //if (GLOBAL.CURRENT_USER_FINAL == 'admin') $(".body-user .l-content > .l-center.units").first().prepend( iohtml );
 

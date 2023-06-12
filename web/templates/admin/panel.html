@@ -1,8 +1,8 @@
   <div class="hidden" id="token" token="<?=$_SESSION['token']?>"></div>
-  <a href="#" class="to-top">
+  <a href="#" class="to-top" style="right: <?=$GLOBALS['to_top_right']?>px;">
     <i class="l-icon-to-top"></i>
   </a>
-  <a href="#" class="to-shortcuts">
+  <a href="#" class="to-shortcuts" style="right: <?=$GLOBALS['to_shortcuts_right']?>px;">
     <i class="l-icon-shortcuts"></i>
   </a>
 
@@ -129,9 +129,11 @@ $debian_ver=file_get_contents('/etc/debian_version');
             <span style="font-weight: bold;">Build date:</span> <?php echo $vesta_build_date;?><br />
             <span style="font-weight: bold;">Debian </span> <?php echo $debian_ver;?><br />
         </div>
+        <!--
         <div style="display: block; padding: 30px 0 0 19px; color: #b9bcbd;">
             <a href="https://forum.myvestacp.com/viewtopic.php?f=23&t=819" target="_blank" style="text-decoration: underline; font-weight: bold;">Need urgent assistance?</a>
         </div>
+        -->
       </div>
       <!-- /.l-stats -->
     </div>

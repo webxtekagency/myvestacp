@@ -3,6 +3,12 @@ input[type="checkbox"] {
   display: block;
   margin-top: 26px;
 }
+
+.backup-items {
+    background-color: #f8f8f8;
+    margin: 10px 33px;
+    border-radius: 10px;
+}
 </style>
 <br /><br />
 <form action="/bulk/restore/" method="post" id="objects">
@@ -48,7 +54,7 @@ input[type="checkbox"] {
             ++$i;
       ?>
 
-      <div>
+      <div class="backup-items">
         <div class="l-unit-toolbar clearfix">
           <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check<?=$i?>" class="ch-toggle" type="checkbox" name="web[]" value="<?=$key?>">
@@ -99,7 +105,7 @@ input[type="checkbox"] {
           if (!empty($key)) {
       ?>
 
-      <div>
+      <div class="backup-items">
         <div class="l-unit-toolbar clearfix">
           <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check2<?=$i?>" type="checkbox" name="mail[]" value="<?=$key?>">
@@ -147,7 +153,7 @@ input[type="checkbox"] {
           if (!empty($key)) {
       ?>
 
-      <div>
+      <div class="backup-items">
         <div class="l-unit-toolbar clearfix">
           <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check3<?=$i?>" type="checkbox" name="dns[]" value="<?=$key?>">
@@ -194,7 +200,7 @@ input[type="checkbox"] {
           if (!empty($key)) {
       ?>
 
-      <div>
+      <div class="backup-items">
         <div class="l-unit-toolbar clearfix">
           <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check4<?=$i?>" type="checkbox" name="db[]" value="<?=$key?>">
@@ -242,7 +248,7 @@ input[type="checkbox"] {
           if (!empty($key)) {
       ?>
 
-      <div>
+      <div class="backup-items">
         <div class="l-unit-toolbar clearfix">
           <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check5<?=$i?>" type="checkbox" name="check" value="<?=$key?>">
@@ -290,7 +296,7 @@ input[type="checkbox"] {
           if (!empty($key)) {
       ?>
 
-      <div>
+      <div class="backup-items">
         <div class="l-unit-toolbar clearfix">
           <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check6<?=$i?>" type="checkbox" name="udir[]" value="<?=$key?>">
@@ -329,7 +335,7 @@ input[type="checkbox"] {
       <!-- /.l-separator -->
       <? }} ?>
 
-      <div>
+      <div class="backup-items">
         <div class="l-unit-toolbar clearfix">
           <div class="l-unit-toolbar__col l-unit-toolbar__col--left" style="margin-left: 15px;">
             <input id="check7<?=$i?>" type="checkbox" name="cron" value="<?=$i?>">

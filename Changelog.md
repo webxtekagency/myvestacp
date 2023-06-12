@@ -1,3 +1,7 @@
+Version 0.9.9-0-2 [12-Jun-2023]
+==================================================
+* Hosting panel UI perfomance fix
+
 Version 0.9.9-0 [05-Jun-2023]
 ==================================================
 * Redesign of hosting panel

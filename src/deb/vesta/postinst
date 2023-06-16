@@ -22,8 +22,8 @@ if [ ! -d "/usr/local/vesta/data/upgrades" ]; then
 fi
 
 # show changelog after update
-echo "1" > /usr/local/vesta/data/upgrades/show_changelog
-chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
+# echo "1" > /usr/local/vesta/data/upgrades/show_changelog
+# chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
 # Patching exim4.conf for: smtputf8_advertise_hosts
 if [ "$release" -gt 10 ]; then

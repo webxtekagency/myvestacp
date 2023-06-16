@@ -58,10 +58,10 @@ BUILD_DATE=$(date +"%d-%b-%Y")
 
 # Set Version for compiling
 VESTA_V=$VESTA_VER"_amd64"
-NGINX_V='1.21.2'
-OPENSSL_V='1.1.1l'
+NGINX_V='1.25.1'
+OPENSSL_V='1.1.1u'
 PCRE_V='8.45'
-ZLIB_V='1.2.11'
+ZLIB_V='1.2.13'
 PHP_V='5.6.40'
 
 # Generate Links for sourcecode
@@ -76,7 +76,13 @@ ZLIB='https://github.com/madler/zlib/archive/refs/tags/v'$ZLIB_V'.tar.gz'
 PHP='http://de2.php.net/distributions/php-'$PHP_V'.tar.gz'
 
 # Set package dependencies for compiling
-SOFTWARE='build-essential libxml2-dev libz-dev libcurl4-gnutls-dev unzip openssl libssl-dev pkg-config reprepro dpkg-sig git rsync'
+release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
+
+if [ "$release" -lt 12 ]; then
+    SOFTWARE='build-essential libxml2-dev libz-dev libcurl4-gnutls-dev unzip openssl libssl-dev pkg-config reprepro dpkg-sig git rsync'
+else
+    SOFTWARE='build-essential libxml2-dev libz-dev libcurl4-gnutls-dev unzip openssl libssl-dev pkg-config reprepro git rsync'
+fi
 
 function press_enter {
     if [ $wait_to_press_enter -eq 1 ]; then
@@ -121,7 +127,7 @@ if [ $run_apt_update_and_install -eq 1 ]; then
   apt-get -qq install -y $SOFTWARE
   
   # Fix for Debian PHP Envroiment
-  if [ ! -e /usr/local/include/curl ]; then
+  if [ ! -e /usr/local/include/curl ] && [ "$release" -lt 12 ]; then
       ln -s /usr/include/x86_64-linux-gnu/curl /usr/local/include/curl
   fi
   press_enter "=== Press enter to continue ==============================================================================="
@@ -252,6 +258,7 @@ EOF
     press_enter "*** please copy above generated key to your clipboard and then paste it after pressing enter now ***"
     vi $PATH_OF_APT_REPO_ROOT/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/deb_signing.key
+    cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/12/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/11/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/10/deb_signing.key
     cp $PATH_OF_APT_REPO_ROOT/deb_signing.key $PATH_OF_C_WEB_FOLDER_ROOT/debian/9/deb_signing.key

@@ -108,6 +108,9 @@ if [ "$inst_repo" -eq 1 ]; then
     if [ $debian_version -eq 11 ]; then
       sh -c 'echo "deb https://packages.sury.org/php/ bullseye main" > /etc/apt/sources.list.d/php.list'
     fi
+    if [ $debian_version -eq 12 ]; then
+      sh -c 'echo "deb https://packages.sury.org/php/ bookworm main" > /etc/apt/sources.list.d/php.list'
+    fi
     apt update
     apt upgrade -y
     press_enter "=== Press enter to continue ==============================================================================="

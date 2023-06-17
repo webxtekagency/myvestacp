@@ -52,6 +52,8 @@ fi
 #                       Action                             #
 #----------------------------------------------------------#
 
+
+
 email="info@$domain"
 
 TMPLOC="/home/$user/tmp/$domain"
@@ -62,8 +64,13 @@ mkdir $TMPLOC
 
 # Parsing certificate file
 crt_end=$(grep -n "END CERTIFICATE-" $TMPLOC/vst.pem |cut -f 1 -d:)
-key_start=$(grep -n "BEGIN RSA" $TMPLOC/vst.pem |cut -f 1 -d:)
-key_end=$(grep -n  "END RSA" $TMPLOC/vst.pem |cut -f 1 -d:)
+if [ "$release" -lt 12 ]; then
+    key_start=$(grep -n "BEGIN RSA" $TMPLOC/vst.pem |cut -f 1 -d:)
+    key_end=$(grep -n  "END RSA" $TMPLOC/vst.pem |cut -f 1 -d:)
+else
+    key_start=$(grep -n "BEGIN PRIVATE KEY" $TMPLOC/vst.pem |cut -f 1 -d:)
+    key_end=$(grep -n  "END PRIVATE KEY" $TMPLOC/vst.pem |cut -f 1 -d:)
+fi
 
 # Adding SSL certificate
 cd $TMPLOC

@@ -19,7 +19,19 @@ release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
 codename="$(cat /etc/os-release |grep VERSION= |cut -f 2 -d \(|cut -f 1 -d \))"
 vestacp="$VESTA/install/$VERSION/$release"
 
-if [ "$release" -eq 11 ]; then
+if [ "$release" -eq 12 ]; then
+    software="nginx apache2 apache2-utils
+        libapache2-mod-fcgid php-fpm php
+        php-common php-cgi php-mysql php-curl php-fpm php-pgsql awstats
+        vsftpd proftpd-basic bind9 exim4 exim4-daemon-heavy
+        clamav-daemon spamassassin dovecot-imapd dovecot-pop3d roundcube-core
+        roundcube-mysql roundcube-plugins mariadb-server mariadb-common
+        mariadb-client postgresql postgresql-contrib phppgadmin phpmyadmin mc
+        flex whois git idn zip sudo bc ftp lsof ntpdate rrdtool quota
+        e2fslibs bsdutils e2fsprogs curl imagemagick fail2ban dnsutils
+        bsdmainutils cron vesta vesta-nginx vesta-php expect libmail-dkim-perl
+        unrar-free vim-common net-tools unzip iptables"
+elif [ "$release" -eq 11 ]; then
     software="nginx apache2 apache2-utils
         libapache2-mod-fcgid php-fpm php
         php-common php-cgi php-mysql php-curl php-fpm php-pgsql awstats
@@ -922,7 +934,7 @@ if [ "$apache" = 'no' ] && [ "$nginx"  = 'yes' ]; then
     echo "WEB_PORT='80'" >> $VESTA/conf/vesta.conf
     echo "WEB_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
     echo "WEB_SSL='openssl'"  >> $VESTA/conf/vesta.conf
-    if [ "$release" -eq 9 ] || [ "$release" -eq 10 ] || [ "$release" -eq 11 ]; then
+    if [ "$release" -gt 8 ]; then
         if [ "$phpfpm" = 'yes' ]; then
             echo "WEB_BACKEND='php-fpm'" >> $VESTA/conf/vesta.conf
         fi
@@ -1014,15 +1026,31 @@ if [ "$release" -eq 11 ]; then
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.tpl /usr/local/vesta/data/templates/web/nginx/default.tpl
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.stpl /usr/local/vesta/data/templates/web/nginx/default.stpl
 
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.sh /usr/local/vesta/data/templates/web/apache2/hosting.sh
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.tpl /usr/local/vesta/data/templates/web/apache2/hosting.tpl
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.stpl /usr/local/vesta/data/templates/web/apache2/hosting.stpl
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.sh /usr/local/vesta/data/templates/web/apache2/default.sh
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.tpl /usr/local/vesta/data/templates/web/apache2/default.tpl
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.stpl /usr/local/vesta/data/templates/web/apache2/default.stpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh /usr/local/vesta/data/templates/web/apache2/hosting.sh
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.tpl /usr/local/vesta/data/templates/web/apache2/hosting.tpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.stpl /usr/local/vesta/data/templates/web/apache2/hosting.stpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh /usr/local/vesta/data/templates/web/apache2/default.sh
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.tpl /usr/local/vesta/data/templates/web/apache2/default.tpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.stpl /usr/local/vesta/data/templates/web/apache2/default.stpl
     
-    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.stpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-74.stpl
-    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.tpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-74.tpl
+    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.stpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-82.stpl
+    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.tpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-82.tpl
+fi
+if [ "$release" -eq 12 ]; then
+    echo "== Symlink missing templates"
+    ln -s /usr/local/vesta/data/templates/web/nginx/hosting.sh /usr/local/vesta/data/templates/web/nginx/default.sh
+    ln -s /usr/local/vesta/data/templates/web/nginx/hosting.tpl /usr/local/vesta/data/templates/web/nginx/default.tpl
+    ln -s /usr/local/vesta/data/templates/web/nginx/hosting.stpl /usr/local/vesta/data/templates/web/nginx/default.stpl
+
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh /usr/local/vesta/data/templates/web/apache2/hosting.sh
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.tpl /usr/local/vesta/data/templates/web/apache2/hosting.tpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.stpl /usr/local/vesta/data/templates/web/apache2/hosting.stpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh /usr/local/vesta/data/templates/web/apache2/default.sh
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.tpl /usr/local/vesta/data/templates/web/apache2/default.tpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.stpl /usr/local/vesta/data/templates/web/apache2/default.stpl
+    
+    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.stpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-82.stpl
+    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.tpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-82.tpl
 fi
 
 echo "== Set nameservers address"
@@ -1045,12 +1073,17 @@ $VESTA/bin/v-change-sys-hostname $servername 2>/dev/null
 
 echo "== Generating myVesta unsigned SSL certificate"
 $VESTA/bin/v-generate-ssl-cert $(hostname) $email 'US' 'California' \
-     'San Francisco' 'Vesta Control Panel' 'IT' > /tmp/vst.pem
+     'San Francisco' 'myVesta Control Panel' 'IT' > /tmp/vst.pem
 
 # Parsing certificate file
 crt_end=$(grep -n "END CERTIFICATE-" /tmp/vst.pem |cut -f 1 -d:)
-key_start=$(grep -n "BEGIN RSA" /tmp/vst.pem |cut -f 1 -d:)
-key_end=$(grep -n  "END RSA" /tmp/vst.pem |cut -f 1 -d:)
+if [ "$release" -lt 12 ]; then
+    key_start=$(grep -n "BEGIN RSA" /tmp/vst.pem |cut -f 1 -d:)
+    key_end=$(grep -n  "END RSA" /tmp/vst.pem |cut -f 1 -d:)
+else
+    key_start=$(grep -n "BEGIN PRIVATE KEY" /tmp/vst.pem |cut -f 1 -d:)
+    key_end=$(grep -n  "END PRIVATE KEY" /tmp/vst.pem |cut -f 1 -d:)
+fi
 
 cd $VESTA/ssl
 sed -n "1,${crt_end}p" /tmp/vst.pem > certificate.crt
@@ -1134,10 +1167,16 @@ fi
 
 if [ "$phpfpm" = 'yes' ]; then
     echo "=== Configure PHP-FPM"
-    if [ "$release" -eq 11 ]; then
-        cp -f $vestacp/php-fpm/www.conf /etc/php/7.4/fpm/pool.d/www.conf
-        #update-rc.d php7.4-fpm defaults
-        currentservice='php7.4-fpm'
+    if [ "$release" -eq 12 ]; then
+        cp -f $vestacp/php-fpm/www.conf /etc/php/8.2/fpm/pool.d/www.conf
+        #update-rc.d php8.2-fpm defaults
+        currentservice='php8.2-fpm'
+        ensure_startup $currentservice
+        ensure_start $currentservice
+    elif [ "$release" -eq 11 ]; then
+        cp -f $vestacp/php-fpm/www.conf /etc/php/8.2/fpm/pool.d/www.conf
+        #update-rc.d php8.2-fpm defaults
+        currentservice='php8.2-fpm'
         ensure_startup $currentservice
         ensure_start $currentservice
     elif [ "$release" -eq 10 ]; then
@@ -1305,7 +1344,7 @@ if [ "$mysql" = 'yes' ] || [ "$mysql8" = 'yes' ]; then
       blowfish=$(gen_pass)
       echo "\$cfg['blowfish_secret'] = '$blowfish';" >> /etc/phpmyadmin/config.inc.php
   fi
-  if [ "$release" -eq 11 ]; then
+  if [ "$release" -gt 10 ]; then
       echo "=== Configure phpMyAdmin (Debian11 custom part)"
       # Set config and log directory
       sed -i "s|define('CONFIG_DIR', '');|define('CONFIG_DIR', '/etc/phpmyadmin/');|" /usr/share/phpmyadmin/libraries/vendor_config.php
@@ -1518,14 +1557,12 @@ if [ "$exim" = 'yes' ] && { [ "$mysql" = 'yes' ] || [ "$mysql8" = 'yes' ]; } the
         /etc/roundcube/plugins/password/config.inc.php
     mysql roundcube < /usr/share/dbconfig-common/data/roundcube/install/mysql
     chmod a+r /etc/roundcube/main.inc.php
-    if [ "$release" -eq 8 ] || [ "$release" -eq 9 ] || [ "$release" -eq 10 ] || [ "$release" -eq 11 ]; then
-        mv -f /etc/roundcube/main.inc.php /etc/roundcube/config.inc.php
-        mv -f /etc/roundcube/db.inc.php /etc/roundcube/debian-db-roundcube.php
-        chmod 640 /etc/roundcube/debian-db-roundcube.php
-        chmod 640 /etc/roundcube/config.inc.php
-        chown root:www-data /etc/roundcube/debian-db-roundcube.php
-        chown root:www-data /etc/roundcube/config.inc.php
-    fi
+    mv -f /etc/roundcube/main.inc.php /etc/roundcube/config.inc.php
+    mv -f /etc/roundcube/db.inc.php /etc/roundcube/debian-db-roundcube.php
+    chmod 640 /etc/roundcube/debian-db-roundcube.php
+    chmod 640 /etc/roundcube/config.inc.php
+    chown root:www-data /etc/roundcube/debian-db-roundcube.php
+    chown root:www-data /etc/roundcube/config.inc.php
     sed -i "s#^\$config\['smtp_user'\].*#\$config\['smtp_user'\] = '%u';#g" /etc/roundcube/defaults.inc.php
     sed -i "s#^\$config\['smtp_pass'\].*#\$config\['smtp_pass'\] = '%p';#g" /etc/roundcube/defaults.inc.php
     if [ "$release" -eq 8 ]; then
@@ -1594,7 +1631,7 @@ fi
 #----------------------------------------------------------#
 
 echo "=== Configure Admin User"
-if [ "$release" -eq 11 ]; then
+if [ "$release" -gt 10 ]; then
     echo "=== Switching to sha512"
     sed -i "s/yescrypt/sha512/g" /etc/pam.d/common-password
 fi
@@ -1716,14 +1753,27 @@ if [ "$release" -eq 10 ]; then
   fi
 fi
 if [ "$release" -eq 11 ]; then
-  if [ -f "/etc/php/7.4/fpm/pool.d/$servername.conf" ]; then
+  if [ -f "/etc/php/8.2/fpm/pool.d/$servername.conf" ]; then
     echo "== FPM pool.d $servername tweaks"
-    sed -i "/^group =/c\group = www-data" /etc/php/7.4/fpm/pool.d/$servername.conf
-    sed -i "/max_execution_time/c\php_admin_value[max_execution_time] = 900" /etc/php/7.4/fpm/pool.d/$servername.conf
-    sed -i "/request_terminate_timeout/c\request_terminate_timeout = 900s" /etc/php/7.4/fpm/pool.d/$servername.conf
-    sed -i "s|80M|800M|g" /etc/php/7.4/fpm/pool.d/$servername.conf
-    sed -i "s|256M|512M|g" /etc/php/7.4/fpm/pool.d/$servername.conf
-    service php7.4-fpm restart
+    sed -i "/^group =/c\group = www-data" /etc/php/8.2/fpm/pool.d/$servername.conf
+    sed -i "/max_execution_time/c\php_admin_value[max_execution_time] = 900" /etc/php/8.2/fpm/pool.d/$servername.conf
+    sed -i "/request_terminate_timeout/c\request_terminate_timeout = 900s" /etc/php/8.2/fpm/pool.d/$servername.conf
+    sed -i "s|80M|800M|g" /etc/php/8.2/fpm/pool.d/$servername.conf
+    sed -i "s|256M|512M|g" /etc/php/8.2/fpm/pool.d/$servername.conf
+    service php8.2-fpm restart
+    ln -s /var/lib/roundcube /var/lib/roundcube/webmail
+    /usr/local/vesta/bin/v-change-web-domain-proxy-tpl 'admin' "$servername" 'hosting-webmail-phpmyadmin' 'jpg,jpeg,gif,png,ico,svg,css,zip,tgz,gz,rar,bz2,doc,xls,exe,pdf,ppt,txt,odt,ods,odp,odf,tar,wav,bmp,rtf,js,mp3,avi,mpeg,flv,woff,woff2' 'yes'
+  fi
+fi
+if [ "$release" -eq 12 ]; then
+  if [ -f "/etc/php/8.2/fpm/pool.d/$servername.conf" ]; then
+    echo "== FPM pool.d $servername tweaks"
+    sed -i "/^group =/c\group = www-data" /etc/php/8.2/fpm/pool.d/$servername.conf
+    sed -i "/max_execution_time/c\php_admin_value[max_execution_time] = 900" /etc/php/8.2/fpm/pool.d/$servername.conf
+    sed -i "/request_terminate_timeout/c\request_terminate_timeout = 900s" /etc/php/8.2/fpm/pool.d/$servername.conf
+    sed -i "s|80M|800M|g" /etc/php/8.2/fpm/pool.d/$servername.conf
+    sed -i "s|256M|512M|g" /etc/php/8.2/fpm/pool.d/$servername.conf
+    service php8.2-fpm restart
     ln -s /var/lib/roundcube /var/lib/roundcube/webmail
     /usr/local/vesta/bin/v-change-web-domain-proxy-tpl 'admin' "$servername" 'hosting-webmail-phpmyadmin' 'jpg,jpeg,gif,png,ico,svg,css,zip,tgz,gz,rar,bz2,doc,xls,exe,pdf,ppt,txt,odt,ods,odp,odf,tar,wav,bmp,rtf,js,mp3,avi,mpeg,flv,woff,woff2' 'yes'
   fi
@@ -1785,7 +1835,10 @@ if [ "$release" -eq 10 ]; then
   apt-get -y install php7.3-apcu php7.3-mbstring php7.3-bcmath php7.3-curl php7.3-gd php7.3-intl php7.3-mysql php7.3-mysqlnd php7.3-pdo php7.3-soap php7.3-json php7.3-xml php7.3-zip php7.3-memcache php7.3-memcached php7.3-zip php7.3-imagick php7.3-imap
 fi
 if [ "$release" -eq 11 ]; then
-  apt-get -y install php7.4-apcu php7.4-mbstring php7.4-bcmath php7.4-curl php7.4-gd php7.4-intl php7.4-mysql php7.4-mysqlnd php7.4-pdo php7.4-soap php7.4-json php7.4-xml php7.4-zip php7.4-memcache php7.4-memcached php7.4-zip php7.4-imagick php7.4-imap
+  apt-get -y install php8.2-apcu php8.2-mbstring php8.2-bcmath php8.2-curl php8.2-gd php8.2-intl php8.2-mysql php8.2-mysqlnd php8.2-pdo php8.2-soap php8.2-json php8.2-xml php8.2-zip php8.2-memcache php8.2-memcached php8.2-zip php8.2-imagick php8.2-imap
+fi
+if [ "$release" -eq 12 ]; then
+  apt-get -y install php8.2-apcu php8.2-mbstring php8.2-bcmath php8.2-curl php8.2-gd php8.2-intl php8.2-mysql php8.2-mysqlnd php8.2-pdo php8.2-soap php8.2-json php8.2-xml php8.2-zip php8.2-memcache php8.2-memcached php8.2-zip php8.2-imagick php8.2-imap
 fi
 
 touch /var/log/php-mail.log
@@ -1824,15 +1877,22 @@ fi
 
 if [ "$release" -eq 11 ]; then
   if [ $memory -lt 10000000 ]; then
-    echo "=== Patching php7.4-vps"
-    patch /etc/php/7.4/fpm/php.ini < $vestacp/php/php7.4-vps.patch
+    echo "=== Patching php8.2-vps"
+    patch /etc/php/8.2/fpm/php.ini < $vestacp/php/php8.2-vps.patch
   fi
   if [ $memory -gt 9999999 ]; then
-    echo "=== Patching php7.4-dedi"
-    patch /etc/php/7.4/fpm/php.ini < $vestacp/php/php7.4-dedi.patch
+    echo "=== Patching php8.2-dedi"
+    patch /etc/php/8.2/fpm/php.ini < $vestacp/php/php8.2-dedi.patch
   fi
-  update-alternatives --set php /usr/bin/php7.4
-  service php7.4-fpm restart
+  update-alternatives --set php /usr/bin/php8.2
+  service php8.2-fpm restart
+fi
+
+if [ "$release" -eq 12 ]; then
+  echo "=== Patching php8.2"
+  patch /etc/php/8.2/fpm/php.ini < /usr/local/vesta/src/deb/for-download/tools/patches/php8.2.patch
+  update-alternatives --set php /usr/bin/php8.2
+  service php8.2-fpm restart
 fi
 
 # echo "=== Patching rcube_vcard.php"
@@ -1928,7 +1988,7 @@ fi
 
 echo "=== Set URL for phpmyadmin"
 echo "DB_PMA_URL='https://$servername/phpmyadmin/'" >> $VESTA/conf/vesta.conf
-if [ "$release" -eq 10 ] || [ "$release" -eq 11 ]; then
+if [ "$release" -gt 9 ]; then
     echo "=== Set max_length_of_MySQL_username=80"
 fi
 echo "MAX_DBUSER_LEN=80" >> $VESTA/conf/vesta.conf

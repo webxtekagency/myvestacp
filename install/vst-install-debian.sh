@@ -30,7 +30,7 @@ if [ "$release" -eq 12 ]; then
         flex whois git idn zip sudo bc ftp lsof ntpdate rrdtool quota
         e2fslibs bsdutils e2fsprogs curl imagemagick fail2ban dnsutils
         bsdmainutils cron vesta vesta-nginx vesta-php expect libmail-dkim-perl
-        unrar-free vim-common net-tools unzip iptables xxd spamd"
+        unrar-free vim-common net-tools unzip iptables xxd spamd rsyslog"
 elif [ "$release" -eq 11 ]; then
     software="nginx apache2 apache2-utils
         libapache2-mod-fcgid php-fpm php

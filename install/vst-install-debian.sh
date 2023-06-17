@@ -1630,6 +1630,13 @@ if [ "$fail2ban" = 'yes' ]; then
         fline=$(echo "$fline" |grep enabled |tail -n1 |cut -f 1 -d -)
         sed -i "${fline}s/false/true/" /etc/fail2ban/jail.local
     fi 
+	if [ ! -e /var/log/auth.log ]; then
+		# Debian workaround: auth logging was moved to systemd
+        # We took this fix from HestiaCP
+		touch /var/log/auth.log
+		chmod 640 /var/log/auth.log
+		chown root:adm /var/log/auth.log
+	fi
     #update-rc.d fail2ban defaults
     currentservice='fail2ban'
     ensure_startup $currentservice

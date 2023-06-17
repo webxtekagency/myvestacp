@@ -1426,6 +1426,10 @@ if [ "$exim" = 'yes' ]; then
     cp -f $vestacp/exim/spam-blocks.conf /etc/exim4/
     cp -f $vestacp/exim/deny_senders /etc/exim4/
     touch /etc/exim4/white-blocks.conf
+    touch /etc/exim4/limit_per_email_account_max_sent_emails_per_hour
+    touch /etc/exim4/limit_per_email_account_max_recipients
+    touch /etc/exim4/limit_per_hosting_account_max_sent_emails_per_hour
+    touch /etc/exim4/limit_per_hosting_account_max_recipients
 
     if [ "$spamd" = 'yes' ]; then
         sed -i "s/#SPAM/SPAM/g" /etc/exim4/exim4.conf.template

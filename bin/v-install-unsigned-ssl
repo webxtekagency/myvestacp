@@ -52,7 +52,7 @@ fi
 #                       Action                             #
 #----------------------------------------------------------#
 
-
+release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
 
 email="info@$domain"
 

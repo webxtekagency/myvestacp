@@ -966,7 +966,11 @@ if [ "$exim" = 'yes' ]; then
         echo "ANTIVIRUS_SYSTEM='clamav-daemon'" >> $VESTA/conf/vesta.conf
     fi
     if [ "$spamd" = 'yes' ]; then
-        echo "ANTISPAM_SYSTEM='spamassassin'" >> $VESTA/conf/vesta.conf
+        if [ "$release" -lt 12 ]; then
+            echo "ANTISPAM_SYSTEM='spamassassin'" >> $VESTA/conf/vesta.conf
+        else
+            echo "ANTISPAM_SYSTEM='spamd'" >> $VESTA/conf/vesta.conf
+        fi
     fi
     if [ "$dovecot" = 'yes' ]; then
         echo "IMAP_SYSTEM='dovecot'" >> $VESTA/conf/vesta.conf
@@ -1514,12 +1518,15 @@ fi
 if [ "$spamd" = 'yes' ]; then
     echo "=== Configure SpamAssassin"
     #update-rc.d spamassassin defaults
-    sed -i "s/ENABLED=0/ENABLED=1/" /etc/default/spamassassin
+    if [ "$release" -lt 12 ]; then
+        sed -i "s/ENABLED=0/ENABLED=1/" /etc/default/spamassassin
+        currentservice='spamassassin'
+    else
+        currentservice='spamd'
+    fi
     wget -nv -O /etc/spamassassin/barracuda.cf http://c.myvestacp.com/tools/spamassassin/barracuda.cf
-    currentservice='spamassassin'
     ensure_startup $currentservice
-    # ensure_start $currentservice
-    systemctl restart spamassassin
+    systemctl restart $currentservice
 fi
 
 

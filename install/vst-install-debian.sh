@@ -1026,15 +1026,15 @@ if [ "$release" -eq 11 ]; then
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.tpl /usr/local/vesta/data/templates/web/nginx/default.tpl
     ln -s /usr/local/vesta/data/templates/web/nginx/hosting.stpl /usr/local/vesta/data/templates/web/nginx/default.stpl
 
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh /usr/local/vesta/data/templates/web/apache2/hosting.sh
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.tpl /usr/local/vesta/data/templates/web/apache2/hosting.tpl
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.stpl /usr/local/vesta/data/templates/web/apache2/hosting.stpl
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.sh /usr/local/vesta/data/templates/web/apache2/default.sh
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.tpl /usr/local/vesta/data/templates/web/apache2/default.tpl
-    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.stpl /usr/local/vesta/data/templates/web/apache2/default.stpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.sh /usr/local/vesta/data/templates/web/apache2/hosting.sh
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.tpl /usr/local/vesta/data/templates/web/apache2/hosting.tpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.stpl /usr/local/vesta/data/templates/web/apache2/hosting.stpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.sh /usr/local/vesta/data/templates/web/apache2/default.sh
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.tpl /usr/local/vesta/data/templates/web/apache2/default.tpl
+    ln -s /usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.stpl /usr/local/vesta/data/templates/web/apache2/default.stpl
     
-    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.stpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-82.stpl
-    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.tpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-82.tpl
+    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.stpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-74.stpl
+    ln  -s /usr/local/vesta/data/templates/web/nginx/php-fpm/default.tpl /usr/local/vesta/data/templates/web/nginx/php-fpm/PHP-FPM-74.tpl
 fi
 if [ "$release" -eq 12 ]; then
     echo "== Symlink missing templates"
@@ -1174,9 +1174,9 @@ if [ "$phpfpm" = 'yes' ]; then
         ensure_startup $currentservice
         ensure_start $currentservice
     elif [ "$release" -eq 11 ]; then
-        cp -f $vestacp/php-fpm/www.conf /etc/php/8.2/fpm/pool.d/www.conf
-        #update-rc.d php8.2-fpm defaults
-        currentservice='php8.2-fpm'
+        cp -f $vestacp/php-fpm/www.conf /etc/php/7.4/fpm/pool.d/www.conf
+        #update-rc.d php7.4-fpm defaults
+        currentservice='php7.4-fpm'
         ensure_startup $currentservice
         ensure_start $currentservice
     elif [ "$release" -eq 10 ]; then
@@ -1753,14 +1753,14 @@ if [ "$release" -eq 10 ]; then
   fi
 fi
 if [ "$release" -eq 11 ]; then
-  if [ -f "/etc/php/8.2/fpm/pool.d/$servername.conf" ]; then
+  if [ -f "/etc/php/7.4/fpm/pool.d/$servername.conf" ]; then
     echo "== FPM pool.d $servername tweaks"
-    sed -i "/^group =/c\group = www-data" /etc/php/8.2/fpm/pool.d/$servername.conf
-    sed -i "/max_execution_time/c\php_admin_value[max_execution_time] = 900" /etc/php/8.2/fpm/pool.d/$servername.conf
-    sed -i "/request_terminate_timeout/c\request_terminate_timeout = 900s" /etc/php/8.2/fpm/pool.d/$servername.conf
-    sed -i "s|80M|800M|g" /etc/php/8.2/fpm/pool.d/$servername.conf
-    sed -i "s|256M|512M|g" /etc/php/8.2/fpm/pool.d/$servername.conf
-    service php8.2-fpm restart
+    sed -i "/^group =/c\group = www-data" /etc/php/7.4/fpm/pool.d/$servername.conf
+    sed -i "/max_execution_time/c\php_admin_value[max_execution_time] = 900" /etc/php/7.4/fpm/pool.d/$servername.conf
+    sed -i "/request_terminate_timeout/c\request_terminate_timeout = 900s" /etc/php/7.4/fpm/pool.d/$servername.conf
+    sed -i "s|80M|800M|g" /etc/php/7.4/fpm/pool.d/$servername.conf
+    sed -i "s|256M|512M|g" /etc/php/7.4/fpm/pool.d/$servername.conf
+    service php7.4-fpm restart
     ln -s /var/lib/roundcube /var/lib/roundcube/webmail
     /usr/local/vesta/bin/v-change-web-domain-proxy-tpl 'admin' "$servername" 'hosting-webmail-phpmyadmin' 'jpg,jpeg,gif,png,ico,svg,css,zip,tgz,gz,rar,bz2,doc,xls,exe,pdf,ppt,txt,odt,ods,odp,odf,tar,wav,bmp,rtf,js,mp3,avi,mpeg,flv,woff,woff2' 'yes'
   fi
@@ -1835,7 +1835,7 @@ if [ "$release" -eq 10 ]; then
   apt-get -y install php7.3-apcu php7.3-mbstring php7.3-bcmath php7.3-curl php7.3-gd php7.3-intl php7.3-mysql php7.3-mysqlnd php7.3-pdo php7.3-soap php7.3-json php7.3-xml php7.3-zip php7.3-memcache php7.3-memcached php7.3-zip php7.3-imagick php7.3-imap
 fi
 if [ "$release" -eq 11 ]; then
-  apt-get -y install php8.2-apcu php8.2-mbstring php8.2-bcmath php8.2-curl php8.2-gd php8.2-intl php8.2-mysql php8.2-mysqlnd php8.2-pdo php8.2-soap php8.2-json php8.2-xml php8.2-zip php8.2-memcache php8.2-memcached php8.2-zip php8.2-imagick php8.2-imap
+  apt-get -y install php7.4-apcu php7.4-mbstring php7.4-bcmath php7.4-curl php7.4-gd php7.4-intl php7.4-mysql php7.4-mysqlnd php7.4-pdo php7.4-soap php7.4-json php7.4-xml php7.4-zip php7.4-memcache php7.4-memcached php7.4-zip php7.4-imagick php7.4-imap
 fi
 if [ "$release" -eq 12 ]; then
   apt-get -y install php8.2-apcu php8.2-mbstring php8.2-bcmath php8.2-curl php8.2-gd php8.2-intl php8.2-mysql php8.2-mysqlnd php8.2-pdo php8.2-soap php8.2-json php8.2-xml php8.2-zip php8.2-memcache php8.2-memcached php8.2-zip php8.2-imagick php8.2-imap
@@ -1877,15 +1877,15 @@ fi
 
 if [ "$release" -eq 11 ]; then
   if [ $memory -lt 10000000 ]; then
-    echo "=== Patching php8.2-vps"
-    patch /etc/php/8.2/fpm/php.ini < $vestacp/php/php8.2-vps.patch
+    echo "=== Patching php7.4-vps"
+    patch /etc/php/7.4/fpm/php.ini < $vestacp/php/php7.4-vps.patch
   fi
   if [ $memory -gt 9999999 ]; then
-    echo "=== Patching php8.2-dedi"
-    patch /etc/php/8.2/fpm/php.ini < $vestacp/php/php8.2-dedi.patch
+    echo "=== Patching php7.4-dedi"
+    patch /etc/php/7.4/fpm/php.ini < $vestacp/php/php7.4-dedi.patch
   fi
-  update-alternatives --set php /usr/bin/php8.2
-  service php8.2-fpm restart
+  update-alternatives --set php /usr/bin/php7.4
+  service php7.4-fpm restart
 fi
 
 if [ "$release" -eq 12 ]; then

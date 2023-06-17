@@ -16,19 +16,11 @@
     </Directory>
     <Directory %sdocroot%>
         AllowOverride All
-        Options +Includes -Indexes +ExecCGI
+        Options +Includes -Indexes -FollowSymLinks +SymLinksIfOwnerMatch
     </Directory>
-#    <IfModule mod_ruid2.c>
-#        RMode config
-#        RUidGid %user% %group%
-#        RGroups www-data
-#    </IfModule>
-#    <IfModule itk.c>
-#        AssignUserID %user% %group%
-#    </IfModule>
 
     <FilesMatch \.php$>
-        SetHandler "proxy:unix:/run/php/php7.4-fpm-%domain%.sock|fcgi://localhost/"
+        SetHandler "proxy:unix:/run/php/php8.2-fpm-%domain%.sock|fcgi://localhost/"
     </FilesMatch>
     SetEnvIf Authorization .+ HTTP_AUTHORIZATION=$0
 

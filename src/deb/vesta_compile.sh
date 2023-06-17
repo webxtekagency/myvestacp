@@ -541,7 +541,11 @@ if [ "$NGINX_B" = true ]; then
     
     echo "=== Get nginx.conf"
     cd $BUILD_DIR/vesta-nginx_$VESTA_V
-    cp /root/vesta/src/deb/for-download/nginx/nginx.conf $BUILD_DIR/vesta-nginx_$VESTA_V/usr/local/vesta/nginx/conf/nginx.conf
+    if [ "$release" -lt 12 ]; then
+      cp /root/vesta/src/deb/for-download/nginx/nginx.conf $BUILD_DIR/vesta-nginx_$VESTA_V/usr/local/vesta/nginx/conf/nginx.conf
+    else
+      cp /root/vesta/src/deb/for-download/nginx/nginx-deb12.conf $BUILD_DIR/vesta-nginx_$VESTA_V/usr/local/vesta/nginx/conf/nginx.conf
+    fi
     
     # if [ $BUILDING_NOW -eq 1 ]; then
     echo "=== copy binary"

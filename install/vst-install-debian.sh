@@ -30,7 +30,7 @@ if [ "$release" -eq 12 ]; then
         flex whois git idn zip sudo bc ftp lsof ntpdate rrdtool quota
         e2fslibs bsdutils e2fsprogs curl imagemagick fail2ban dnsutils
         bsdmainutils cron vesta vesta-nginx vesta-php expect libmail-dkim-perl
-        unrar-free vim-common net-tools unzip iptables"
+        unrar-free vim-common net-tools unzip iptables xxd"
 elif [ "$release" -eq 11 ]; then
     software="nginx apache2 apache2-utils
         libapache2-mod-fcgid php-fpm php
@@ -1845,7 +1845,7 @@ if [ "$release" -eq 11 ]; then
   apt-get -y install php7.4-apcu php7.4-mbstring php7.4-bcmath php7.4-curl php7.4-gd php7.4-intl php7.4-mysql php7.4-mysqlnd php7.4-pdo php7.4-soap php7.4-json php7.4-xml php7.4-zip php7.4-memcache php7.4-memcached php7.4-zip php7.4-imagick php7.4-imap
 fi
 if [ "$release" -eq 12 ]; then
-  apt-get -y install php8.2-apcu php8.2-mbstring php8.2-bcmath php8.2-curl php8.2-gd php8.2-intl php8.2-mysql php8.2-mysqlnd php8.2-pdo php8.2-soap php8.2-json php8.2-xml php8.2-zip php8.2-memcache php8.2-memcached php8.2-zip php8.2-imagick php8.2-imap
+  apt-get -y install php8.2-apcu php8.2-mbstring php8.2-bcmath php8.2-curl php8.2-gd php8.2-intl php8.2-mysql php8.2-mysqlnd php8.2-pdo php8.2-soap php8.2-xml php8.2-zip php8.2-memcache php8.2-memcached php8.2-zip php8.2-imagick php8.2-imap
 fi
 
 touch /var/log/php-mail.log

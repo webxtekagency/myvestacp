@@ -11,6 +11,7 @@
 disable_ipv6=true
 add_environment=<; PATH=/bin:/usr/bin
 keep_environment=
+smtputf8_advertise_hosts =
 
 #local_interfaces =  0.0.0.0
 #smtp_active_hostname = ${lookup{$interface_address}lsearch{/etc/exim4/virtual/helo_data}{$value}}

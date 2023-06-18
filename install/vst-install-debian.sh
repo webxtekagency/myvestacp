@@ -833,6 +833,12 @@ fi
 echo "=== Enabling daemon autostart"
 rm -f /usr/sbin/policy-rc.d
 
+if [ "$release" -gt 11 ]; then
+    echo "=== Setting up rsyslog"
+    currentservice='rsyslog'
+    ensure_startup $currentservice
+    ensure_start $currentservice
+fi
 
 #----------------------------------------------------------#
 #                     Configure system                     #

@@ -1261,6 +1261,12 @@ if [ "$proftpd" = 'yes' ]; then
     currentservice='proftpd'
     ensure_startup $currentservice
     ensure_start $currentservice
+
+    # Temporary ProFTPD fix for Debian12
+    if [ "$release" -eq 12 ]; then
+        systemctl disable --now proftpd.socket
+        systemctl enable --now proftpd.service
+    fi
 fi
 
 

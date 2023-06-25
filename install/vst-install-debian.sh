@@ -18,6 +18,7 @@ os='debian'
 release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
 codename="$(cat /etc/os-release |grep VERSION= |cut -f 2 -d \(|cut -f 1 -d \))"
 vestacp="$VESTA/install/$VERSION/$release"
+ARCH="amd64"
 
 if [ "$release" -eq 12 ]; then
     software="nginx apache2 apache2-utils
@@ -581,15 +582,19 @@ apt-get -y upgrade
 check_result $? 'apt-get upgrade failed'
 
 echo "=== Installing nginx repo"
-apt=/etc/apt/sources.list.d
-echo "deb http://nginx.org/packages/debian/ $codename nginx" > $apt/nginx.list
-wget http://nginx.org/keys/nginx_signing.key -O /tmp/nginx_signing.key
-apt-key add /tmp/nginx_signing.key
+apt="/etc/apt/sources.list.d"
+# echo "deb http://nginx.org/packages/debian/ $codename nginx" > $apt/nginx.list
+# wget http://nginx.org/keys/nginx_signing.key -O /tmp/nginx_signing.key
+# apt-key add /tmp/nginx_signing.key
+echo "deb [arch=$ARCH signed-by=/usr/share/keyrings/nginx-keyring.gpg] https://nginx.org/packages/mainline/$VERSION/ $codename nginx" > $apt/nginx.list
+curl -s https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-keyring.gpg > /dev/null 2>&1
 
 echo "=== Installing myVesta repo"
-echo "deb http://$RHOST/$codename/ $codename vesta" > $apt/vesta.list
-wget $CHOST/deb_signing.key -O deb_signing.key
-apt-key add deb_signing.key
+# echo "deb http://$RHOST/$codename/ $codename vesta" > $apt/vesta.list
+# wget $CHOST/deb_signing.key -O deb_signing.key
+# apt-key add deb_signing.key
+echo "deb [arch=$ARCH signed-by=/usr/share/keyrings/myvesta-keyring.gpg] https://$RHOST/$codename/ $codename vesta" > $apt/vesta.list
+curl -s $CHOST/deb_signing.key | gpg --dearmor | tee /usr/share/keyrings/myvesta-keyring.gpg > /dev/null 2>&1
 
 # Installing jessie backports
 if [ "$release" -eq 8 ]; then

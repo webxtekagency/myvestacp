@@ -3,7 +3,7 @@
 USER='webmail'
 DOMAIN='' # enter domain or subdomain
 
-VERSION='1.6.0'
+VERSION='1.6.1'
 DOWNLOAD="https://github.com/roundcube/roundcubemail/releases/download/$VERSION/roundcubemail-$VERSION-complete.tar.gz"
 
 LOGINMESSAGE1='Click here for NEW Webmail'

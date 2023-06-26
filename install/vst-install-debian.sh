@@ -1545,6 +1545,12 @@ if [ "$spamd" = 'yes' ]; then
     else
         currentservice='spamd'
     fi
+
+    echo "=== Creating spamassassin /nonexistent folder"
+    mkdir /nonexistent
+    mkdir /nonexistent/.spamassassin
+    chown -R nobody:debian-spamd /nonexistent
+
     echo "=== Patching spamassassin dns_server"
     sed -i "s/report_safe 1/report_safe 1\n\ndns_server 127.0.0.1/g" /etc/spamassassin/local.cf
 

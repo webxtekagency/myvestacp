@@ -175,10 +175,10 @@ if [ -d "/home/$USER/web/$DOMAIN/public_html/plugins/password" ]; then
     cp /usr/share/roundcube/plugins/password/drivers/vesta.php /home/$USER/web/$DOMAIN/public_html/plugins/password/drivers/vesta.php
 fi
 
-wget -nv https://c.myvestacp.com/tools/roundcube-filters.tgz -O /root/roundcube-filters.tgz
-tar --directory /home/$USER/web/$DOMAIN/public_html/plugins -xzf /root/roundcube-filters.tgz
+# wget -nv https://c.myvestacp.com/tools/roundcube-filters.tgz -O /root/roundcube-filters.tgz
+# tar --directory /home/$USER/web/$DOMAIN/public_html/plugins -xzf /root/roundcube-filters.tgz
+# sed -i "s/\$config\['plugins'\] = \[/\$config['plugins'] = ['filters', /g" /home/$USER/web/$DOMAIN/public_html/config/config.inc.php
 
-sed -i "s/\$config\['plugins'\] = \[/\$config['plugins'] = ['filters', /g" /home/$USER/web/$DOMAIN/public_html/config/config.inc.php
 echo "\$config['session_lifetime'] = 1080;" >> /home/$USER/web/$DOMAIN/public_html/config/config.inc.php
 
 fix_ownership

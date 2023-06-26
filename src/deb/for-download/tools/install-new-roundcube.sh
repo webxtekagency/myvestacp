@@ -140,6 +140,27 @@ if [ -f "/usr/local/vesta/data/templates/web/apache2/PHP-FPM-74.tpl" ]; then
     apt install -y php7.4-imap
     echo "================================"
 fi
+if [ -f "/usr/local/vesta/data/templates/web/apache2/PHP-FPM-80.tpl" ]; then
+    echo "================================"
+    echo "== Installing php8.0-imap module"
+    apt update
+    apt install -y php8.0-imap
+    echo "================================"
+fi
+if [ -f "/usr/local/vesta/data/templates/web/apache2/PHP-FPM-81.tpl" ]; then
+    echo "================================"
+    echo "== Installing php8.1-imap module"
+    apt update
+    apt install -y php8.1-imap
+    echo "================================"
+fi
+if [ -f "/usr/local/vesta/data/templates/web/apache2/PHP-FPM-82.tpl" ]; then
+    echo "================================"
+    echo "== Installing php8.2-imap module"
+    apt update
+    apt install -y php8.2-imap
+    echo "================================"
+fi
 
 echo "-------------------------------------"
 echo "Go to:"
@@ -147,6 +168,7 @@ echo "https://${DOMAIN}/installer/"
 echo "... and finish the Roundcube installation."
 echo ""
 echo "You will be asked for:"
+echo "Database host: localhost"
 echo "Database user: $DATABASE_NAME"
 echo "Database name: $DATABASE_NAME"
 echo "Database pass: $DATABASE_PASSWORD"
@@ -183,9 +205,11 @@ echo "\$config['session_lifetime'] = 1080;" >> /home/$USER/web/$DOMAIN/public_ht
 
 fix_ownership
 
-check_grep=$(grep -c 'color: white; font-size: 12pt' /usr/share/roundcube/skins/larry/templates/login.html)
-if [ "$check_grep" -eq 0 ]; then
-    sed -i "s|<roundcube:form name=\"form\" method=\"post\">|<br /><br /><center><a href=\"https://$DOMAIN/\" style=\"color: white; font-size: 12pt;\">$LOGINMESSAGE1</a><br /><span style=\"color: white; font-size: 8pt;\">$LOGINMESSAGE2</span></center><br /><br />\n\n<roundcube:form name=\"form\" method=\"post\">|g" /usr/share/roundcube/skins/larry/templates/login.html
+if [ -f "/usr/share/roundcube/skins/larry/templates/login.html" ]; then
+    check_grep=$(grep -c 'color: white; font-size: 12pt' /usr/share/roundcube/skins/larry/templates/login.html)
+    if [ "$check_grep" -eq 0 ]; then
+        sed -i "s|<roundcube:form name=\"form\" method=\"post\">|<br /><br /><center><a href=\"https://$DOMAIN/\" style=\"color: white; font-size: 12pt;\">$LOGINMESSAGE1</a><br /><span style=\"color: white; font-size: 8pt;\">$LOGINMESSAGE2</span></center><br /><br />\n\n<roundcube:form name=\"form\" method=\"post\">|g" /usr/share/roundcube/skins/larry/templates/login.html
+    fi
 fi
 
 check_grep=$(grep -c 'MAIL_URL=' /usr/local/vesta/conf/vesta.conf)

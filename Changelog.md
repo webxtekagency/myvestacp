@@ -1,6 +1,6 @@
 Version 0.9.9-0-4 [27-Jun-2023]
 ==================================================
-* Support for Debian 12
+* Support for Debian 12 ( in mutual cooperation with @HestiaCP )
 
 Version 0.9.9-0-2 [12-Jun-2023]
 ==================================================

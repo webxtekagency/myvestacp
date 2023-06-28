@@ -138,7 +138,7 @@ check_grep=$(grep -c 'smtp_active_hostname' /etc/exim4/exim4.conf.template)
 if [ "$check_grep" -eq 0 ]; then
     echo "=== patching exim4.conf.template"
     mv /etc/exim4/exim4.conf.template /etc/exim4/exim4.conf.template-backup
-    cp /usr/local/vesta/install/debian/11/exim/exim4.conf.template-RC /etc/exim4/exim4.conf.template
+    cp /usr/local/vesta/install/debian/12/exim/exim4.conf.template /etc/exim4/exim4.conf.template
     sed -i "s|FIRSTIP|$HOST_IP|g" /etc/exim4/exim4.conf.template
     sed -i "s|SECONDIP|$MAIL_IP|g" /etc/exim4/exim4.conf.template
     sed -i "s|FIRSTHOST|$HOSTNAME|g" /etc/exim4/exim4.conf.template

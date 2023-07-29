@@ -95,12 +95,8 @@ apt update
 if [ "$inst_repo" -eq 1 ]; then
     press_enter "=== Press enter to install sury.org repo ==============================================================================="
     apt -y install apt-transport-https ca-certificates
-    wget -nv -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
-    if [ $debian_version -eq 8 ]; then
-      sh -c 'echo "deb https://packages.sury.org/php/ jessie main" > /etc/apt/sources.list.d/php.list'
-    fi
-    if [ $debian_version -eq 9 ]; then
-      sh -c 'echo "deb https://packages.sury.org/php/ stretch main" > /etc/apt/sources.list.d/php.list'
+    if [ $debian_version -ge 10 ]; then
+      wget -nv -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
     fi
     if [ $debian_version -eq 10 ]; then
       sh -c 'echo "deb https://packages.sury.org/php/ buster main" > /etc/apt/sources.list.d/php.list'

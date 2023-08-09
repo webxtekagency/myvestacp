@@ -26,7 +26,7 @@ fi
 # chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
 # Patching exim4.conf for: smtputf8_advertise_hosts
-if [ "$release" -gt 10 ]; then
+if [ "$release" -ge 11 ]; then
     if [ -f "/etc/exim4/exim4.conf.template" ]; then
         if ! grep -q 'smtputf8_advertise_hosts' /etc/exim4/exim4.conf.template; then
             echo 'Patching exim4.conf for: smtputf8_advertise_hosts'
@@ -47,7 +47,7 @@ if [ -f "/etc/exim4/exim4.conf.template" ]; then
 fi
 
 # Making sure yescrypt is disabled
-if [ "$release" -eq 11 ]; then
+if [ "$release" -ge 11 ]; then
     sed -i "s/yescrypt/sha512/g" /etc/pam.d/common-password
 fi
 
@@ -66,13 +66,18 @@ if [ "$release" -eq 11 ]; then
 					ADD="  hosts_try_fastopen = \!\*.l.google.com"
 					sed -i "s#$FIND#$FIND\n$ADD#g" /etc/exim4/exim4.conf.template
 					systemctl restart exim4
-					
-					sed -i "s/net.ipv4.tcp_window_scaling/#net.ipv4.tcp_window_scaling/g" /etc/sysctl.conf
-					echo 1 > /proc/sys/net/ipv4/tcp_window_scaling
 		fi
 	fi
 fi
 
+if [ "$release" -ge 11 ]; then
+		check_grep=$(grep -c '^net\.ipv4\.tcp_window_scaling' /etc/sysctl.conf)
+		if [ "$check_grep" -gt 0 ]; then
+            echo "=== Removing net.ipv4.tcp_window_scaling"
+            sed -i "s/net\.ipv4\.tcp_window_scaling/#net.ipv4.tcp_window_scaling/g" /etc/sysctl.conf
+            echo 1 > /proc/sys/net/ipv4/tcp_window_scaling
+        fi
+fi
 
 # Adding Barracuda RBL to SpamAssassin
 if [ ! -f "/usr/local/vesta/data/upgrades/barracuda_rbl" ]; then

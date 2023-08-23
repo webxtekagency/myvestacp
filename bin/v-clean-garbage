@@ -21,6 +21,14 @@ source /usr/local/vesta/func/main.sh
 #                       Action                             #
 #----------------------------------------------------------#
 
+# turn off tailf watcher process
+if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
+    kill $(ps aux | grep 'tailf_apache_error' | grep -v "grep tailf_apache_error" | awk '{print $2}')
+fi
+if [ -f "/usr/local/bin/tailf_exim.php" ]; then
+    kill $(ps aux | grep 'tailf_exim' | grep -v "grep tailf_exim" | awk '{print $2}')
+fi
+
 rm /var/backups/* > /dev/null 2>&1
 rm /var/cache/apt/archives/* > /dev/null 2>&1
 cd /var/log
@@ -41,6 +49,9 @@ find /var/log/ -name "*.gz" -type f -delete
 find /usr/local/vesta/log/ -type f -name "*.log" -exec truncate -s 0 {} \;
 find /usr/local/vesta/log/ -type f -not -name "*.log" -delete
 find /var/log/exim4/ -type f -exec truncate -s 0 {} \;
+truncate -s 0 /*.log
+rm /panic-*.log
+rm /var/log/panic-*.log
 
 clean_home() {
     nice -n 19 ionice -c 3 find $1/*/tmp/ -type f -delete
@@ -72,6 +83,14 @@ if [ -f "/var/lib/fail2ban/fail2ban.sqlite3" ]; then
 fi
 if [ $fail2ban_running -eq 1 ]; then
     systemctl start fail2ban
+fi
+
+# turn on tailf watcher process
+if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
+    nohup php /usr/local/bin/tailf_apache_error.php > /var/log/tailf_apache_error.log &
+fi
+if [ -f "/usr/local/bin/tailf_exim.php" ]; then
+    nohup php /usr/local/bin/tailf_exim.php > /var/log/tailf_exim.log &
 fi
 
 #----------------------------------------------------------#

@@ -354,32 +354,13 @@ do
         echo "============================="
         echo "== cleaning trash"
         df -m
-        ps -Af | grep tailf | grep -v "grep tailf"
-        if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
-            kill $(ps aux | grep 'tailf_apache_error' | grep -v "grep tailf_apache_error" | awk '{print $2}')
-        fi
-        if [ -f "/usr/local/bin/tailf_exim.php" ]; then
-            kill $(ps aux | grep 'tailf_exim' | grep -v "grep tailf_exim" | awk '{print $2}')
-        fi
         echo "------"
         ps -Af | grep tailf | grep -v "grep tailf"
         echo "------"
-        sleep 2
-        truncate -s 0 /*.log
-        rm /panic-*.log
-        rm /var/log/panic-*.log
         /usr/local/vesta/bin/v-clean-garbage
-        sleep 2
-        if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
-            nohup php /usr/local/bin/tailf_apache_error.php > /var/log/tailf_apache_error.log &
-        fi
-        if [ -f "/usr/local/bin/tailf_exim.php" ]; then
-            nohup php /usr/local/bin/tailf_exim.php > /var/log/tailf_exim.log &
-        fi
         echo "--------------"
         df -m
         echo "--------------"
-        sleep 2
         ps -Af | grep tailf | grep -v "grep tailf"
     fi
 

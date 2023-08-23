@@ -87,10 +87,10 @@ fi
 
 # turn on tailf watcher process
 if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
-    nohup php /usr/local/bin/tailf_apache_error.php > /var/log/tailf_apache_error.log &
+    nohup php /usr/local/bin/tailf_apache_error.php > /var/log/tailf_apache_error.log 2>&1 &
 fi
 if [ -f "/usr/local/bin/tailf_exim.php" ]; then
-    nohup php /usr/local/bin/tailf_exim.php > /var/log/tailf_exim.log &
+    nohup php /usr/local/bin/tailf_exim.php > /var/log/tailf_exim.log 2>&1 &
 fi
 
 #----------------------------------------------------------#

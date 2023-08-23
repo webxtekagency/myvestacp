@@ -49,9 +49,9 @@ find /var/log/ -name "*.gz" -type f -delete
 find /usr/local/vesta/log/ -type f -name "*.log" -exec truncate -s 0 {} \;
 find /usr/local/vesta/log/ -type f -not -name "*.log" -delete
 find /var/log/exim4/ -type f -exec truncate -s 0 {} \;
-truncate -s 0 /*.log
-rm /panic-*.log
-rm /var/log/panic-*.log
+truncate -s 0 /*.log > /dev/null 2>&1
+rm /panic-*.log > /dev/null 2>&1
+rm /var/log/panic-*.log > /dev/null 2>&1
 
 clean_home() {
     nice -n 19 ionice -c 3 find $1/*/tmp/ -type f -delete

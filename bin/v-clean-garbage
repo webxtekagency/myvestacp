@@ -54,7 +54,7 @@ rm /panic-*.log > /dev/null 2>&1
 rm /var/log/panic-*.log > /dev/null 2>&1
 
 clean_home() {
-    nice -n 19 ionice -c 3 find $1/*/tmp/ -type f -delete
+    nice -n 19 ionice -c 3 find $1/*/tmp/ -type f -delete > /dev/null 2>&1
     find $1/ -name '.wp-cli' -type d -exec rm -rf {} \; > /dev/null 2>&1
     find $1/*/web/*/public_html/wp-content/aiowps_backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete > /dev/null 2>&1
     find $1/*/web/*/public_html/wp-content/envato-backups/ -type f -not -name ".htaccess" -not -name "index.php" -not -name "index.html" -not -name "web.config" -delete > /dev/null 2>&1

@@ -25,6 +25,17 @@ fi
 # echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 # chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+# Fixing 'dh key too small' in dovecot
+if [ -f "/var/log/dovecot.log" ] && [ -f "/etc/dovecot/conf.d/10-ssl.conf" ] && [ -f "/usr/share/dovecot/dh.pem" ]; then
+    if grep -q 'dh key too small' /var/log/dovecot.log; then
+        if ! grep -q 'dh.pem' /etc/dovecot/conf.d/10-ssl.conf; then
+            echo "== Fixing 'dh key too small' in dovecot"
+            echo "ssl_dh=</usr/share/dovecot/dh.pem" >> /etc/dovecot/conf.d/10-ssl.conf
+            systemctl restart dovecot
+        fi
+    fi
+fi
+
 # Patching exim4.conf for: smtputf8_advertise_hosts
 if [ "$release" -ge 11 ]; then
     if [ -f "/etc/exim4/exim4.conf.template" ]; then

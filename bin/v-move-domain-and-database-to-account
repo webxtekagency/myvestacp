@@ -40,6 +40,10 @@ if [ "$owner" = "$user" ]; then
     exit
 fi
 
+USER_DATA=$VESTA/data/users/$owner
+is_object_unsuspended 'user' 'USER' "$owner"
+USER_DATA=$VESTA/data/users/$user
+
 USER_TO=$user
 
 #----------------------------------------------------------#

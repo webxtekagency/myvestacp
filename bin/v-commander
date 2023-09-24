@@ -241,8 +241,13 @@ do
     if [ "$answer" = 'dis spam' ] || [ "$answer" = 'DIS SPAM' ]; then
         echo "============================="
         echo "== disabling SpamAssassin"
-        systemctl stop spamassassin.service
-        systemctl disable spamassassin.service
+        if [ "$release" -lt 12 ]; then
+            systemctl stop spamassassin.service
+            systemctl disable spamassassin.service
+        else
+            systemctl stop spamd.service
+            systemctl disable spamd.service
+        fi
 
         sed -i "s/^SPAMASSASSIN =/#SPAMASSASSIN =/g" /etc/exim4/exim4.conf.template
         sed -i "s/^SPAM_SCORE =/#SPAM_SCORE =/g" /etc/exim4/exim4.conf.template

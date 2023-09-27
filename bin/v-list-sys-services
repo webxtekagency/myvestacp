@@ -301,6 +301,10 @@ if [ ! -z "$DB_SYSTEM" ] && [ "$DB_SYSTEM" != 'remote' ]; then
                 service='mariadb'
                 proc_name='mariadbd'
             fi
+            if [ -f "/etc/apt/sources.list.d/mariadb.list" ]; then
+                service='mariadb'
+                proc_name='mariadbd'
+            fi
             if [ -d "/etc/sysconfig" ]; then
                 service='mysqld'
                 proc_name='mysqld'

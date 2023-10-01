@@ -148,6 +148,8 @@ if [ "$check_grep" -eq 0 ]; then
     sed -i "s|#smtp_banner|smtp_banner|g" /etc/exim4/exim4.conf.template
     sed -i "s|#interface =|interface =|g" /etc/exim4/exim4.conf.template
     sed -i "s|#helo_data =|helo_data =|g" /etc/exim4/exim4.conf.template
+    /usr/local/vesta/bin/v-sed 'tls_certificate = /usr/local/vesta/ssl/certificate.crt' 'tls_certificate = /usr/local/vesta/ssl/$received_ip_address.crt' '/etc/exim4/exim4.conf.template'
+    /usr/local/vesta/bin/v-sed 'tls_privatekey = /usr/local/vesta/ssl/certificate.key' 'tls_privatekey = /usr/local/vesta/ssl/$received_ip_address.key' '/etc/exim4/exim4.conf.template'
     touch /etc/exim4/limit_per_email_account_max_sent_emails_per_hour
     touch /etc/exim4/limit_per_email_account_max_recipients
     touch /etc/exim4/limit_per_hosting_account_max_sent_emails_per_hour

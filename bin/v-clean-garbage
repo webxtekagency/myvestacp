@@ -29,6 +29,7 @@ if [ -f "/usr/local/bin/tailf_exim.php" ]; then
     kill $(ps aux | grep 'tailf_exim' | grep -v "grep tailf_exim" | awk '{print $2}')
 fi
 
+find /tmp/ -type f -mtime +7 -delete
 rm /var/backups/* > /dev/null 2>&1
 rm /var/cache/apt/archives/* > /dev/null 2>&1
 cd /var/log
@@ -45,6 +46,8 @@ find /var/log/ -type f -name "*.4" -delete
 find /var/log/ -type f -name "*.5" -delete
 find /var/log/ -type f -name "*.6" -delete
 find /var/log/ -type f -name "*.7" -delete
+find /var/log/ -type f -name "*.8" -delete
+find /var/log/ -type f -name "*.9" -delete
 find /var/log/ -name "*.gz" -type f -delete
 find /usr/local/vesta/log/ -type f -name "*.log" -exec truncate -s 0 {} \;
 find /usr/local/vesta/log/ -type f -not -name "*.log" -delete

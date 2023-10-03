@@ -286,7 +286,7 @@ set_default_value 'postgresql' 'no'
 set_default_value 'mongodb' 'no'
 set_default_value 'exim' 'yes'
 set_default_value 'dovecot' 'yes'
-if [ $memory -lt 1500000 ]; then
+if [ $memory -lt 2500000 ]; then
     set_default_value 'clamd' 'no'
     set_default_value 'spamd' 'no'
 else

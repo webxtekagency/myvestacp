@@ -12,7 +12,7 @@
 
 grepc=$(grep -c 'limit_conn_zone' /etc/nginx/nginx.conf)
 if [ "$grepc" -eq 0 ]; then
-    sed -i 's|server_names_hash_bucket_size   512;|server_names_hash_bucket_size   512;\n    limit_conn_zone $binary_remote_addr zone=addr:1m;\n    limit_req_zone $binary_remote_addr zone=one:1m rate=1r/s;\n    limit_req_zone $binary_remote_addr zone=two:1m rate=2r/s;\n    limit_conn_log_level error;\n    limit_req_log_level error;\n    limit_conn_status 429;\n    limit_req_status 429;|g' /etc/nginx/nginx.conf
+    sed -i 's|server_names_hash_bucket_size   512;|server_names_hash_bucket_size   512;\n    limit_conn_zone $binary_remote_addr zone=addr:1m;\n    limit_conn_zone $server_name zone=zone_site:1m;\n    limit_req_zone $binary_remote_addr zone=one:1m rate=1r/s;\n    limit_req_zone $binary_remote_addr zone=two:1m rate=2r/s;\n    limit_conn_log_level error;\n    limit_req_log_level error;\n    limit_conn_status 429;\n    limit_req_status 429;|g' /etc/nginx/nginx.conf
     echo "=== Added rate_limit to nginx.conf"
 fi
 
@@ -20,6 +20,12 @@ grepc=$(grep -c 'zone=addr:10m' /etc/nginx/nginx.conf)
 if [ "$grepc" -eq 1 ]; then
     sed -i 's|zone=addr:10m|zone=addr:1m|g' /etc/nginx/nginx.conf
     echo "=== Decrease addr zone to 1mb to nginx.conf"
+fi
+
+grepc=$(grep -c 'zone=zone_site:1m' /etc/nginx/nginx.conf)
+if [ "$grepc" -eq 0 ]; then
+    sed -i 's| zone=addr:1m;| zone=addr:1m;\n    limit_conn_zone $server_name zone=zone_site:1m;|g' /etc/nginx/nginx.conf
+    echo "=== Added rate_limit 'zone_site' to nginx.conf"
 fi
 
 grepc=$(grep -c 'zone=one:10m' /etc/nginx/nginx.conf)

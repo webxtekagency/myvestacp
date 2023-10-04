@@ -62,36 +62,24 @@ if [ -f "$fpmconf" ]; then
     rm $fpmconf
     echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
 fi
-fpmconf="/etc/php/5.6/fpm/pool.d/$domain.conf"
-if [ -f "$fpmconf" ]; then
-    rm $fpmconf
-    echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
-fi
-fpmconf="/etc/php/7.0/fpm/pool.d/$domain.conf"
-if [ -f "$fpmconf" ]; then
-    rm $fpmconf
-    echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
-fi
-fpmconf="/etc/php/7.1/fpm/pool.d/$domain.conf"
-if [ -f "$fpmconf" ]; then
-    rm $fpmconf
-    echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
-fi
-fpmconf="/etc/php/7.2/fpm/pool.d/$domain.conf"
-if [ -f "$fpmconf" ]; then
-    rm $fpmconf
-    echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
-fi
-fpmconf="/etc/php/7.3/fpm/pool.d/$domain.conf"
-if [ -f "$fpmconf" ]; then
-    rm $fpmconf
-    echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
-fi
-fpmconf="/etc/php/7.4/fpm/pool.d/$domain.conf"
-if [ -f "$fpmconf" ]; then
-    rm $fpmconf
-    echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
-fi
+
+for PHPV in /etc/php/*; do
+    if [ -d "${PHPV}" ]; then
+        # PHPVER=$(basename ${PHPV})
+        POOLD="${PHPV}/fpm/pool.d"
+        fpmconf="$POOLD/$domain.conf"
+        if [ -f "$fpmconf" ]; then
+            rm $fpmconf
+            echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
+        fi
+        POOLD="${PHPV}/fpm/pool.d-ioncube"
+        fpmconf="$POOLD/$domain.conf"
+        if [ -f "$fpmconf" ]; then
+            rm $fpmconf
+            echo "Deleted: $fpmconf" >> /usr/local/vesta/log/system.log
+        fi
+    fi
+done
 
 # Deleting domain from web.conf
 sed -i "/DOMAIN='$domain'/ d" $USER_DATA/web.conf

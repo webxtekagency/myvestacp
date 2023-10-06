@@ -23,7 +23,7 @@
 
 <h1>Features of myVesta</h1>
 <ul>
-    <li>Support for Debian 10 and 11 (Debian 11 is recommended, but previous Debian releases are also supported)</li>
+    <li>Support for Debian 11 and 12 (Debian 12 is recommended, but previous Debian releases are also supported)</li>
     <li>Support for MySQL 8</li>
     <li><a href="https://forum.myvestacp.com/viewtopic.php?f=20&t=51">nginx templates</a> that can prevent denial-of-service on your server</li>
     <li><a href="https://forum.myvestacp.com/viewtopic.php?f=18&t=52">Support for multi-PHP versions</a></li>

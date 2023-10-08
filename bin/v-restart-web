@@ -65,7 +65,7 @@ fi
 # Resart web system if reload didn't work
 if [ "$rc" -ne 0 ]; then
     # service $WEB_SYSTEM restart >/dev/null 2>&1
-    systemctl reset-failed
+    systemctl reset-failed $WEB_SYSTEM
     systemctl restart $WEB_SYSTEM >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         send_email_report

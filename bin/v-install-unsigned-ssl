@@ -52,6 +52,8 @@ fi
 #                       Action                             #
 #----------------------------------------------------------#
 
+/usr/local/vesta/bin/v-delete-web-domain-ssl "$user" "$domain"
+
 release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
 
 email="info@$domain"

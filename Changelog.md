@@ -1,3 +1,7 @@
+Version 0.9.9-0-5 [08-Oct-2023]
+==================================================
+* Many bugfixes
+
 Version 0.9.9-0-4 [27-Jun-2023]
 ==================================================
 * Support for Debian 12 ( in mutual cooperation with @HestiaCP )

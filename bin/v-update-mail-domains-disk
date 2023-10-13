@@ -41,7 +41,8 @@ for domain in $(search_objects 'mail' 'SUSPENDED' "no" 'DOMAIN'); do
     for account in $accounts; do
         home_dir=$HOMEDIR/$user/mail/$domain/$account
         if [ -e "$home_dir" ]; then
-            udisk=$(nice -n 19 du -shm $home_dir | cut -f 1 )
+            cd $home_dir
+            udisk=$(nice -n 19 du -shm ./ | cut -f 1 )
         else
             udisk=0
         fi

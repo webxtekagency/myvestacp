@@ -446,6 +446,7 @@ do
 
         sed -i "s|^supervised no|supervised systemd|g" /etc/redis/redis.conf
         sed -i "s|^save |# save |g" /etc/redis/redis.conf
+        sed -i 's|^# save ""|save ""|g' /etc/redis/redis.conf
         if [ $memory -lt 15000000 ]; then
             sed -i "s|^# maxmemory .*|maxmemory 256m|g" /etc/redis/redis.conf
         else

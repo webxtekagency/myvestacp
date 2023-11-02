@@ -23,36 +23,42 @@ server {
 
     location /wp-admin/ {
         limit_conn addr 24;
+        limit_conn zone_site 30;
         limit_req zone=one burst=40 delay=7;
         proxy_pass      https://%ip%:%web_ssl_port%;
     }
 
     location /wp-json/ {
         limit_conn addr 8;
+        limit_conn zone_site 15;
         limit_req zone=one burst=40 delay=7;
         proxy_pass      https://%ip%:%web_ssl_port%;
     }
 
     location @wordfence_lh {
         limit_conn addr 8;
+        limit_conn zone_site 15;
         limit_req zone=wfone burst=120;
         proxy_pass      https://%ip%:%web_ssl_port%;
     }
 
     location @wordfence_route {
         limit_conn addr 8;
+        limit_conn zone_site 15;
         limit_req zone=wfone burst=120;
         proxy_pass      https://%ip%:%web_ssl_port%;
     }
 
     location @wordfence_sync {
         limit_conn addr 8;
+        limit_conn zone_site 15;
         limit_req zone=wfone burst=120;
         proxy_pass      https://%ip%:%web_ssl_port%;
     }
 
     location /wp-json/wordfence/ {
         limit_conn addr 8;
+        limit_conn zone_site 15;
         limit_req zone=wfone burst=120;
         proxy_pass      https://%ip%:%web_ssl_port%;
     }

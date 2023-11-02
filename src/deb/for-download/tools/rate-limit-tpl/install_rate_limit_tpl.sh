@@ -68,5 +68,7 @@ wget -nv -O /usr/local/vesta/data/templates/web/nginx/hosting-firewall-burst-2-s
 
 wget -nv -O /usr/local/vesta/data/templates/web/nginx/force-https-firewall-wordpress.tpl http://c.myvestacp.com/tools/rate-limit-tpl/force-https-firewall-wordpress.tpl
 wget -nv -O /usr/local/vesta/data/templates/web/nginx/force-https-firewall-wordpress.stpl http://c.myvestacp.com/tools/rate-limit-tpl/force-https-firewall-wordpress.stpl
+wget -nv -O /usr/local/vesta/data/templates/web/nginx/hosting-firewall-wordpress.tpl http://c.myvestacp.com/tools/rate-limit-tpl/hosting-firewall-wordpress.tpl
+wget -nv -O /usr/local/vesta/data/templates/web/nginx/hosting-firewall-wordpress.stpl http://c.myvestacp.com/tools/rate-limit-tpl/hosting-firewall-wordpress.stpl
 
 systemctl restart nginx

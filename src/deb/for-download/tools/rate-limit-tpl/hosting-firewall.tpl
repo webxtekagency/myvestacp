@@ -4,7 +4,8 @@ server {
     error_log  /var/log/%web_system%/domains/%domain%.error.log error;
 
     location / {
-        limit_conn addr 2;
+        limit_conn addr 3;
+        limit_conn zone_site 10;
         limit_req zone=one burst=7 delay=3;
         proxy_pass      http://%ip%:%web_port%;
     }

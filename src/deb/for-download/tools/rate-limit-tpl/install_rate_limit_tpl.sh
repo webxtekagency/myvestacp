@@ -31,7 +31,7 @@ fi
 grepc=$(grep -c 'zone=wfone:1m' /etc/nginx/nginx.conf)
 if [ "$grepc" -eq 0 ]; then
     sed -i 's| zone=addr:1m;| zone=addr:1m;\n    limit_req_zone $scheme zone=wfone:1m rate=1r/s;|g' /etc/nginx/nginx.conf
-    echo "=== Added rate_limit 'zone_site' to nginx.conf"
+    echo "=== Added rate_limit 'wfone' to nginx.conf"
 fi
 
 grepc=$(grep -c 'zone=one:10m' /etc/nginx/nginx.conf)

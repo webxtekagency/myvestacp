@@ -78,12 +78,13 @@ myhelp() {
     echo "q  = quit"
     echo "h  = help"
     echo "-----------------------------"
-    echo "inst v   = install myVesta"
-    echo "inst p   = install multi-php"
-    echo "inst pgw = install php-gate"
-    echo "inst r   = install new Roundcube"
-    echo "inst memcached = install memcached"
-    echo "inst redis     = install Redis"
+    echo "inst v                = install myVesta"
+    echo "inst p                = install multi-php"
+    echo "inst pgw              = install php-gate"
+    echo "inst r                = install new Roundcube"
+    echo "inst memcached        = install memcached"
+    echo "inst redis            = install Redis"
+    echo "inst nginx-rate-limit = install nginx-rate-limit templates"
     echo "dis fb   = stop and disable fail2ban"
     echo "dis dove = stop and disable dovecot"
     echo "dis spam = stop and disable spam"
@@ -456,6 +457,15 @@ do
         systemctl restart redis
         redis-cli info memory
         echo "== Redis installed."
+        echo "-------------------"
+    fi
+
+    if [ "$answer" = 'inst nginx-rate-limit' ] || [ "$answer" = 'INST NGINX-RATE-LIMIT' ]; then
+        echo "============================="
+        echo "== Installing inst nginx-rate-limit templates"
+        curl -O https://c.myvestacp.com/tools/rate-limit-tpl/install_rate_limit_tpl.sh
+        bash install_rate_limit_tpl.sh
+        echo "== nginx-rate-limit templates installed."
         echo "-------------------"
     fi
 

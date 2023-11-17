@@ -16,10 +16,10 @@ if [ -d "/etc/php" ]; then
     find /etc/php/*/fpm/pool.d/ -name "*.conf" -type f -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL|$NEWVAL|g"
     find /usr/local/vesta/data/templates/web/apache2/ -type f -name "*.sh" -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL|$NEWVAL|g"
 
-    OLDVAL='pm.max_children = 8'
+    OLDVAL='pm.max_children = '
     NEWVAL='pm.max_children = 3'
-    find /etc/php/*/fpm/pool.d/ -name "*.conf" -type f -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL|$NEWVAL|g"
-    find /usr/local/vesta/data/templates/web/apache2/ -type f -name "*.sh" -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL|$NEWVAL|g"
+    find /etc/php/*/fpm/pool.d/ -name "*.conf" -type f -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL.*|$NEWVAL|g"
+    find /usr/local/vesta/data/templates/web/apache2/ -type f -name "*.sh" -exec grep -l "$OLDVAL" {} \; | xargs sed -i "s|$OLDVAL.*|$NEWVAL|g"
 
     OLDVAL='request_terminate_timeout = '
     NEWVAL='request_terminate_timeout = 360s'

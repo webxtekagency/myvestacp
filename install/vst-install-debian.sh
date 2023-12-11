@@ -2034,8 +2034,8 @@ echo "=== Set URL for phpmyadmin"
 echo "DB_PMA_URL='https://$servername/phpmyadmin/'" >> $VESTA/conf/vesta.conf
 if [ "$release" -gt 9 ]; then
     echo "=== Set max_length_of_MySQL_username=80"
+    echo "MAX_DBUSER_LEN=80" >> $VESTA/conf/vesta.conf
 fi
-echo "MAX_DBUSER_LEN=80" >> $VESTA/conf/vesta.conf
 echo "ALLOW_BACKUP_ANYTIME='yes'" >> $VESTA/conf/vesta.conf
 echo "NOTIFY_ADMIN_FULL_BACKUP='$email'" >> $VESTA/conf/vesta.conf
 echo "================================================================"

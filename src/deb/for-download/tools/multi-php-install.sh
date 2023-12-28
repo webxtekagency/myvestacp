@@ -363,5 +363,24 @@ if [ $debian_version -ge 10 ]; then
 fi
 
 if [ -f "/usr/share/phpgate/phpgate.php" ]; then
-    v-commander 'u' 'inst memcached' 'm' 'inst pgw' 'q'
+    echo "=== upgrading phpgate"
+    v-commander 'inst memcached' 'm' 'inst pgw' 'q'
+fi
+
+if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
+    echo "=== upgrading tailf_apache_error.php"
+    wget -nv http://dl.myvestacp.com/vesta/tailf.php -O /usr/local/bin/tailf.php
+    wget -nv http://dl.myvestacp.com/vesta/tailf_apache_error.php -O /usr/local/bin/tailf_apache_error.php
+    wget -nv http://dl.myvestacp.com/vesta/see-apache-processlist-once.sh -O /usr/local/bin/see-apache-processlist-once.sh
+    wget -nv http://dl.myvestacp.com/vesta/see-mysql-processlist-once.sh -O /usr/local/bin/see-mysql-processlist-once.sh
+    chmod u+x /usr/local/bin/see-apache-processlist-once.sh
+    chmod u+x /usr/local/bin/see-mysql-processlist-once.sh
+    
+    # ps aux | grep 'tailf_apache_error' | grep -v "grep tailf_apache_error"
+    # echo $(ps aux | grep 'tailf_apache_error' | grep -v "grep tailf_apache_error" | awk '{print $2}')
+    kill $(ps aux | grep 'tailf_apache_error' | grep -v "grep tailf_apache_error" | awk '{print $2}')
+    sleep 1
+    # ps -Af | grep 'tailf_apache_error' | grep -v "grep tailf_apache_error"
+    # sleep 1
+    nohup php /usr/local/bin/tailf_apache_error.php > /var/log/tailf_apache_error.log &
 fi

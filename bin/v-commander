@@ -425,8 +425,8 @@ do
         memory=$(grep 'MemTotal' /proc/meminfo |tr ' ' '\n' |grep [0-9])
         apt-get update
         apt-get -y install memcached 
-        apt-get install $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcache ")
-        apt-get install $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcached ")
+        apt-get -y install $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcache ")
+        apt-get -y install $(systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | cut -c1-6 | xargs -n 1 printf "%s-memcached ")
         if [ $memory -lt 15000000 ]; then
             sed -i "s/-m 64/-m 256/" /etc/memcached.conf
         else

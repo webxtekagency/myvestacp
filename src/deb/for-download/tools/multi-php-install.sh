@@ -364,7 +364,7 @@ fi
 
 if [ -f "/usr/share/phpgate/phpgate.php" ]; then
     echo "=== upgrading phpgate"
-    v-commander 'inst memcached' 'm' 'inst pgw' 'q'
+    /usr/local/vesta/bin/v-commander 'inst memcached' 'm' 'inst pgw' 'q'
 fi
 
 if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then

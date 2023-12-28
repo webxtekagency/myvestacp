@@ -365,6 +365,8 @@ fi
 if [ -f "/usr/share/phpgate/phpgate.php" ]; then
     echo "=== upgrading phpgate"
     /usr/local/vesta/bin/v-commander 'm' 'inst pgw' 'q'
+    echo "=== upgrading phpgate done."
+    echo ""
 fi
 
 if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
@@ -383,4 +385,6 @@ if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
     # ps -Af | grep 'tailf_apache_error' | grep -v "grep tailf_apache_error"
     # sleep 1
     nohup php /usr/local/bin/tailf_apache_error.php > /var/log/tailf_apache_error.log &
+    echo "=== upgrading tailf_apache_error.php done."
+    echo ""
 fi

@@ -361,3 +361,7 @@ if [ $debian_version -ge 10 ]; then
     apt-get -y remove libapache2-mod-php* > /dev/null 2>&1
     service apache2 restart
 fi
+
+if [ -f "/usr/share/phpgate/phpgate.php" ]; then
+    v-commander 'u' 'inst memcached' 'm' 'inst pgw' 'q'
+fi

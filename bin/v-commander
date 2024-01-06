@@ -60,23 +60,24 @@ check_status() {
 
 myhelp() {
     echo "---------- Press: -----------"
-    echo "u  = apt-get update"
-    echo "g  = apt-get upgrade"
+    echo "a  = Activate Email rate limit"
+    echo "b  = bash"
     echo "c  = check status"
+    echo "d  = df -h"
     echo "e  = make sure Apache is in mpm_event"
-    echo "s  = download sury.org apt-get key"
+    echo "f  = free -h"
+    echo "g  = apt-get upgrade"
+    echo "h  = help"
     echo "m  = install php-memcached"
     echo "p  = set version of php as default"
+    echo "q  = quit"
+    echo "r  = reboot"
+    echo "s  = download sury.org apt-get key"
+    echo "t  = clean the trash"
+    echo "u  = apt-get update"
     echo "v  = update myVesta"
     echo "vo = update myVesta without 'apt-get update'"
-    echo "t  = clean the trash"
     echo "w  = w"
-    echo "d  = df -h"
-    echo "f  = free -h"
-    echo "b  = bash"
-    echo "r  = reboot"
-    echo "q  = quit"
-    echo "h  = help"
     echo "-----------------------------"
     echo "inst v                = install myVesta"
     echo "inst p                = install multi-php"
@@ -128,6 +129,37 @@ do
         echo "== the script will quit on next enter"
         quit_on_empty=1
     fi
+
+
+    if [ "$answer" = 'a' ] || [ "$answer" = 'A' ]; then
+    mv /etc/exim4/exim4.conf.template /etc/exim4/exim4.conf.template-backup
+    cp /usr/local/vesta/install/debian/12/exim/exim4.conf.template /etc/exim4/exim4.conf.template
+
+    touch /etc/exim4/limit_per_email_account_max_sent_emails_per_hour
+    touch /etc/exim4/limit_per_email_account_max_recipients
+    touch /etc/exim4/limit_per_hosting_account_max_sent_emails_per_hour
+    touch /etc/exim4/limit_per_hosting_account_max_recipients
+
+    check_grep=$(grep -c '#SPAMASSASSIN' /etc/exim4/exim4.conf.template-backup)
+    if [ "$check_grep" -eq 0 ]; then
+        sed -i "s|#SPAMASSASSIN|SPAMASSASSIN|g" /etc/exim4/exim4.conf.template
+    fi
+
+    check_grep=$(grep -c '#SPAM_SCORE' /etc/exim4/exim4.conf.template-backup)
+    if [ "$check_grep" -eq 0 ]; then
+        sed -i "s|#SPAM_SCORE|SPAM_SCORE|g" /etc/exim4/exim4.conf.template
+    fi
+
+    check_grep=$(grep -c '#CLAMD' /etc/exim4/exim4.conf.template-backup)
+    if [ "$check_grep" -eq 0 ]; then
+        sed -i "s|#CLAMD|CLAMD|g" /etc/exim4/exim4.conf.template
+    fi
+
+    systemctl restart exim4
+    echo "Email rate limit activated."
+    fi
+
+
 
     if [ "$answer" = 'u' ] || [ "$answer" = 'U' ]; then
         echo "============================="

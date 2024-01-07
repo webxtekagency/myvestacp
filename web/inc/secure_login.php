@@ -59,7 +59,7 @@ function prevent_post_csrf ($hard_check=false) {
             if (isset($_SERVER['HTTP_ORIGIN']) == false) return;
         } else {
             if (isset($_SERVER['HTTP_HOST']) == false) $_SERVER['HTTP_HOST'] = '';
-            if (isset($_SERVER['SERVER_PORT']) == false) $_SERVER['HTTP_PORT'] = '';
+            if (isset($_SERVER['SERVER_PORT']) == false) $_SERVER['SERVER_PORT'] = '';
             if (isset($_SERVER['HTTP_ORIGIN']) == false) $_SERVER['HTTP_ORIGIN'] = '';
         }
         $_SERVER['HTTP_HOST'] = strtolower($_SERVER['HTTP_HOST']);

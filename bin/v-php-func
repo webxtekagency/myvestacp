@@ -9,7 +9,7 @@
 #----------------------------------------------------------#
 
 
-if [ -p /dev/stdin ]; then
+if [ "$1" == "--stdin" ] && [ -p /dev/stdin ]; then
     STDIN=$(cat -)
     if [ ! -z "$STDIN" ]; then
         echo "$STDIN" | php /usr/local/vesta/func/bash-to-php-interpreter.php "$@"

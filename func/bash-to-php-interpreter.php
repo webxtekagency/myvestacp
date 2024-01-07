@@ -7,13 +7,22 @@ else $SHLVL=3;
 
 if (!isset($argv)) exit(5);
 
-stream_set_blocking(STDIN, false);
-$myvesta_stdin='';
-$myvesta_f = fopen( 'php://stdin', 'r' );
-while( $myvesta_line = fgets( $myvesta_f ) ) {
-    $myvesta_stdin .= $myvesta_line;
+$argv_start=1;
+$STDIN_ENABLED=false;
+if ($argv[1]=='--stdin') {
+    $STDIN_ENABLED=true;
+    $argv_start++;
 }
-fclose( $myvesta_f );
+
+$myvesta_stdin='';
+if ($STDIN_ENABLED==true) {
+    stream_set_blocking(STDIN, false);
+    $myvesta_f = fopen( 'php://stdin', 'r' );
+    while( $myvesta_line = fgets( $myvesta_f ) ) {
+        $myvesta_stdin .= $myvesta_line;
+    }
+    fclose( $myvesta_f );
+}
 
 include ("/usr/local/vesta/func/main.php");
 include ("/usr/local/vesta/func/string.php");
@@ -21,9 +30,9 @@ include ("/usr/local/vesta/func/string.php");
 $counter=count($argv);
 if ($counter<2) myvesta_throw_error(2, 'Function is missing');
 
-$func=$argv[1];
+$func=$argv[$argv_start];
 if (!function_exists($func)) {
-    $func="myvesta_".$argv[1];    
+    $func="myvesta_".$argv[$argv_start];    
     if (!function_exists($func)) myvesta_throw_error(2, 'Function does not exists');
 }
 
@@ -36,10 +45,12 @@ $params=array();
 $added=0;
 $stdin_content='';
 $myvesta_stdin_from_file='';
- $myvesta_stdin_return_not_found=false;
+$myvesta_stdin_return_not_found=false;
 if ($myvesta_stdin!='' && $insert_stdin_at_position===false) {$params[]=$myvesta_stdin; $added++;}
 
-for ($i=2; $i<$counter; $i++) {
+$argv_start++;
+
+for ($i=$argv_start; $i<$counter; $i++) {
     $argv[$i]=myvesta_fix_backslashes($argv[$i]);
     //if ($insert_stdin_at_position!==false && $myvesta_stdin=='') if ($insert_stdin_at_position==$added) {$stdin_content=$argv[$i]; $added++; continue;}
     $params[]=$argv[$i];
@@ -48,7 +59,7 @@ for ($i=2; $i<$counter; $i++) {
 //print_r($params); exit;
 
 if ($insert_stdin_at_position!=false) {
-    if ($myvesta_stdin=='') {
+    if ($myvesta_stdin=='' && isset($params[$insert_stdin_at_position])) {
         $file_or_stdin=$params[$insert_stdin_at_position];
         if (!file_exists($file_or_stdin)) {
             $myvesta_stdin_return_not_found=true;

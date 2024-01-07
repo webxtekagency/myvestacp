@@ -9,13 +9,19 @@
 #----------------------------------------------------------#
 
 
-if [ -p /dev/stdin ]; then
+if [ "$1" == "--stdin" ] && [ -p /dev/stdin ]; then
     STDIN=$(cat -)
     if [ ! -z "$STDIN" ]; then
-        echo "$STDIN" | php /usr/local/vesta/func/bash-to-php-interpreter.php 'myvesta_grep' "$@"
+        shift;
+        echo "$STDIN" | php /usr/local/vesta/func/bash-to-php-interpreter.php '--stdin' 'myvesta_grep' "$@"
         exit $?
     fi
 fi
 
-php /usr/local/vesta/func/bash-to-php-interpreter.php 'myvesta_grep' "$@"
+if [ "$1" == "--stdin" ]; then
+    shift;
+    php /usr/local/vesta/func/bash-to-php-interpreter.php '--stdin' 'myvesta_grep' "$@"
+else
+    php /usr/local/vesta/func/bash-to-php-interpreter.php 'myvesta_grep' "$@"
+fi
 exit $?

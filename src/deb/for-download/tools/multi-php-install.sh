@@ -388,6 +388,7 @@ if [ $debian_version -ge 10 ]; then
     a2dismod php8.0 > /dev/null 2>&1
     a2dismod php8.1 > /dev/null 2>&1
     a2dismod php8.2 > /dev/null 2>&1
+    a2dismod php8.3 > /dev/null 2>&1
     a2dismod mpm_prefork > /dev/null 2>&1
     a2enmod mpm_event > /dev/null 2>&1
     apt-get -y remove libapache2-mod-php* > /dev/null 2>&1

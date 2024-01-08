@@ -23,7 +23,6 @@ USER=$user
 
 # Includes
 source /usr/local/vesta/func/main.sh
-source /usr/local/vesta/func/domain.sh
 
 if [ -z "$user" ]; then
     check_result $E_NOTEXIST "domain $domain doesn't exist"
@@ -36,7 +35,6 @@ fi
 check_args '1' "$#" 'DOMAIN'
 is_format_valid 'domain'
 is_object_valid 'user' 'USER' "$user"
-is_object_unsuspended 'user' 'USER' "$user"
 
 if [ ! -d "/home/$user" ]; then
     echo "User doesn't exist";
@@ -54,9 +52,9 @@ fi
 #----------------------------------------------------------#
 
 # Ensure the directory exists and can be changed into
-cd /home/$USER/web/$domain || { echo "Error: Cannot change directory to /home/$USER/web/$domain. Directory does not exist."; exit 1; }
+cd /home/$USER/web/$domain
 
-echo "Updating permissions for /home/$USER/web/$domain/public_html/..."
+echo "Updating permissions for /home/$USER/web/$domain/public_html/"
 find public_html/ -type d -exec chmod 755 {} +
 find public_html/ -type f -exec chmod 644 {} +
 chown -R $USER:$USER public_html/

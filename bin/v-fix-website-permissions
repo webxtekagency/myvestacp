@@ -12,8 +12,9 @@ if [ "$whoami" != "root" ]; then
     exit 1
 fi
 
-# Importing system environment
+# Importing system environment and includes
 source /etc/profile
+source /usr/local/vesta/func/main.sh
 
 # Argument definition
 domain=$1
@@ -25,9 +26,6 @@ if [ -z "$user" ]; then
 fi
 
 USER=$user
-
-# Includes
-source /usr/local/vesta/func/main.sh
 
 #----------------------------------------------------------#
 #                    Verifications                         #

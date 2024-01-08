@@ -1,5 +1,5 @@
 #!/bin/bash
-# info: v-fix-website-permissions
+# info: Fixing chown and chmod permissions in the public_html directory
 # options: DOMAIN 
 
 #----------------------------------------------------------#
@@ -44,7 +44,6 @@ if [ ! -d "/home/$user/web/$domain/public_html" ]; then
     echo "Domain doesn't exist";
     exit 1;
 fi
-
 
 #----------------------------------------------------------#
 #                       Action                             #

@@ -19,14 +19,15 @@ source /etc/profile
 domain=$1
 
 user=$(/usr/local/vesta/bin/v-search-domain-owner $domain)
-USER=$user
-
-# Includes
-source /usr/local/vesta/func/main.sh
 
 if [ -z "$user" ]; then
     check_result $E_NOTEXIST "domain $domain doesn't exist"
 fi
+
+USER=$user
+
+# Includes
+source /usr/local/vesta/func/main.sh
 
 #----------------------------------------------------------#
 #                    Verifications                         #
@@ -51,7 +52,7 @@ fi
 #                       Action                             #
 #----------------------------------------------------------#
 
-# Ensure the directory exists and can be changed into
+# Going to domain directory
 cd /home/$USER/web/$domain
 
 echo "Updating permissions for /home/$USER/web/$domain/public_html/"

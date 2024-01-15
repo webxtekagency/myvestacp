@@ -440,22 +440,15 @@ user_ini="/home/$TO_USER/web/$TO_DOMAIN/public_html/.user.ini"
 if [ -f "$user_ini" ]; then
     echo "Updating .user.ini with new path..."
 
-    # Temporary file for modification
-    tmp_file=$(mktemp)
-
     # Change path from old domain to new domain
-    sed "s|/home/$FROM_USER/web/$FROM_DOMAIN/public_html|/home/$TO_USER/web/$TO_DOMAIN/public_html|g" "$user_ini" > "$tmp_file"
+    sed -i "s|/home/.*/public_html|/home/$TO_USER/web/$TO_DOMAIN/public_html|g" $user_ini
 
     # Check if replacement was successful and update .user.ini
     if [ $? -eq 0 ]; then
-        mv "$tmp_file" "$user_ini"
         echo ".user.ini updated successfully."
     else
         echo "Failed to update .user.ini file."
-        rm "$tmp_file"  # Deletes temporary file
     fi
-else
-    echo ".user.ini does not exist, no changes made."
 fi
 
 echo "===== DONE ===="

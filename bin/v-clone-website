@@ -431,6 +431,33 @@ else
     sudo -H -u$TO_USER wp config shuffle-salts
 fi
 
+# ----------- Update Wordfence WAF Path -------------
+
+# Path to .user.ini file
+user_ini="$TO_USER/web/$TO_DOMAIN/public_html/.user.ini"
+
+# Check if .user.ini exists
+if [ -f "$user_ini" ]; then
+    echo "Updating .user.ini with new user path..."
+
+    # Temporary file for modification
+    tmp_file=$(mktemp)
+
+    # Change path from old USER to new USER_TO
+    sed "s|/home/$FROM_USER/public_html|/home/$TO_USER/public_html|g" "$user_ini" > "$tmp_file"
+
+    # Check if replacement was successful and update .user.ini
+    if [ $? -eq 0 ]; then
+        mv "$tmp_file" "$user_ini"
+        echo ".user.ini updated successfully."
+    else
+        echo "Failed to update .user.ini file."
+        rm "$tmp_file"  # Deletes temporary file
+    fi
+else
+    echo ".user.ini does not exist, no changes made."
+fi
+
 echo "===== DONE ===="
 echo "You can visit http://$TO_DOMAIN/"
 

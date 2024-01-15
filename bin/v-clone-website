@@ -433,18 +433,18 @@ fi
 
 # ----------- Update Wordfence WAF Path -------------
 
-# Path to .user.ini file
-user_ini="$TO_USER/web/$TO_DOMAIN/public_html/.user.ini"
+# Path to .user.ini file in the new domain directory
+user_ini="/home/$TO_USER/web/$TO_DOMAIN/public_html/.user.ini"
 
 # Check if .user.ini exists
 if [ -f "$user_ini" ]; then
-    echo "Updating .user.ini with new user path..."
+    echo "Updating .user.ini with new path..."
 
     # Temporary file for modification
     tmp_file=$(mktemp)
 
-    # Change path from old USER to new USER_TO
-    sed "s|/home/$FROM_USER/public_html|/home/$TO_USER/public_html|g" "$user_ini" > "$tmp_file"
+    # Change path from old domain to new domain
+    sed "s|/home/$FROM_USER/web/$FROM_DOMAIN/public_html|/home/$TO_USER/web/$TO_DOMAIN/public_html|g" "$user_ini" > "$tmp_file"
 
     # Check if replacement was successful and update .user.ini
     if [ $? -eq 0 ]; then

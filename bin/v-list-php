@@ -57,7 +57,7 @@ csv_list() {
 #                       Action                             #
 #----------------------------------------------------------#
 
-# Defining system phpversions
+# Oobtaining the list of installed PHP versions
 phpversions=$(find /etc/php/ -type d -name 'fpm' | sed "s|/etc/php/||" | sed "s|/fpm||" | sort)
 
 # Listing data

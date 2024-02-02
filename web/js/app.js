@@ -1072,3 +1072,42 @@ function elementHideShow(elementToHideOrShow){
     el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
+(function($) {
+    $(document).ready(function() {
+        $('.get-ip-info-btn').click(function() {
+            var token = $('#token').attr('token');
+            var index = $(this).attr('data-index');
+            var btn_el = $('.get-ip-info-btn[data-index="' + index + '"]');
+            var result_el = $('.get-ip-info-btn[data-index="' + index + '"] + .get-ip-info-result');
+            var ip = btn_el.attr('data-ip');
+            
+            var url_params = new URLSearchParams(window.location.search);
+            var clear_cache = url_params.get('clear_cache');
+            
+            if (!$.trim(result_el.html())) {
+                result_el.html('<i class="fas fa-spin fa-2x fa-spinner"></i>');
+
+                $.ajax({
+                    method: "POST",
+                    url: "/list/firewall/banlist/ip_info.php",
+                    data: { ip: ip, clear_cache: clear_cache, token: token },
+                    cache: false,
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        result_el.html('<strong>GENERAL ERROR</strong><br>' + errorThrown);
+                    },
+                    success: function(result_data) {
+                        if (btn_el.find('i').hasClass('fa-times')) {
+                            result_el.html(result_data);
+                        }
+                    }
+                });
+                
+                btn_el.find('i').removeClass('fa-search').addClass('fa-times');
+            }
+            else {
+                result_el.html('');
+                btn_el.find('i').removeClass('fa-times').addClass('fa-search');
+            }
+        });
+    });
+})(jQuery);

@@ -377,6 +377,7 @@ $LANG['en'] = array(
     'ErrorLog' => 'ErrorLog',
     'Download AccessLog' => 'Download AccessLog',
     'Download ErrorLog' => 'Download ErrorLog',
+    'Continent' => 'Continent',
     'Country' => 'Country',
     '2 letter code' => '2 letter code',
     'State / Province' => 'State / Province',

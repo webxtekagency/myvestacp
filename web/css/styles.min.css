@@ -4236,3 +4236,29 @@ div.ui-dialog + div div{
   padding: 5px 10px !important;
   border-radius: 13px;
 }
+
+.get-ip-info-btn {
+    cursor: pointer;
+    margin-left: 10px;
+}
+.get-ip-info-btn:hover {
+    color: #000000;
+}
+.get-ip-info-btn + .get-ip-info-result {
+    margin: 10px 0;
+}
+.get-ip-info-btn + .get-ip-info-result dl dt {
+    font-weight: bold;
+}
+.get-ip-info-btn + .get-ip-info-result dl dd {
+    margin: 0 0 10px 0;
+}
+.get-ip-info-btn + .get-ip-info-result dl .fa-exclamation-triangle {
+    color: red;
+}
+.get-ip-info-btn + .get-ip-info-result dl .fa-check-circle {
+    color: green;
+}
+.get-ip-info-btn + .get-ip-info-result dl .fa-exclamation-circle {
+    color: orange;
+}

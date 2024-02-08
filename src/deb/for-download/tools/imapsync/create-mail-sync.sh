@@ -35,17 +35,34 @@ fi
 
 TESTOPT=""
 if [[ $TEST -eq 1 ]]; then
-	TESTOPT="--justlogin"
+    TESTOPT="--justlogin"
 fi
 
 if [ ! -d "accounts" ]; then
     mkdir accounts
 fi
 if [ -f "accounts/$EMAIL" ]; then
-	echo "********* $EMAIL ALREADY EXISTS !!! ************"
+    echo "********* EMAIL $EMAIL ALREADY EXISTS !!! ************"
     exit 1;
     exit
 fi
+
+euser=$(echo $EMAIL | cut -d '@' -f 1)
+domain=$(echo $EMAIL | cut -d '@' -f 2)
+user=$(/usr/local/vesta/bin/v-search-domain-owner $domain)
+if [ "$user" != "" ]; then
+    echo "=== Email '$EMAIL' has username email part '$euser', domain is '$domain', and belongs to myVesta account: $user"
+    if [ ! -d "/home/$user/mail/$domain" ]; then
+        echo "======= Creating '$domail' in MAIL section"
+        /usr/local/vesta/bin/v-add-mail-domain "$user" "$domain"
+    fi
+    if [ ! -d "/home/$user/mail/$domain/$euser" ]; then
+        echo "======= Creating '$euser' mail account for domain '$domain'"
+        /usr/local/vesta/bin/v-add-mail-account "$user" "$domain" "$euser" "$PASS2"
+        echo ""
+    fi
+fi
+
 
 echo "Writing to: accounts/$EMAIL"
 echo "#!/bin/bash
@@ -67,21 +84,20 @@ exit;
 chmod a=rwx accounts/$EMAIL
 
 if [[ $TEST -eq 0 ]]; then
-	exit 0;
+    exit 0;
 fi
 
 accounts/$EMAIL
 RET=$?
 
 if [ $RET -eq 0 ]; then
-	# echo "./create-mail-sync.sh $EMAIL $PASS $PASS2 $TEST"
-	sed -i "s/--justlogin//g" accounts/$EMAIL
-	echo "--- OK! ---"
-	echo "./create-mail-sync.sh '$SRCHOST' '$EMAIL' '$PASS' '$PASS2' $TEST" >> accounts.log
+    # echo "./create-mail-sync.sh $EMAIL $PASS $PASS2 $TEST"
+    sed -i "s/--justlogin//g" accounts/$EMAIL
+    echo "--- OK! ---"
+    echo "./create-mail-sync.sh '$SRCHOST' '$EMAIL' '$PASS' '$PASS2' $TEST" >> accounts.log
 else
-	echo "********* $EMAIL ERROR !!! [ret: $RET ] ************"
-	echo "********* $EMAIL ERROR !!! [ret: $RET ] ************"
-	echo "********* $EMAIL ERROR !!! [ret: $RET ] ************"
-	rm accounts/$EMAIL
+    echo "********* $EMAIL ERROR !!! [ret: $RET ] ************"
+    rm accounts/$EMAIL
+    read -p "=== Press ENTER to continue ===" entered
 fi
 exit $RET;

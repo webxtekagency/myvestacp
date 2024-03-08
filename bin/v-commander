@@ -13,7 +13,9 @@ fi
 
 source /etc/profile
 PATH=$PATH:/usr/local/vesta/bin && export PATH
-echo "======================= mvVesta-commander ================================"
+if [ $SHOWHEADER -eq 1 ]; then
+    echo "======================= mvVesta-commander ================================"
+fi
 
 if [ -f /root/kernelupdate ]; then
     rm /root/kernelupdate
@@ -600,7 +602,7 @@ do
         echo "======"
     fi
 
-    if [ $numargs -eq 1 ]; then
+    if [ $numargs -gt 0 ]; then
         exit;
     fi
 

@@ -274,6 +274,7 @@ do
     if [ "$answer" = 'dis spam' ] || [ "$answer" = 'DIS SPAM' ]; then
         echo "============================="
         echo "== disabling SpamAssassin"
+        release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
         if [ "$release" -lt 12 ]; then
             systemctl stop spamassassin.service
             systemctl disable spamassassin.service

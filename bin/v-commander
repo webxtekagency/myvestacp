@@ -18,6 +18,7 @@ echo "======================= mvVesta-commander ================================
 if [ -f /root/kernelupdate ]; then
     rm /root/kernelupdate
 fi
+apt_updated=0
 apt_upgraded=0
 quit_on_empty=0
 
@@ -88,8 +89,8 @@ myhelp() {
     echo "inst nginx-rate-limit = install nginx-rate-limit templates"
     echo "dis fb   = stop and disable fail2ban"
     echo "dis dove = stop and disable dovecot"
-    echo "dis spam = stop and disable spam"
-    echo "dis clam = stop and disable clamav"
+    echo "dis spam = stop and disable spamassassin"
+    echo "dis clam = stop and disable ClamAV"
     echo "p 7.0    = set default php 7.0"
     echo "p 7.3    = set default php 7.3"
     echo "p 7.4    = set default php 7.4"
@@ -99,7 +100,20 @@ myhelp() {
     echo "check fc = check if FreshClam is up"
     echo "-----------------------------"
     echo "enable-ssh-root-password-login = Allow root password authentication via SSH and set the root password to match the password for the admin account"
+    echo "id_rsa = generate id_rsa and id_rsa.pub if it does not exist and show id_rsa.pub"
     echo "-----------------------------"
+}
+
+apt_update() {
+    echo "============================="
+    echo "== running: apt-get update"
+    release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
+    if [ "$release" -lt 10 ]; then
+        apt-get update
+    else
+        apt-get update --allow-releaseinfo-change
+    fi
+    apt_updated=1
 }
 
 COUNTER=0
@@ -162,14 +176,7 @@ do
 
 
     if [ "$answer" = 'u' ] || [ "$answer" = 'U' ]; then
-        echo "============================="
-        echo "== running: apt-get update"
-        release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
-        if [ "$release" -lt 10 ]; then
-            apt-get update
-        else
-            apt-get update --allow-releaseinfo-change
-        fi
+        apt_update
     fi
 
     if [ "$answer" = 'g' ] || [ "$answer" = 'G' ]; then
@@ -582,6 +589,19 @@ do
         chmod u+x /root/install-new-roundcube.sh
         mcedit /root/install-new-roundcube.sh
         /root/install-new-roundcube.sh
+    fi
+
+    if [ "$answer" = 'id_rsa' ] || [ "$answer" = 'ID_RSA' ]; then
+        if [ ! -f "/root/.ssh/id_rsa.pub" ]; then
+            ssh-keygen -q -t rsa -N '' -C "$HOSTNAME" -f /root/.ssh/id_rsa 2>/dev/null <<< y >/dev/null
+        fi
+        echo "=== YOUR id_rsa.pub IS BELOW ==="
+        cat /root/.ssh/id_rsa.pub
+        echo "======"
+    fi
+
+    if [ $numargs -eq 1 ]; then
+        exit;
     fi
 
 done

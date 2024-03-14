@@ -44,7 +44,7 @@ find /home/$user/mail/*/ -type d -exec chmod u+rwx {} \;
 find /home/$user/mail/*/ -type d -exec chmod g+rwx {} \;
 find /home/$user/mail/*/ -type f -exec chmod u+rw {} \;
 find /home/$user/mail/*/ -type f -exec chmod g+rw {} \;
-
+find /home/$user/mail/*/ -maxdepth 1 -type d -exec chmod g-rwx {} \;
 
 find /home/$user/conf/dns/ -type f -exec chown root:bind {} \;
 find /home/$user/conf/ -type d -exec chown root:root {} \;

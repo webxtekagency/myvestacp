@@ -76,6 +76,8 @@ server {
         proxy_pass      http://%ip%:%web_port%;
     }
 
+    location ~ /wp-config.php    {return 404;}
+    location ~ /xmlrpc.php       {return 404;}
     location ~ /\.ht    {return 404;}
     location ~ /\.env   {return 404;}
     location ~ /\.svn/  {return 404;}

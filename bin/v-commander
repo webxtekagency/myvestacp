@@ -119,15 +119,20 @@ apt_update() {
 }
 
 COUNTER=0
+HAS_PARAMETERS=0
 
 while true
 do
 
     COUNTER=$((COUNTER + 1))
     if [ $COUNTER -le $numargs ]; then
+        HAS_PARAMETERS=1
         answer=$1
         shift
     else
+        if [ $HAS_PARAMETERS -eq 1 ]; then
+            exit;
+        fi
         read -p 'What to do: ' answer
     fi
 
@@ -600,10 +605,6 @@ do
         echo "=== YOUR id_rsa.pub IS BELOW ==="
         cat /root/.ssh/id_rsa.pub
         echo "======"
-    fi
-
-    if [ $numargs -gt 0 ]; then
-        exit;
     fi
 
 done

@@ -22,8 +22,8 @@ if [ ! -d "/usr/local/vesta/data/upgrades" ]; then
 fi
 
 # show changelog after update
-# echo "1" > /usr/local/vesta/data/upgrades/show_changelog
-# chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
+echo "1" > /usr/local/vesta/data/upgrades/show_changelog
+chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
 # Fixing 'dh key too small' in dovecot
 if [ -f "/var/log/dovecot.log.1" ] && [ -f "/etc/dovecot/conf.d/10-ssl.conf" ] && [ -f "/usr/share/dovecot/dh.pem" ]; then

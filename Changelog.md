@@ -1,14 +1,11 @@
-Version 0.9.9-0-7 [27-Feb-2024]
+Version 0.9.9-0-9 [05-Apr-2024]
 ==================================================
+* Get quick info about a banned IP (Host, Banlist, Location) (many thanks to @VasilisParaschos )
 * Few bugs fixed
 
-Version 0.9.9-0-6 [22-Jan-2024]
+Version 0.9.9-0-5 to 0.9.9-0-8
 ==================================================
 * Few bugs fixed
-
-Version 0.9.9-0-5 [08-Oct-2023]
-==================================================
-* Many bugfixes
 
 Version 0.9.9-0-4 [27-Jun-2023]
 ==================================================

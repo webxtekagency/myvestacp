@@ -149,6 +149,7 @@ do
     if [ "$answer" = 'quit-on-empty' ]; then
         echo "== the script will quit on next enter"
         quit_on_empty=1
+        HAS_PARAMETERS=0
     fi
 
 

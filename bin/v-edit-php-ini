@@ -57,6 +57,7 @@ if [ $? -ne 0 ]; then
     echo "========================="
     echo ""
     echo "ERROR: php${php_version}-fpm restart failed - please re-run the command and fix the problem !!!"
+    echo ""
     exit $E_RESTART;
 else
     echo "The PHP-FPM service for PHP version ${php_version} has been restarted successfully."

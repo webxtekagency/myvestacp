@@ -1,3 +1,8 @@
+Version 0.9.9-0-10 [11-Apr-2024]
+==================================================
+* Introducing v-edit-php-ini command
+* Introducing v-edit-domain-php-ini command
+
 Version 0.9.9-0-9 [05-Apr-2024]
 ==================================================
 * Get quick info about a banned IP (Host, Banlist, Location) (many thanks to @VasilisParaschos )

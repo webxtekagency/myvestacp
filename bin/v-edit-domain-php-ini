@@ -70,8 +70,9 @@ else
 fi
 
 echo "Restarting PHP-FPM service for PHP version $fpm_ver..."
-echo ""
 systemctl restart php${fpm_ver}-fpm
+echo "The PHP-FPM service for PHP version 7.0 has been restarted successfully."
+echo ""
 
 #----------------------------------------------------------#
 #                       Vesta                              #

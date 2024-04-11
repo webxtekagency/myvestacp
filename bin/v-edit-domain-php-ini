@@ -73,7 +73,10 @@ echo "Restarting PHP-FPM service for PHP version ${fpm_ver}"
 systemctl restart php${fpm_ver}-fpm
 if [ $? -ne 0 ]; then
     systemctl status php${fpm_ver}-fpm
-    check_result $E_RESTART "ERROR: php${fpm_ver}-fpm restart failed - please re-run the command and fix the problem !!!"
+    echo "========================="
+    echo ""
+    echo "ERROR: php${fpm_ver}-fpm restart failed - please re-run the command and fix the problem !!!"
+    exit $E_RESTART;
 else
     echo "The PHP-FPM service for PHP version ${fpm_ver} has been restarted successfully."
 fi

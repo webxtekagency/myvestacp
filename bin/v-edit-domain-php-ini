@@ -69,13 +69,18 @@ else
     nano "$config_file"
 fi
 
-echo "Restarting PHP-FPM service for PHP version $fpm_ver..."
+echo "Restarting PHP-FPM service for PHP version ${fpm_ver}"
 systemctl restart php${fpm_ver}-fpm
-echo "The PHP-FPM service for PHP version 7.0 has been restarted successfully."
+if [ $? -ne 0 ]; then
+    systemctl status php${fpm_ver}-fpm
+    check_result $E_RESTART "ERROR: php${fpm_ver}-fpm restart failed - please re-run the command and fix the problem !!!"
+else
+    echo "The PHP-FPM service for PHP version ${fpm_ver} has been restarted successfully."
+fi
 echo ""
 
 #----------------------------------------------------------#
 #                       Vesta                              #
 #----------------------------------------------------------#
 
-exit 1;
+exit 0;

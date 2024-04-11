@@ -52,11 +52,15 @@ $editor_cmd "$php_ini_path"
 # Restart the PHP-FPM service for the selected version
 echo "Restarting the PHP-FPM service for PHP version $php_version..."
 systemctl restart php${php_version}-fpm
-
-echo "The PHP-FPM service for PHP version $php_version has been restarted successfully."
+if [ $? -ne 0 ]; then
+    systemctl status php${php_version}-fpm
+    check_result $E_RESTART "ERROR: php${php_version}-fpm restart failed - please re-run the command and fix the problem !!!"
+else
+    echo "The PHP-FPM service for PHP version ${php_version} has been restarted successfully."
+fi
 
 #----------------------------------------------------------#
 #                       Exit                               #
 #----------------------------------------------------------#
 
-exit
+exit 0;

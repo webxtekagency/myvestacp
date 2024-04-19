@@ -355,6 +355,7 @@ remote_smtp:
   dkim_strict = 0
   hosts_try_fastopen = 
   hosts_try_chunking = !93.188.3.0/24
+  message_linelength_limit = 1G
 
 procmail:
   driver = pipe

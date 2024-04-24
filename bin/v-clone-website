@@ -419,16 +419,17 @@ if [ $IT_IS_WP -eq 0 ]; then
         php /root/Search-Replace-DB/srdb.cli.php -h localhost -n "$TO_DATABASE_NAME" -u "$TO_DATABASE_USERNAME" -p "$TO_DATABASE_PASSWORD" -s "/home/$FROM_USER/" -r "/home/$TO_USER/"
     fi
 else
+    phpver=$(/usr/local/vesta/bin/v-get-php-version-of-domain "$TO_DOMAIN")
     cd $TO_FOLDER
     echo "=== Replacing $FROM_DOMAIN to $TO_DOMAIN in database $TO_DATABASE_NAME"
-    sudo -H -u$TO_USER wp search-replace "$FROM_DOMAIN" "$TO_DOMAIN" --precise --all-tables --skip-columns=guid --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
+    sudo -H -u$TO_USER /usr/bin/php$phpver /usr/local/bin/wp search-replace "$FROM_DOMAIN" "$TO_DOMAIN" --precise --all-tables --skip-columns=guid --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
     if [ "$FROM_USER" != "$TO_USER" ]; then
         echo "=== Replacing /home/$FROM_USER/ to /home/$TO_USER/ in database $TO_DATABASE_NAME"
-        sudo -H -u$TO_USER wp search-replace "/home/$FROM_USER/" "/home/$TO_USER/" --precise --all-tables --skip-columns=guid --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
+        sudo -H -u$TO_USER /usr/bin/php$phpver /usr/local/bin/wp search-replace "/home/$FROM_USER/" "/home/$TO_USER/" --precise --all-tables --skip-columns=guid --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
     fi
-    sudo -H -u$TO_USER wp cache flush
-    sudo -H -u$TO_USER wp config shuffle-salts WP_CACHE_KEY_SALT --force
-    sudo -H -u$TO_USER wp config shuffle-salts
+    sudo -H -u$TO_USER /usr/bin/php$phpver /usr/local/bin/wp cache flush --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
+    sudo -H -u$TO_USER /usr/bin/php$phpver /usr/local/bin/wp config shuffle-salts WP_CACHE_KEY_SALT --force --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
+    sudo -H -u$TO_USER /usr/bin/php$phpver /usr/local/bin/wp config shuffle-salts --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
 fi
 
 # ----------- Update Wordfence WAF Path -------------

@@ -19,7 +19,7 @@ SILENT_MODE=1
 
 # Argument definition
 domain=$1
-wp_command=${@:2}  # Sve nakon prvog argumenta smatra se delom WP CLI komande
+wp_command=${@:2} 
 
 user=$(/usr/local/vesta/bin/v-search-domain-owner $domain)
 USER=$user

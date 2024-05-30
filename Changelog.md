@@ -1,13 +1,13 @@
 Version 0.9.9-0-11 [30-May-2024]
 ==================================================
-* Introducing v-run-wp-cli command
-* Introducing v-add-wordpress-admin command
+* Introducing v-run-wp-cli command ( @isscbta )
+* Introducing v-add-wordpress-admin command ( @isscbta )
 * Few bugs fixed
 
 Version 0.9.9-0-10 [11-Apr-2024]
 ==================================================
-* Introducing v-edit-php-ini command
-* Introducing v-edit-domain-php-ini command
+* Introducing v-edit-php-ini command ( @isscbta )
+* Introducing v-edit-domain-php-ini command ( @isscbta )
 
 Version 0.9.9-0-9 [05-Apr-2024]
 ==================================================

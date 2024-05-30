@@ -70,7 +70,7 @@ phpver=$(/usr/local/vesta/bin/v-get-php-version-of-domain "$domain")
 #----------------------------------------------------------#
 
 cd /home/$USER/web/$domain/public_html
-sudo -u $USER /usr/bin/php$phpver /usr/local/bin/wp $wp_command --skip-plugins=$(sudo -H -u$USER /usr/bin/php$phpver /usr/local/bin/wp plugin list --field=name | tr '\n' ',') --skip-themes;
+sudo -u $USER /usr/bin/php$phpver /usr/local/bin/wp $wp_command
 
 #----------------------------------------------------------#
 #                       Vesta                              #

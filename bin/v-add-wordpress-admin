@@ -65,12 +65,14 @@ if ! command -v wp &> /dev/null; then
     echo "WP CLI installed successfully."
 fi
 
+phpver=$(/usr/local/vesta/bin/v-get-php-version-of-domain "$domain")
+
 #----------------------------------------------------------#
 #                       Action                             #
 #----------------------------------------------------------#
 
 cd /home/$USER/web/$domain/public_html
-sudo -u $USER wp user create $username $email --role=administrator --user_pass="$password"
+sudo -u $USER /usr/bin/php$phpver /usr/local/bin/wp user create $username $email --role=administrator --user_pass="$password" --skip-plugins=$(sudo -H -u$USER /usr/bin/php$phpver /usr/local/bin/wp plugin list --field=name | tr '\n' ',') --skip-themes;
 
 #----------------------------------------------------------#
 #                       Vesta                              #

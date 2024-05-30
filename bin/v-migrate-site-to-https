@@ -102,13 +102,13 @@ FROM_REPLACE2="http://www.$FROM_DOMAIN"
 TO_REPLACE2="https://www.$FROM_DOMAIN"
 
 if [ $IT_IS_WP -eq 0 ]; then
-    if [ ! -f "/root/Search-Replace-DB-master/srdb.cli.php" ]; then
-        echo "Please download https://interconnectit.com/products/search-and-replace-for-wordpress-databases/ and extract to /root/Search-Replace-DB-master/"
-        exit 7
-    fi
-    if [ ! -f "/usr/bin/php7.0" ]; then
-        echo "Please download https://c.myvestacp.com/tools/multi-php-install.sh and install php 7.0"
-        exit 8
+    if [ ! -f "/root/Search-Replace-DB/srdb.cli.php" ]; then
+        if [ ! -f "/usr/bin/git" ]; then
+            apt-get update > /dev/null 2>&1
+            apt-get -y install git > /dev/null 2>&1
+        fi
+        cd /root
+        git clone https://github.com/interconnectit/Search-Replace-DB.git
     fi
 else
     if [ ! -f "/usr/local/bin/wp" ]; then
@@ -164,9 +164,9 @@ grep -rl "$FROM_DOMAIN" $SITE_FOLDER | xargs sed -i "s#$FROM_REPLACE2#$TO_REPLAC
 
 if [ $IT_IS_WP -eq 0 ]; then
     echo "=== Replacing $FROM_REPLACE1 to $TO_REPLACE1 in database $FROM_DATABASE_NAME"
-    php7.0 /root/Search-Replace-DB-master/srdb.cli.php -h localhost -n "$FROM_DATABASE_NAME" -u "$FROM_DATABASE_USERNAME" -p "$FROM_DATABASE_PASSWORD" -s "$FROM_REPLACE1" -r "$TO_REPLACE1"
+    php /root/Search-Replace-DB/srdb.cli.php -h localhost -n "$FROM_DATABASE_NAME" -u "$FROM_DATABASE_USERNAME" -p "$FROM_DATABASE_PASSWORD" -s "$FROM_REPLACE1" -r "$TO_REPLACE1"
     echo "=== Replacing $FROM_REPLACE2 to $TO_REPLACE2 in database $FROM_DATABASE_NAME"
-    php7.0 /root/Search-Replace-DB-master/srdb.cli.php -h localhost -n "$FROM_DATABASE_NAME" -u "$FROM_DATABASE_USERNAME" -p "$FROM_DATABASE_PASSWORD" -s "$FROM_REPLACE2" -r "$TO_REPLACE2"
+    php /root/Search-Replace-DB/srdb.cli.php -h localhost -n "$FROM_DATABASE_NAME" -u "$FROM_DATABASE_USERNAME" -p "$FROM_DATABASE_PASSWORD" -s "$FROM_REPLACE2" -r "$TO_REPLACE2"
 else
     cd $SITE_FOLDER
     echo "=== Replacing $FROM_REPLACE1 to $TO_REPLACE1 in database $FROM_DATABASE_NAME"

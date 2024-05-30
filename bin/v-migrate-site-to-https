@@ -172,9 +172,9 @@ if [ $IT_IS_WP -eq 0 ]; then
 else
     cd $SITE_FOLDER
     echo "=== Replacing $FROM_REPLACE1 to $TO_REPLACE1 in database $FROM_DATABASE_NAME"
-    sudo -H -u$FROM_USER /usr/bin/php$phpver /usr/local/bin/wp search-replace "$FROM_REPLACE1" "$TO_REPLACE1" --precise --all-tables --skip-columns=guid --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
+    sudo -H -u$FROM_USER /usr/bin/php$phpver /usr/local/bin/wp search-replace "$FROM_REPLACE1" "$TO_REPLACE1" --precise --all-tables --skip-columns=guid --skip-plugins=$(sudo -H -u$FROM_USER /usr/bin/php$phpver /usr/local/bin/wp plugin list --field=name | tr '\n' ',') --skip-themes;
     echo "=== Replacing $FROM_REPLACE2 to $TO_REPLACE2 in database $FROM_DATABASE_NAME"
-    sudo -H -u$FROM_USER /usr/bin/php$phpver /usr/local/bin/wp search-replace "$FROM_REPLACE2" "$TO_REPLACE2" --precise --all-tables --skip-columns=guid --skip-plugins=$(sudo -H -u$TO_USER wp plugin list --field=name | tr '\n' ',') --skip-themes;
+    sudo -H -u$FROM_USER /usr/bin/php$phpver /usr/local/bin/wp search-replace "$FROM_REPLACE2" "$TO_REPLACE2" --precise --all-tables --skip-columns=guid --skip-plugins=$(sudo -H -u$FROM_USER /usr/bin/php$phpver /usr/local/bin/wp plugin list --field=name | tr '\n' ',') --skip-themes;
 fi
 
 echo "===== DONE ===="

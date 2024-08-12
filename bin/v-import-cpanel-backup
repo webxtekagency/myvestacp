@@ -157,9 +157,11 @@ for sk_dbr in $sk_db_list
 			echo " Create and restore ${sk_dbr} "
 			sed -i "s/utf8mb4_unicode_520_ci/utf8mb4_unicode_ci/g" mysql/${sk_dbr}.create
 			sed -i "s/utf8mb4_0900_ai_ci/utf8mb4_unicode_ci/g" mysql/${sk_dbr}.create
+			v-sed '/*!999999\- enable the sandbox mode */' '' mysql/${sk_dbr}.create
 			mysql < mysql/${sk_dbr}.create
 			sed -i "s/utf8mb4_unicode_520_ci/utf8mb4_unicode_ci/g" mysql/${sk_dbr}.sql
 			sed -i "s/utf8mb4_0900_ai_ci/utf8mb4_unicode_ci/g" mysql/${sk_dbr}.sql
+			v-sed '/*!999999\- enable the sandbox mode */' '' mysql/${sk_dbr}.sql
 			mysql ${sk_dbr} < mysql/${sk_dbr}.sql
 		else
 			echo "Error: Cant restore database $sk_dbr alredy exists in mysql server"

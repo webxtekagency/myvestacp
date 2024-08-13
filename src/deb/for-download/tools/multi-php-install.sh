@@ -100,7 +100,7 @@ apt update
 if [ "$inst_repo" -eq 1 ]; then
     press_enter "=== Press enter to install sury.org repo ==============================================================================="
     apt -y install apt-transport-https ca-certificates
-    if [ $debian_version -ge 10 ]; then
+    if [ $debian_version -ge 11 ]; then
       wget -nv -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
     fi
     # if [ $debian_version -eq 10 ]; then

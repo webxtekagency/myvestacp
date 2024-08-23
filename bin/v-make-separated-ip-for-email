@@ -139,6 +139,15 @@ if [ "$check_grep" -eq 0 ]; then
     echo "=== patching exim4.conf.template"
     mv /etc/exim4/exim4.conf.template /etc/exim4/exim4.conf.template-backup
     cp /usr/local/vesta/install/debian/12/exim/exim4.conf.template /etc/exim4/exim4.conf.template
+
+    release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
+    if [ "$release" -lt 11 ]; then
+        sed -i "s|smtputf8_advertise_hosts|#smtputf8_advertise_hosts|g" /etc/exim4/exim4.conf.template
+    fi
+    if [ "$release" -lt 12 ]; then
+        sed -i "s|message_linelength_limit|#message_linelength_limit|g" /etc/exim4/exim4.conf.template
+    fi
+
     sed -i "s|FIRSTIP|$HOST_IP|g" /etc/exim4/exim4.conf.template
     sed -i "s|SECONDIP|$MAIL_IP|g" /etc/exim4/exim4.conf.template
     sed -i "s|FIRSTHOST|$HOSTNAME|g" /etc/exim4/exim4.conf.template
@@ -168,9 +177,10 @@ if [ "$check_grep" -eq 0 ]; then
     fi
     systemctl restart exim4
     if [ $? -ne 0 ]; then
+        systemctl status exim4
         cp /etc/exim4/exim4.conf.template-backup /etc/exim4/exim4.conf.template
         systemctl restart exim4
-        echo "=== Patching failed, aborting"
+        echo "=== Patching failed, old exim conf returned, exim4 restarted again."
         exit 1
     fi
     echo "=== Patching successful"

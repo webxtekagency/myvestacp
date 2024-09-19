@@ -535,11 +535,11 @@ do
         echo "--- New settings ---"
         grep '^PermitRoot' /etc/ssh/sshd_config
         echo "--------------------"
-        adminline=$(grep '^admin:' /etc/shadow)
-        adminline=${adminline:6}
-        adminline="root:$adminline"
-        sed -i "s#^root:.*#$adminline#" /etc/shadow
-        echo "root password is now the same as admin password."
+        root_password=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32)
+        hashed_root_password=$(openssl passwd -6 "$root_password")
+        sed -i "s#^root:.*#root:$hashed_root_password#" /etc/shadow
+        echo "Root password is now a new random password."
+        echo "New root password: $root_password"
         echo "--------------------"
         grep '^root:' /etc/shadow
         grep '^admin:' /etc/shadow
@@ -548,7 +548,6 @@ do
         /usr/local/vesta/bin/v-unsuspend-firewall-rule "11"
         echo "--------------------"
     fi
-
 
     if [ "$answer" = 'r' ] || [ "$answer" = 'R' ]; then
         echo "============================="

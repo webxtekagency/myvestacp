@@ -27,7 +27,7 @@ if [ "$release" -eq 12 ]; then
         vsftpd proftpd-basic bind9 exim4 exim4-daemon-heavy
         clamav-daemon spamassassin dovecot-imapd dovecot-pop3d roundcube-core
         roundcube-mysql roundcube-plugins mariadb-server mariadb-common
-        mariadb-client postgresql postgresql-contrib phppgadmin phpmyadmin mc
+        mariadb-client postgresql postgresql-contrib phpmyadmin mc
         flex whois git idn zip sudo bc ftp lsof ntpdate rrdtool quota
         e2fslibs bsdutils e2fsprogs curl imagemagick fail2ban dnsutils
         bsdmainutils cron vesta vesta-nginx vesta-php expect libmail-dkim-perl
@@ -1118,7 +1118,9 @@ if [ "$nginx" = 'yes' ]; then
     cp -f $vestacp/nginx/nginx.conf /etc/nginx/
     cp -f $vestacp/nginx/status.conf /etc/nginx/conf.d/
     cp -f $vestacp/nginx/phpmyadmin.inc /etc/nginx/conf.d/
-    cp -f $vestacp/nginx/phppgadmin.inc /etc/nginx/conf.d/
+    if [ "$release" -lt 12 ]; then
+        cp -f $vestacp/nginx/phppgadmin.inc /etc/nginx/conf.d/
+    fi
     cp -f $vestacp/nginx/webmail.inc /etc/nginx/conf.d/
     cp -f $vestacp/logrotate/nginx /etc/logrotate.d/
     
@@ -1404,10 +1406,12 @@ if [ "$postgresql" = 'yes' ]; then
     sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$ppass'"
 
     # Configuring phpPgAdmin
-    if [ "$apache" = 'yes' ]; then
-        cp -f $vestacp/pga/phppgadmin.conf /etc/apache2/conf.d/
+    if [ "$release" -lt 12 ]; then
+        if [ "$apache" = 'yes' ]; then
+            cp -f $vestacp/pga/phppgadmin.conf /etc/apache2/conf.d/
+        fi
+        cp -f $vestacp/pga/config.inc.php /etc/phppgadmin/
     fi
-    cp -f $vestacp/pga/config.inc.php /etc/phppgadmin/
 fi
 
 

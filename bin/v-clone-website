@@ -313,6 +313,7 @@ echo "FROM_DOMAIN_PROXY_TPL = $FROM_DOMAIN_PROXY_TPL"
 echo "FROM_DOMAIN_PROXY_EXT = $FROM_DOMAIN_PROXY_EXT"
 echo "SEARCH_FOR_CONFIGS_DATABASE_NAME     = $SEARCH_FOR_CONFIGS_DATABASE_NAME"
 echo "SEARCH_FOR_CONFIGS_DATABASE_USERNAME = $SEARCH_FOR_CONFIGS_DATABASE_USERNAME"
+echo "EXCLUDE_UPLOADS = $EXCLUDE_UPLOADS"
 echo "==============================================================================="
 read -p "=== Press Enter to continue ==="
 
@@ -373,14 +374,22 @@ cd /root/temp
 mysqldump $FROM_DATABASE_NAME > $FROM_DATABASE_NAME.sql
 echo "=== Importing to database $TO_DATABASE_NAME"
 mysql $TO_DATABASE_NAME < $FROM_DATABASE_NAME.sql
+rm $FROM_DATABASE_NAME.sql
+
+EXCLUDE=''
+if [ ! -z "$EXCLUDE_UPLOADS" ]; then
+    EXCLUDE="--exclude '/wp-content/uploads/*'"
+fi
 
 echo "=== Copying files from $FROM_FOLDER to folder $TO_FOLDER"
 if [ "$SITE_SUBFOLDER" != ".." ]; then
-    echo "====== Executing: rsync -a --delete $FROM_FOLDER/ $TO_FOLDER/"
-    rsync -a --delete $FROM_FOLDER/ $TO_FOLDER/
+    run="rsync -a --delete $EXCLUDE $FROM_FOLDER/ $TO_FOLDER/"
+    echo "====== Executing: $run"
+    eval $run
 else
-    echo "====== Executing: rsync -a --delete --exclude 'logs/*' $FROM_FOLDER/ $TO_FOLDER/"
-    rsync -a --delete --exclude 'logs/*' $FROM_FOLDER/ $TO_FOLDER/
+    run="rsync -a --delete $EXCLUDE --exclude 'logs/*' $FROM_FOLDER/ $TO_FOLDER/"
+    echo "====== Executing: $run"
+    eval $run
 fi
 echo "=== Chowning to $TO_USER:$TO_USER in folder $TO_FOLDER"
 chown -R $TO_USER:$TO_USER $TO_FOLDER

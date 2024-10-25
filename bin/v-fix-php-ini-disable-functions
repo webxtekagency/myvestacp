@@ -13,13 +13,13 @@ export LINEBEGINSWITH="disable_functions ="
 export NEWVAL="disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,exec,system,passthru,shell_exec,proc_open,popen"
 
 echo "== Fixing existing lines"
-find /etc/php/*/fpm/ -type f -name "php.ini" -exec grep -L "$NOTFOUNDVAL" {} \; | xargs sh -c 'for arg do echo "= Patching $arg"; sed -i "s|^$LINEBEGINSWITH.*|$NEWVAL|g" $arg; done' _
+find /etc/php/*/fpm/ -type f -name "php.ini" -exec grep -L "$NOTFOUNDVAL" {} \; | xargs sh -c 'for arg do if [ ! -f "$arg.disable_patching" ]; then echo "= Patching $arg"; sed -i "s|^$LINEBEGINSWITH.*|$NEWVAL|g" $arg; fi; done' _
 
 export NOTFOUNDVAL2="^$LINEBEGINSWITH"
 export REMOVELINETHATCONTAINS=$LINEBEGINSWITH
 
 echo "== Adding missing lines"
-find /etc/php/*/fpm/ -type f -name "php.ini" -exec grep -L "$NOTFOUNDVAL2" {} \; | xargs sh -c 'for arg do echo "= Patching $arg"; sed -i "s|.*$REMOVELINETHATCONTAINS.*||g" $arg; echo "$NEWVAL" >> $arg; done' _
+find /etc/php/*/fpm/ -type f -name "php.ini" -exec grep -L "$NOTFOUNDVAL2" {} \; | xargs sh -c 'for arg do if [ ! -f "$arg.disable_patching" ]; then echo "= Patching $arg"; sed -i "s|.*$REMOVELINETHATCONTAINS.*||g" $arg; echo "$NEWVAL" >> $arg; fi; done' _
 
 echo "== Restarting all PHP-FPM services"
 systemctl --full --type service --all | grep "php...-fpm" | sed 's#●##g' | awk '{print $1}' | xargs systemctl restart

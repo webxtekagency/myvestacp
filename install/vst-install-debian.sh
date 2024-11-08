@@ -131,7 +131,11 @@ help() {
 # Defining password-gen function
 gen_pass() {
     MATRIX='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-    LENGTH=32
+    if [ -z "$1" ]; then
+        LENGTH=32
+    else
+        LENGTH=$1
+    fi
     while [ ${n:=1} -le $LENGTH ]; do
         PASS="$PASS${MATRIX:$(($RANDOM%${#MATRIX})):1}"
         let n+=1
@@ -1464,6 +1468,12 @@ if [ "$exim" = 'yes' ]; then
     if [ "$clamd" = 'yes' ]; then
         sed -i "s/#CLAMD/CLAMD/g" /etc/exim4/exim4.conf.template
     fi
+
+    # Generating SRS KEY - the code is taken from HestiaCP
+    srs=$(gen_pass 16)
+    echo $srs > /etc/exim4/srs.conf
+    chmod 640 /etc/exim4/srs.conf
+    chown root:Debian-exim /etc/exim4/srs.conf
 
     chmod 640 /etc/exim4/exim4.conf.template
     rm -rf /etc/exim4/domains

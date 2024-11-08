@@ -13,6 +13,8 @@ add_environment=<; PATH=/bin:/usr/bin
 keep_environment=
 smtputf8_advertise_hosts =
 
+SRS_SECRET = ${readfile{/etc/exim4/srs.conf}}
+
 #local_interfaces =  0.0.0.0
 #smtp_active_hostname = ${lookup{$interface_address}lsearch{/etc/exim4/virtual/helo_data}{$value}}
 #smtp_banner = "$smtp_active_hostname ESMTP $tod_full"
@@ -267,8 +269,11 @@ begin routers
 
 dnslookup:
   driver = dnslookup
-  domains = !+local_domains
-  transport = remote_smtp
+  # if outbound, and forwarding has been done, use an alternate transport
+  domains = ! +local_domains
+  transport = ${if eq {$local_part@$domain} \
+                      {$original_local_part@$original_domain} \
+                      {remote_smtp} {remote_forwarded_smtp}}
   no_more
 
 localuser_spam:
@@ -304,6 +309,23 @@ autoreplay:
   retry_use_local_part
   transport = userautoreply
   unseen
+
+inbound_srs:
+    driver = redirect
+    senders = :
+    domains = +local_domains
+    # detect inbound bounces which are converted to SRS, and decode them
+    condition = ${if inbound_srs {$local_part} {SRS_SECRET}}
+    data = $srs_recipient
+
+inbound_srs_failure:
+    driver = redirect
+    senders = :
+    domains = +local_domains
+    # detect inbound bounces which look converted to SRS but are invalid
+    condition = ${if inbound_srs {$local_part} {}}
+    allow_fail
+    data = :fail: Invalid SRS recipient address
 
 aliases:
   driver = redirect
@@ -356,6 +378,20 @@ remote_smtp:
   hosts_try_fastopen = 
   hosts_try_chunking = !93.188.3.0/24
   message_linelength_limit = 1G
+
+remote_forwarded_smtp:
+  driver = smtp
+  dkim_domain = DKIM_DOMAIN
+  dkim_selector = mail
+  dkim_private_key = DKIM_PRIVATE_KEY
+  dkim_canon = relaxed
+  dkim_strict = 0
+  hosts_try_fastopen = 
+  hosts_try_chunking = !93.188.3.0/24
+  message_linelength_limit = 1G
+  # modify the envelope from, for mails that we forward
+  max_rcpt = 1
+  return_path = ${srs_encode {SRS_SECRET} {$return_path} {$original_domain}}
 
 procmail:
   driver = pipe

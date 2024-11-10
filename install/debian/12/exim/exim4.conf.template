@@ -147,6 +147,7 @@ acl_check_rcpt:
   
   warn    !authenticated = *
           hosts          = !+relay_from_hosts
+          condition     = ${if eq{${lookup{$domain}dsearch{/etc/exim4/domains/}}}{}{false}{true}}
           condition     = ${lookup{$local_part@$domain}lsearch{/etc/exim4/domains/${lookup{$domain}dsearch{/etc/exim4/domains/}}/aliases}{true}{false}}
           set acl_m3    = yes
 

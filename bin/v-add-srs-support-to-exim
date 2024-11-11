@@ -25,7 +25,7 @@ if [ ! -f "/etc/exim4/srs.conf" ]; then
     chown root:Debian-exim /etc/exim4/srs.conf
 fi
 
-if [ -f "/etc/exim4/exim4.conf.template.backup-without-srs" ]; then
+if [ ! -f "/etc/exim4/exim4.conf.template.backup-without-srs" ]; then
     echo "= Backing up /etc/exim4/exim4.conf.template"
     cp /etc/exim4/exim4.conf.template /etc/exim4/exim4.conf.template.backup-without-srs
 fi

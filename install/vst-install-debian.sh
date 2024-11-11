@@ -1436,7 +1436,7 @@ if [ "$named" = 'yes' ]; then
       sed -i "s#/etc/bind/\*\* r,#/etc/bind/\*\* rw,\n  /home/\*\* rwm,#g" /etc/apparmor.d/usr.sbin.named
       # service apparmor status >/dev/null 2>&1
       # if [ $? -ne 0 ]; then
-          service apparmor restart
+          systemctl restart apparmor
       # fi
     fi
     # update-rc.d bind9 defaults
@@ -1489,7 +1489,8 @@ if [ "$exim" = 'yes' ]; then
     #update-rc.d exim4 defaults
     currentservice='exim4'
     ensure_startup $currentservice
-    ensure_start $currentservice
+    systemctl restart $currentservice
+    # ensure_start $currentservice
 fi
 
 

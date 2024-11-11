@@ -154,6 +154,11 @@ for identifier in $(echo $domain,$aliases |tr ',' '\n' |sort -u); do
 done
 payload=$(echo "$payload"|sed "s/,$//")
 payload=$payload']}'
+# validation='pending'
+# # Start counter to avoid infinite loop
+# i=0
+# while [ "$validation" = 'pending' ]; do
+# echo "[$(date)] : ----------------------- step 2 loop, counter \$i=$i -----------------------" >> /usr/local/vesta/log/letsencrypt.log
 echo "[$(date)] : payload=$payload" >> /usr/local/vesta/log/letsencrypt.log
 echo "[$(date)] : query_le_v2 \"$url\" \"$payload\" \"$nonce\"" >> /usr/local/vesta/log/letsencrypt.log
 answer=$(query_le_v2 "$url" "$payload" "$nonce")
@@ -168,10 +173,19 @@ order=$(echo -e "$answer" | grep -i location | cut -f2 -d \  | tr -d '\r\n')
 echo "[$(date)] : order=$order" >> /usr/local/vesta/log/letsencrypt.log
 status=$(echo "$answer" |grep HTTP/ |tail -n1 |cut -f2 -d ' ')
 echo "[$(date)] : status=$status" >> /usr/local/vesta/log/letsencrypt.log
+validation=$(echo "$answer" | grep 'status":' | cut -f4 -d '"')
+echo "[$(date)] : validation=$validation" >> /usr/local/vesta/log/letsencrypt.log
 if [[ "$status" -ne 201 ]]; then
     echo "[$(date)] : EXIT=Let's Encrypt new auth status $status" >> /usr/local/vesta/log/letsencrypt.log
     check_result $E_CONNECT "Let's Encrypt new auth status $status"
 fi
+# # Exit the loop after 5 attempts
+# i=$((i + 1))
+# if [ $i -gt 5 ]; then
+#     break
+# fi
+# sleep 2
+# done
 
 # Requesting authorization token / STEP 3
 echo "[$(date)] : --- Requesting authorization token / STEP 3 ---" >> /usr/local/vesta/log/letsencrypt.log
@@ -276,19 +290,30 @@ for auth in $authz; do
     # Doing pol check on status
     i=1
     while [ "$validation" = 'pending' ]; do
-        echo "[$(date)] : - Doing pol check on status" >> /usr/local/vesta/log/letsencrypt.log
-        payload='{}'
-        echo "[$(date)] : query_le_v2 \"$url\" \"$payload\" \"$nonce\"" >> /usr/local/vesta/log/letsencrypt.log
-        answer=$(query_le_v2 "$url" "$payload" "$nonce")
-        echo "[$(date)] : answer=$answer" >> /usr/local/vesta/log/letsencrypt.log
-        url2=$(echo "$answer" |grep -A3 $proto |grep url |cut -f 4 -d \")
-        echo "[$(date)] : url2=$url2" >> /usr/local/vesta/log/letsencrypt.log
-        validation=$(echo "$answer"|grep -A1 $proto |tail -n1|cut -f4 -d \")
-        echo "[$(date)] : validation=$validation" >> /usr/local/vesta/log/letsencrypt.log
-        nonce=$(echo "$answer" |grep -i nonce |cut -f2 -d \ |tr -d '\r\n')
-        echo "[$(date)] : nonce=$nonce" >> /usr/local/vesta/log/letsencrypt.log
-        status=$(echo "$answer"|grep HTTP/ |tail -n1 |cut -f 2 -d ' ')
-        echo "[$(date)] : status=$status" >> /usr/local/vesta/log/letsencrypt.log
+        i=0
+        while true; do
+            echo "[$(date)] : ----------------------- Doing pol check on status, counter \$i=$i -----------------------" >> /usr/local/vesta/log/letsencrypt.log
+            payload='{}'
+            echo "[$(date)] : query_le_v2 \"$url\" \"$payload\" \"$nonce\"" >> /usr/local/vesta/log/letsencrypt.log
+            answer=$(query_le_v2 "$url" "$payload" "$nonce")
+            echo "[$(date)] : answer=$answer" >> /usr/local/vesta/log/letsencrypt.log
+            url2=$(echo "$answer" |grep -A3 $proto |grep url |cut -f 4 -d \")
+            echo "[$(date)] : url2=$url2" >> /usr/local/vesta/log/letsencrypt.log
+            validation=$(echo "$answer"|grep -A1 $proto |tail -n1|cut -f4 -d \")
+            echo "[$(date)] : validation=$validation" >> /usr/local/vesta/log/letsencrypt.log
+            nonce=$(echo "$answer" |grep -i nonce |cut -f2 -d \ |tr -d '\r\n')
+            echo "[$(date)] : nonce=$nonce" >> /usr/local/vesta/log/letsencrypt.log
+            status=$(echo "$answer"|grep HTTP/ |tail -n1 |cut -f 2 -d ' ')
+            echo "[$(date)] : status=$status" >> /usr/local/vesta/log/letsencrypt.log
+            if [[ $(echo "$answer" | grep 'addressesResolved') != "" ]]; then
+                break
+            fi
+            i=$((i + 1))
+            if ((i > 30)); then
+                break
+            fi
+            sleep 2
+        done
         if [[ "$status" -ne 200 ]]; then
             echo "[$(date)] : EXIT=Let's Encrypt validation status $status" >> /usr/local/vesta/log/letsencrypt.log
             check_result $E_CONNECT "Let's Encrypt validation status $status"

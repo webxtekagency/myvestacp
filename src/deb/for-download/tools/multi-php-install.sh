@@ -14,6 +14,7 @@ inst_80=0
 inst_81=0
 inst_82=0
 inst_83=0
+inst_84=0
 
 #######################################################################
 
@@ -60,8 +61,11 @@ fi
 if [ $# -gt 10 ]; then
     inst_83=${11}
 fi
+if [ $# -gt 11 ]; then
+    inst_84=${12}
+fi
 
-if [ $inst_56 -eq 1 ] || [ $inst_70 -eq 1 ] || [ $inst_71 -eq 1 ] || [ $inst_72 -eq 1 ] || [ $inst_73 -eq 1 ] || [ $inst_74 -eq 1 ] || [ $inst_80 -eq 1 ] || [ $inst_81 -eq 1 ] || [ $inst_82 -eq 1 ] || [ $inst_83 -eq 1 ]; then
+if [ $inst_56 -eq 1 ] || [ $inst_70 -eq 1 ] || [ $inst_71 -eq 1 ] || [ $inst_72 -eq 1 ] || [ $inst_73 -eq 1 ] || [ $inst_74 -eq 1 ] || [ $inst_80 -eq 1 ] || [ $inst_81 -eq 1 ] || [ $inst_82 -eq 1 ] || [ $inst_83 -eq 1 ] || [ $inst_84 -eq 1 ]; then
     inst_repo=1
 fi
 
@@ -92,6 +96,7 @@ echo "inst_80=$inst_80"
 echo "inst_81=$inst_81"
 echo "inst_82=$inst_82"
 echo "inst_83=$inst_83"
+echo "inst_84=$inst_84"
 echo "wait_to_press_enter=$wait_to_press_enter"
 
 press_enter "=== Press enter to continue ==============================================================================="
@@ -372,6 +377,33 @@ if [ "$inst_83" -eq 1 ]; then
     press_enter "=== PHP 8.3 installed, press enter to continue ==============================================================================="
 fi
 
+if [ "$inst_84" -eq 1 ]; then
+    press_enter "=== Press enter to install PHP 8.4 ==============================================================================="
+    apt -y install php8.4-mbstring php8.4-bcmath php8.4-cli php8.4-curl php8.4-fpm php8.4-gd php8.4-intl php8.4-mysql php8.4-soap php8.4-xml php8.4-zip php8.4-memcache php8.4-memcached php8.4-imagick
+    update-rc.d php8.4-fpm defaults
+    a2enconf php8.4-fpm
+    a2dismod php8.4
+    apt-get -y remove libapache2-mod-php8.4
+    systemctl restart apache2
+    cp -r /etc/php/8.4/ /root/vst_install_backups/php8.4/
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-84.stpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-84.stpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-84.tpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-84.tpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-84.sh -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-84.sh
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-84-public.stpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-84-public.stpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-84-public.tpl -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-84-public.tpl
+    wget -nv https://c.myvestacp.com/tools/apache-fpm-tpl/PHP-FPM-84-public.sh -O /usr/local/vesta/data/templates/web/apache2/PHP-FPM-84-public.sh
+    chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-84.sh
+    chmod a+x /usr/local/vesta/data/templates/web/apache2/PHP-FPM-84-public.sh
+    echo "=== Patching php.ini for php8.4"
+    wget -nv https://c.myvestacp.com/tools/patches/php8.2.patch -O /root/php8.4.patch
+    patch /etc/php/8.4/fpm/php.ini < /root/php8.4.patch
+    if [ $memory -gt 9999999 ]; then
+        sed -i "s|opcache.memory_consumption=512|opcache.memory_consumption=2048|g" /etc/php/8.4/fpm/php.ini
+    fi
+    service php8.4-fpm restart
+    press_enter "=== PHP 8.4 installed, press enter to continue ==============================================================================="
+fi
+
 
 apt update > /dev/null 2>&1
 apt upgrade -y > /dev/null 2>&1
@@ -389,6 +421,7 @@ if [ $debian_version -ge 10 ]; then
     a2dismod php8.1 > /dev/null 2>&1
     a2dismod php8.2 > /dev/null 2>&1
     a2dismod php8.3 > /dev/null 2>&1
+    a2dismod php8.4 > /dev/null 2>&1
     a2dismod mpm_prefork > /dev/null 2>&1
     a2enmod mpm_event > /dev/null 2>&1
     apt-get -y remove libapache2-mod-php* > /dev/null 2>&1

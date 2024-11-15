@@ -379,7 +379,8 @@ fi
 
 if [ "$inst_84" -eq 1 ]; then
     press_enter "=== Press enter to install PHP 8.4 ==============================================================================="
-    apt -y install php8.4-mbstring php8.4-bcmath php8.4-cli php8.4-curl php8.4-fpm php8.4-gd php8.4-intl php8.4-mysql php8.4-soap php8.4-xml php8.4-zip php8.4-memcache php8.4-memcached php8.4-imagick
+    apt -y install php8.4-mbstring php8.4-bcmath php8.4-cli php8.4-curl php8.4-fpm php8.4-gd php8.4-intl php8.4-mysql php8.4-soap php8.4-xml php8.4-zip
+    # php8.4-memcache php8.4-memcached php8.4-imagick
     update-rc.d php8.4-fpm defaults
     a2enconf php8.4-fpm
     a2dismod php8.4

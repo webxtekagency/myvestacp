@@ -141,14 +141,12 @@ if [ "$check_grep" -eq 0 ]; then
     cp /usr/local/vesta/install/debian/12/exim/exim4.conf.template /etc/exim4/exim4.conf.template
 
     eximversion=$(exim4 --version | grep '^Exim version ' | awk '{print $3}')
-    eximversioni="${eximversion%%[^0-9]+([0-9])}"
-    eximversionf="${eximversion##+([0-9])[^0-9]}"
-    if [ "$eximversioni" -eq 4 ] && [ "$eximversionf" -lt 96 ]; then
+    if (( $(echo "$eximversion < 4.96" | bc -l) )); then
         cp /usr/local/vesta/install/debian/12/exim/exim4.conf.template.without-srs /etc/exim4/exim4.conf.template
         sed -i "s|message_linelength_limit|#message_linelength_limit|g" /etc/exim4/exim4.conf.template
     fi
 
-    if [ "$eximversioni" -eq 4 ] && [ "$eximversionf" -lt 94 ]; then
+    if (( $(echo "$eximversion < 4.94" | bc -l) )); then
         sed -i "s|smtputf8_advertise_hosts|#smtputf8_advertise_hosts|g" /etc/exim4/exim4.conf.template
     fi
 

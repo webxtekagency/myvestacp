@@ -15,10 +15,9 @@ gen_pass() {
 }
 
 eximversion=$(exim4 --version | grep '^Exim version ' | awk '{print $3}')
-eximversioni="${eximversion%%[^0-9]+([0-9])}"
-eximversionf="${eximversion##+([0-9])[^0-9]}"
-if [ "$eximversioni" -eq 4 ] && [ "$eximversionf" -lt 96 ]; then
+if (( $(echo "$eximversion < 4.96" | bc -l) )); then
     echo "= ERROR: Exim SRS support requires Exim 4.96 or higher."
+    echo "You have Exim $eximversion"
     exit 1;
 fi
 

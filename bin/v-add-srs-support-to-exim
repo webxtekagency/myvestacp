@@ -14,6 +14,14 @@ gen_pass() {
     echo "$PASS"
 }
 
+eximversion=$(exim4 --version | grep '^Exim version ' | awk '{print $3}')
+eximversioni="${eximversion%%[^0-9]+([0-9])}"
+eximversionf="${eximversion##+([0-9])[^0-9]}"
+if [ "$eximversioni" -eq 4 ] && [ "$eximversionf" -lt 96 ]; then
+    echo "= ERROR: Exim SRS support requires Exim 4.96 or higher."
+    exit 1;
+fi
+
 echo "=== Addind SRS support to Exim4 ==="
 # SRS support is taken from HestiaCP
 
@@ -50,15 +58,10 @@ if ! /usr/local/vesta/bin/v-grep 'remote_forwarded_smtp:' '/etc/exim4/exim4.conf
     v-sed 'procmail:\n  driver = pipe' 'remote_forwarded_smtp:\n  driver = smtp\n  dkim_domain = DKIM_DOMAIN\n  dkim_selector = mail\n  dkim_private_key = DKIM_PRIVATE_KEY\n  dkim_canon = relaxed\n  dkim_strict = 0\n  hosts_try_fastopen = \n  hosts_try_chunking = !93.188.3.0/24\n  message_linelength_limit = 1G\n  # modify the envelope from, for mails that we forward\n  max_rcpt = 1\n  return_path = ${srs_encode {SRS_SECRET} {$return_path} {$original_domain}}\n\nprocmail:\n  driver = pipe' '/etc/exim4/exim4.conf.template'
 fi
 
-release=$(cat /etc/debian_version | tr "." "\n" | head -n1)
-if [ "$release" -lt 11 ]; then
-    echo "= Removing \"smtputf8_advertise_hosts\" line for Debian < 11"
-    sed -i "s|smtputf8_advertise_hosts|#smtputf8_advertise_hosts|g" /etc/exim4/exim4.conf.template
-fi
-if [ "$release" -lt 12 ]; then
-    echo "= Removing \"message_linelength_limit\" line for Debian < 12"
-    sed -i "s|message_linelength_limit|#message_linelength_limit|g" /etc/exim4/exim4.conf.template
-fi
+touch /etc/exim4/limit_per_email_account_max_sent_emails_per_hour
+touch /etc/exim4/limit_per_email_account_max_recipients
+touch /etc/exim4/limit_per_hosting_account_max_sent_emails_per_hour
+touch /etc/exim4/limit_per_hosting_account_max_recipients
 
 echo "= Restarting exim4 service"
 systemctl restart exim4

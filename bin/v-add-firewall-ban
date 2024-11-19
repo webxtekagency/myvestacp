@@ -74,8 +74,10 @@ chmod 660 $conf
 
 # nginx deny rules conf
 if [ "$chain" = "WEB" ] && [ -f "/etc/nginx/conf.d/block.conf" ]; then
-    echo "deny $ip;" >> /etc/nginx/conf.d/block.conf
-    systemctl reload nginx
+    if ! grep -q  "deny $ip;" /etc/nginx/conf.d/block.conf; then
+        echo "deny $ip;" >> /etc/nginx/conf.d/block.conf
+        systemctl reload nginx
+   fi
 fi
 
 #----------------------------------------------------------#

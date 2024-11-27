@@ -1,6 +1,6 @@
 #!/bin/bash
 # info: Change directory to the public_html folder of a domain
-# usage: v-cd-www DOMAIN
+# usage: source v-cd-www DOMAIN
 
 #----------------------------------------------------------#
 #                    Variable&Function                     #

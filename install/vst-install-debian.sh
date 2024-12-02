@@ -2064,7 +2064,7 @@ echo "================================================================"
 # Removing old PHP sessions files
 crontab -l | { cat; echo "10 2 * * 6 sudo find /home/*/tmp/ -type f -mtime +5 -exec rm {} \;"; } | crontab -
 
-echo "alias v-cd-www='source /usr/local/vesta/bin/change-dir-www'" >> /root/.bash_profile
+echo "alias v-cd-www='source /usr/local/vesta/bin/v-change-dir-www'" >> /root/.bash_profile
 
 #----------------------------------------------------------#
 #                  myVesta Access Info                     #

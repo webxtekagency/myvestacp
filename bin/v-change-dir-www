@@ -20,6 +20,7 @@ fi
 
 # Importing system environment
 source /etc/profile
+PATH=$PATH:/usr/local/vesta/bin && export PATH
 
 SILENT_MODE=1
 

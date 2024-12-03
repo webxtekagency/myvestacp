@@ -28,16 +28,17 @@ SILENT_MODE=1
 domain=$1
 
 user=$(/usr/local/vesta/bin/v-search-domain-owner $domain)
+
+if [ -z "$user" ]; then
+    echo "Domain $domain doesn't exist"
+    return 1
+fi
+
 USER=$user
 
 # Includes
 source /usr/local/vesta/func/main.sh
 source /usr/local/vesta/func/domain.sh
-
-if [ -z "$user" ]; then
-    check_result $E_NOTEXIST "Domain $domain doesn't exist"
-    return 1
-fi
 
 #----------------------------------------------------------#
 #                    Verifications                         #

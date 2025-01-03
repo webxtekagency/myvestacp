@@ -1,5 +1,7 @@
 <?php
 
+if ($_SERVER['REQUEST_METHOD']=='HEAD') exit; // Prevent recreation of token by shitty browser add-ons
+
 define('NO_AUTH_REQUIRED',true);
 
 

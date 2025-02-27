@@ -2037,6 +2037,7 @@ touch /usr/local/vesta/data/upgrades/enable_cookie_httponly
 touch /usr/local/vesta/data/upgrades/fix_exim_494_autoreply
 touch /usr/local/vesta/data/upgrades/freshclam_start
 touch /usr/local/vesta/data/upgrades/barracuda_rbl
+touch /usr/local/vesta/data/upgrades/spamhaus_dnsbl_removed
 
 # Secret URL
 secretquery=''

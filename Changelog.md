@@ -1,3 +1,8 @@
+Version 0.9.9-0-12 [28-Feb-2025]
+==================================================
+* SpamHaus DNSBL removed from exim4
+* A lot of small bugs fixed
+
 Version 0.9.9-0-11 [30-May-2024]
 ==================================================
 * Introducing v-run-wp-cli command ( @isscbta )

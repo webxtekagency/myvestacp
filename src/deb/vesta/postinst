@@ -25,6 +25,12 @@ fi
 echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+# Removing SpamHaus DNSBL
+if [ ! -f "/usr/local/vesta/data/upgrades/spamhaus_dnsbl_removed" ]; then
+    sed -i '/zen.spamhaus.org/d' /etc/exim4/dnsbl.conf
+    touch /usr/local/vesta/data/upgrades/spamhaus_dnsbl_removed
+fi
+
 # Fixing 'dh key too small' in dovecot
 if [ -f "/var/log/dovecot.log.1" ] && [ -f "/etc/dovecot/conf.d/10-ssl.conf" ] && [ -f "/usr/share/dovecot/dh.pem" ]; then
     if grep -q 'dh key too small' /var/log/dovecot.log.1; then

@@ -11,10 +11,4 @@ if ! /usr/local/vesta/bin/v-grep 'LogFormat "%t %v %a %D %r %>s \"%{User-Agent}i
 fi
 systemctl restart apache2
 
-if [ ! -f "/root/analyze-traffic-per-time.php" ]; then
-    wget -nv http://dl.myvestacp.com/vesta/apache_requests_analyzer/analyze-traffic-per-time.php -O /root/analyze-traffic-per-time.php
-    wget -nv http://dl.myvestacp.com/vesta/apache_requests_analyzer/analyze-traffic-per-site-sort-by-time.php -O /root/analyze-traffic-per-site-sort-by-time.php
-    wget -nv http://dl.myvestacp.com/vesta/apache_requests_analyzer/analyze-traffic-per-site-sort-by-hits.php -O /root/analyze-traffic-per-site-sort-by-hits.php
-    wget -nv http://dl.myvestacp.com/vesta/apache_requests_analyzer/analyze-traffic-per-ip-sort-by-time.php -O /root/analyze-traffic-per-ip-sort-by-time.php
-    wget -nv http://dl.myvestacp.com/vesta/apache_requests_analyzer/analyze-traffic-per-ip-sort-by-hits.php -O /root/analyze-traffic-per-ip-sort-by-hits.php
-fi
+wget -nv http://dl.myvestacp.com/vesta/apache_requests_analyzer/analyze-traffic.php -O /root/analyze-traffic.php

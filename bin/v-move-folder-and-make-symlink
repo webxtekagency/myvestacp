@@ -66,17 +66,18 @@ fi
 #                       Action                             #
 #----------------------------------------------------------#
 
-rsync -a "$FROMFOLDER/" "$TOFOLDER/"
-# with slashes on the end of the path of both folders
-if [ "$?" -ne 0 ]; then
-    echo "Error happened, aborting"
-    exit 1
-fi
-
 if [ "$FROMFOLDER" = "/home/$USER" ] && [ -d "$FROMFOLDER/conf" ]; then
     # if we are moving myVesta home folder, we must remove immutable attribute from conf/ files
     chattr -R -i "$FROMFOLDER/conf/" > /dev/null 2>&1
     # with slashes on the end of the path of the folder
+fi
+
+# rsync -a "$FROMFOLDER/" "$TOFOLDER/"
+mv "$FROMFOLDER" "$TOFOLDER"
+# with slashes on the end of the path of both folders
+if [ "$?" -ne 0 ]; then
+    echo "Error happened, aborting"
+    exit 1
 fi
 
 rm -rf "$FROMFOLDER"

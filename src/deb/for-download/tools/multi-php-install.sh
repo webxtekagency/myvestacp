@@ -405,8 +405,8 @@ if [ "$inst_84" -eq 1 ]; then
 fi
 
 
-apt update > /dev/null 2>&1
-apt upgrade -y > /dev/null 2>&1
+# apt update > /dev/null 2>&1
+# apt upgrade -y > /dev/null 2>&1
 
 if [ $debian_version -ge 10 ]; then
     a2dismod ruid2 > /dev/null 2>&1
@@ -454,6 +454,10 @@ if [ -f "/usr/local/bin/tailf_apache_error.php" ]; then
     echo "=== upgrading tailf_apache_error.php done."
     sleep 3
     echo ""
-    echo "Everything done."
-    echo ""
 fi
+
+# Fixing php.ini files to have the correct disable_functions line
+/usr/local/vesta/bin/v-fix-php-ini-disable-functions
+
+echo "Everything done."
+echo ""

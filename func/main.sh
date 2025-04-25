@@ -1154,3 +1154,82 @@ check_if_service_exists() {
         echo "0"
     fi
 }
+
+# Parsing config variables with key='value' and key="value" pairs and setting them as variables, without using Perl.
+# Inspired by HestiaCP function and improved
+parse_object_kv_list_non_eval() {
+    # Let's combine all the parameters into one string, replace the new lines with a space
+    local str="${*//$'\n'/ }"
+    str=${str//\\\'/---QUOTE---}
+    str=${str//\\\"/---DQUOTE---}
+    local backup_str=$str
+
+    local key val match i length length_val prefix position cut
+    i=0
+    # Searching for key='value' blocks
+    # Loop until we find the next key='value'
+    while [[ $str =~ ([A-Za-z][[:alnum:]_]*)=\'([^\']*)\' ]]; do
+        key="${BASH_REMATCH[1]}"
+        val="${BASH_REMATCH[2]}"
+        match="${BASH_REMATCH[0]}"
+        length=${#match}
+        length_val=${#match}
+
+        # Key validation: alphanumeric, length 2–66 (key must start and end with a letter/number)
+        if ! [[ "$key" =~ ^[[:alnum:]][_[:alnum:]]{0,64}[[:alnum:]]$ ]]; then
+            check_result "$E_INVALID" "Invalid key format [$key]"
+        fi
+
+        # Declaring a global variable
+        val=${val/---QUOTE---/\\\'}
+        val=${val/---DQUOTE---/\\\"}
+        declare -g "$key"="$val"
+
+        # Let's remove the processed part from str to continue
+        prefix=${str%%"$key="*}
+        position=${#prefix}
+        cut=$((position + 1 + length_val))
+        str=${str:cut}
+        ((i++))
+        if [ $i -eq 100 ]; then
+            check_result "$E_INVALID" "Potentially conf-parsing infinite loop detected"
+        fi
+    done
+
+    # Terminate function if we don't expect strings with double apostrophes
+    if [ -z "$PARSE_DOUBLE_QUOTES_VAR" ]; then
+        return;
+    fi
+
+    # Searching for key="value" blocks
+    str=$backup_str
+    i=0
+    # Loop until we find the next key="value"
+    while [[ $str =~ ([A-Za-z][[:alnum:]_]*)=\"([^\"]*)\" ]]; do
+        key="${BASH_REMATCH[1]}"
+        val="${BASH_REMATCH[2]}"
+        match="${BASH_REMATCH[0]}"
+        length=${#match}
+        length_val=${#match}
+
+        # Key validation: alphanumeric, length 2–66 (key must start and end with a letter/number)
+        if ! [[ "$key" =~ ^[[:alnum:]][_[:alnum:]]{0,64}[[:alnum:]]$ ]]; then
+            check_result "$E_INVALID" "Invalid key format [$key]"
+        fi
+
+        # Declaring a global variable
+        val=${val/---QUOTE---/\\\'}
+        val=${val/---DQUOTE---/\\\"}
+        declare -g "$key"="$val"
+
+        # Let's remove the processed part from str to continue
+        prefix=${str%%"$key="*}
+        position=${#prefix}
+        cut=$((position + 1 + length_val))
+        str=${str:cut}
+        ((i++))
+        if [ $i -eq 100 ]; then
+            check_result "$E_INVALID" "Potentially conf-parsing infinite loop detected"
+        fi
+    done
+}

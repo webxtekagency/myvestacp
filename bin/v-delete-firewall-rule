@@ -34,12 +34,21 @@ is_object_valid '../../data/firewall/rules' 'RULE' "$rule"
 #                       Action                             #
 #----------------------------------------------------------#
 
+oldvalues=$(grep "RULE='$rule'" $VESTA/data/firewall/rules.conf)
+
 # Deleting rule
 sed -i "/RULE='$rule' /d" $VESTA/data/firewall/rules.conf
 
 # Updating system firewall
 $BIN/v-update-firewall
 
+if [ "$WEB_SYSTEM" == 'nginx' ] || [ "$PROXY_SYSTEM" == 'nginx' ]; then
+    parse_object_kv_list_non_eval "$oldvalues"
+    if [ "$PORT" == "80,443" ] && [ "$ACTION" == "DROP" ]; then
+        sed -i "/$IP/d" /etc/nginx/conf.d/block-firewall.conf
+        systemctl restart nginx
+    fi
+fi
 
 #----------------------------------------------------------#
 #                       Vesta                              #

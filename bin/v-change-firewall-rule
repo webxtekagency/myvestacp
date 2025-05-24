@@ -62,6 +62,8 @@ str="RULE='$rule' ACTION='$action' PROTOCOL='$protocol' PORT='$port_ext'"
 str="$str IP='$ip' COMMENT='$comment' SUSPENDED='no'"
 str="$str TIME='$time' DATE='$date'"
 
+oldvalues=$(grep "RULE='$rule'" $VESTA/data/firewall/rules.conf)
+
 # Deleting old rule
 sed -i "/RULE='$rule' /d" $VESTA/data/firewall/rules.conf
 
@@ -74,6 +76,14 @@ sort_fw_rules
 # Updating system firewall
 $BIN/v-update-firewall
 
+if [ "$WEB_SYSTEM" == 'nginx' ] || [ "$PROXY_SYSTEM" == 'nginx' ]; then
+    if [ "$port_ext" == "80,443" ] && [ "$action" == "DROP" ]; then
+        NEWIP=$ip
+        parse_object_kv_list_non_eval "$oldvalues"
+        sed -i "s|$IP|$NEWIP|g" /etc/nginx/conf.d/block-firewall.conf
+        systemctl restart nginx
+    fi
+fi
 
 #----------------------------------------------------------#
 #                       Vesta                              #

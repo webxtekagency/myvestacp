@@ -25,6 +25,29 @@ fi
 echo "1" > /usr/local/vesta/data/upgrades/show_changelog
 chmod a=rw /usr/local/vesta/data/upgrades/show_changelog
 
+# Adding ProFTPD to Fail2Ban
+if [ -f "/etc/fail2ban/jail.local" ] && [ -f "/etc/proftpd/proftpd.conf" ]; then
+    if ! grep -q 'proftpd' /etc/fail2ban/jail.local; then
+        echo "== Adding ProFTPD to Fail2Ban"
+        cat <<EOF >> /etc/fail2ban/jail.local
+
+[proftpd]
+enabled = true
+filter = proftpd
+action = vesta[name=FTP]
+port = ftp,ftp-data,ftps,ftps-data
+logpath = %(proftpd_log)s
+backend = %(proftpd_backend)s
+maxretry = 5
+EOF
+        fail2ban_running=$(/usr/local/vesta/bin/v-list-sys-services | grep 'fail2ban' | grep -c 'running')    
+        if [ $fail2ban_running -eq 1 ]; then
+            echo "== Restarting Fail2Ban"
+            systemctl restart fail2ban
+        fi
+    fi
+fi
+
 # Removing SpamHaus DNSBL
 if [ ! -f "/usr/local/vesta/data/upgrades/spamhaus_dnsbl_removed" ]; then
     sed -i '/zen.spamhaus.org/d' /etc/exim4/dnsbl.conf
@@ -163,7 +186,11 @@ if [ ! -f "/usr/local/vesta/data/upgrades/enable-tls-in-proftpd" ]; then
         echo "== Enabling TLS for ProFTPD FTPS"
         wget -nv https://c.myvestacp.com/debian/10/proftpd/tls.conf -O /etc/proftpd/tls.conf
         sed -i "s|AuthPAMConfig|Include /etc/proftpd/tls.conf\n\nAuthPAMConfig|g" /etc/proftpd/proftpd.conf
-        systemctl restart proftpd
+        proftpd_running=$(/usr/local/vesta/bin/v-list-sys-services | grep 'proftpd' | grep -c 'running')    
+        if [ $proftpd_running -eq 1 ]; then
+            echo "== Restarting ProFTPD"
+            systemctl restart proftpd
+        fi
     fi
   fi
 fi

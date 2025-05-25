@@ -1690,6 +1690,20 @@ if [ "$fail2ban" = 'yes' ]; then
 		chmod 640 /var/log/auth.log
 		chown root:adm /var/log/auth.log
 	fi
+    if [ "$proftpd" = 'yes' ]; then
+        cat <<EOF >> /etc/fail2ban/jail.local
+
+[proftpd]
+enabled = true
+filter = proftpd
+action = vesta[name=FTP]
+port = ftp,ftp-data,ftps,ftps-data
+logpath = %(proftpd_log)s
+backend = %(proftpd_backend)s
+maxretry = 5
+EOF
+    fi
+
     #update-rc.d fail2ban defaults
     currentservice='fail2ban'
     ensure_startup $currentservice

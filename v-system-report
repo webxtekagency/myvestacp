@@ -1,0 +1,3623 @@
+#!/bin/bash
+
+# Color definitions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+
+# Section Configuration
+# Set to true to enable, false to disable each section
+CHECK_SYSTEM_RESOURCES=true
+CHECK_MYVESTACP_SERVICES=true
+CHECK_PHP=true
+CHECK_MYSQL=true
+CHECK_CLAMAV=true
+CHECK_FAIL2BAN=true
+CHECK_EMAIL=true
+CHECK_SSL=true
+CHECK_BACKUP=true
+
+# Email Configuration
+# By default, the script will use MyVestaCP's built-in email system (v-send-mail)
+# to send reports to the admin email configured in MyVestaCP.
+SEND_EMAIL_REPORT=true  # Set to true to enable email notifications
+EMAIL_SUBJECT="MyVestaCP System Report - $(date '+%Y-%m-%d')"  # Default email subject with date
+
+# AI Integration Configuration
+AI_ENABLED=false  # Set to true to enable AI analysis
+AI_MODE="auto"   # Set to "auto" (default), "always", or "never"
+AI_API_KEY="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"     # Your HuggingFace API key
+AI_MODEL="mistralai/Mixtral-8x7B-Instruct-v0.1"  # Updated to Mixtral model
+AI_MAX_LENGTH=1000  # Maximum length of the response
+
+# Internal variables (do not modify)
+ai_analysis=""  # Used internally to store AI analysis results
+
+# Log Configuration
+LOG_DIR="/var/log/v-system-report"
+LOG_FILE=""
+
+# Variável global para HTML dos detalhes
+DETAILED_ISSUES_HTML=""
+
+# Variável global para erro da IA
+AI_LAST_ERROR=""
+
+# Function to setup logging
+setup_logging() {
+    # Create log directory if it doesn't exist
+    if [ ! -d "$LOG_DIR" ]; then
+        log_console "${YELLOW}⚠️  Log directory not found. Creating: $LOG_DIR${NC}"
+        mkdir -p "$LOG_DIR"
+        chmod 755 "$LOG_DIR"
+        log_console "${GREEN}✓ Log directory created successfully${NC}"
+    else
+        log_console "${GREEN}✓ Log directory found: $LOG_DIR${NC}"
+    fi
+
+    # Create log file with timestamp
+    local timestamp=$(date '+%Y-%m-%d_%H-%M-%S')
+    LOG_FILE="$LOG_DIR/$timestamp-v-system-report.log"
+
+    # Initialize log file with clean formatting
+    {
+        echo "================================================"
+        echo "            MyVestaCP System Report Log         "
+        echo "================================================"
+        echo ""
+        echo "Started at: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo "Hostname: $(hostname -f)"
+        echo ""
+        echo "================================================"
+        echo ""
+    } > "$LOG_FILE"
+    
+    log_console "${GREEN}✓ Log file created: $LOG_FILE${NC}"
+}
+
+# Function to log messages to console only
+log_console() {
+    local message="$1"
+    echo -e "$message"
+}
+
+# Function to clean message for file logging
+clean_message_for_file() {
+    local message="$1"
+    
+    # Remove ANSI color codes and control characters
+    local clean_message=$(echo "$message" | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g')
+    
+    # Replace symbols with descriptive text
+    clean_message=$(echo "$clean_message" | sed 's/✓/SUCCESS: /g')
+    clean_message=$(echo "$clean_message" | sed 's/⚠️/WARNING: /g')
+    clean_message=$(echo "$clean_message" | sed 's/=== /SECTION: /g')
+    clean_message=$(echo "$clean_message" | sed 's/ ===//g')
+    
+    # Remove progress bars and percentage
+    clean_message=$(echo "$clean_message" | sed 's/\[=*\] [0-9]*%//g')
+    clean_message=$(echo "$clean_message" | sed 's/\[=*\]//g')
+    
+    # Remove empty lines and normalize spacing
+    clean_message=$(echo "$clean_message" | sed '/^[[:space:]]*$/d' | sed 's/^[[:space:]]*//')
+    
+    # Remove duplicate messages
+    if [[ "$clean_message" == *"Configuration status displayed"* ]]; then
+        return
+    fi
+    
+    echo "$clean_message"
+}
+
+# Function to log messages to file only
+log_file() {
+    local message="$1"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    # Clean the message for file logging
+    local clean_message=$(clean_message_for_file "$message")
+    
+    # Skip empty messages, progress bars, and duplicates
+    if [ -z "$clean_message" ] || [[ "$clean_message" =~ ^\[=*\] ]] || [[ "$clean_message" == *"Running"*"check"* ]]; then
+        return
+    fi
+    
+    # Write clean message to log file with proper formatting
+    if [[ "$clean_message" == *"SECTION:"* ]]; then
+        # For section headers, add extra newlines and formatting
+        echo "" >> "$LOG_FILE"
+        echo "================================================" >> "$LOG_FILE"
+        echo "[$timestamp] $clean_message" >> "$LOG_FILE"
+        echo "================================================" >> "$LOG_FILE"
+        echo "" >> "$LOG_FILE"
+    elif [[ "$clean_message" == *"SUCCESS:"* ]] || [[ "$clean_message" == *"WARNING:"* ]]; then
+        # For status messages, add proper indentation
+        echo "[$timestamp]     $clean_message" >> "$LOG_FILE"
+    else
+        # For regular messages, add timestamp
+        echo "[$timestamp] $clean_message" >> "$LOG_FILE"
+    fi
+}
+
+# Function to log messages to both console and file
+log_message() {
+    local message="$1"
+    log_console "$message"
+    log_file "$message"
+}
+
+# Function to log command output
+log_command_output() {
+    local command="$1"
+    local output="$2"
+    
+    # Log command with proper formatting
+    log_console "Command: $command"
+    log_file "Command executed: $command"
+    
+    log_console "Output:"
+    log_file "Command output:"
+    
+    # Add command output with proper indentation
+    while IFS= read -r line; do
+        log_console "    $line"
+        log_file "    $line"
+    done <<< "$output"
+    
+    log_console "----------------------------------------"
+    log_file "----------------------------------------"
+}
+
+# Function to log email status
+log_email_status() {
+    local status="$1"
+    local recipient="$2"
+    local method="$3"
+    local error="$4"
+    
+    log_console "Email Status:"
+    log_file "Email Status:"
+    
+    log_console "  Status: $status"
+    log_file "  Status: $status"
+    
+    log_console "  Recipient: $recipient"
+    log_file "  Recipient: $recipient"
+    
+    log_console "  Method: $method"
+    log_file "  Method: $method"
+    
+    if [ -n "$error" ]; then
+        log_console "  Error: $error"
+        log_file "  Error: $error"
+    fi
+}
+
+# Function to check and install jq if needed
+check_and_install_jq() {
+    if ! command -v jq &> /dev/null; then
+        log_console "${YELLOW}⚠️  jq is not installed. Installing...${NC}"
+        if command -v apt-get &> /dev/null; then
+            apt-get update > /dev/null 2>&1
+            apt-get install -y jq > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                log_console "${GREEN}✓ jq installed successfully${NC}"
+            else
+                log_console "${RED}⚠️  Failed to install jq. Please install it manually:${NC}"
+                log_console "   apt-get update && apt-get install -y jq"
+                exit 1
+            fi
+        else
+            log_console "${RED}⚠️  Could not install jq automatically. Please install it manually:${NC}"
+            log_console "   apt-get update && apt-get install -y jq"
+            exit 1
+        fi
+    fi
+}
+
+# Function to determine if AI analysis should run
+should_run_ai_analysis() {
+    # If AI is disabled, never run
+    if [ "$AI_ENABLED" = false ]; then
+        return 1
+    fi
+
+    # Check AI mode
+    case "$AI_MODE" in
+        "always")
+            return 0  # Always run AI
+            ;;
+        "never")
+            return 1  # Never run AI
+            ;;
+        "auto"|*)  # Default to auto mode
+            # Only run if there are issues
+            if [ $high_issues -gt 0 ] || [ $medium_issues -gt 0 ] || [ $low_issues -gt 0 ]; then
+                return 0
+            else
+                return 1
+            fi
+            ;;
+    esac
+}
+
+# Function to show detailed summary
+show_detailed_summary() {
+    # Use the arrays populated during actual checks instead of re-analyzing logs
+    if [ ${#critical_modules_found[@]} -gt 0 ] || [ ${#medium_modules_found[@]} -gt 0 ] || [ ${#low_modules_found[@]} -gt 0 ]; then
+        # Call AI analysis if enabled and not already performed
+        if should_run_ai_analysis && [ -z "$ai_analysis" ]; then
+            analyze_with_ai
+        fi
+    fi
+}
+
+# Function to analyze logs with AI
+analyze_with_ai() {
+    # If analysis was already performed, just display it
+    if [ -n "$ai_analysis" ]; then
+        echo -e "\n${BLUE}=== AI Analysis Results ===${NC}"
+        echo -e "${YELLOW}The following recommendations are based on the system status analysis:${NC}\n"
+        
+        # Format and display the analysis with better readability
+        local formatted_analysis=$(echo "$ai_analysis" | sed 's/^1\. Critical Issues (if any):/\n1\. Critical Issues:/' | \
+                                 sed 's/^2\. Medium Issues (if any):/\n2\. Medium Issues:/' | \
+                                 sed 's/^3\. Low Issues (if any):/\n3\. Low Issues:/' | \
+                                 sed 's/^- /\n  • /g')
+        
+        # Add color coding for different severity levels
+        formatted_analysis=$(echo "$formatted_analysis" | \
+                            sed "s/1\. Critical Issues:/${RED}1\. Critical Issues:${NC}/" | \
+                            sed "s/2\. Medium Issues:/${YELLOW}2\. Medium Issues:${NC}/" | \
+                            sed "s/3\. Low Issues:/${GREEN}3\. Low Issues:${NC}/")
+        
+        echo -e "$formatted_analysis"
+        echo -e "\n${BLUE}=== End of AI Analysis ===${NC}\n"
+        return 0
+    fi
+
+    check_and_install_jq
+    if [ "$AI_ENABLED" = false ]; then
+        echo -e "\n${BLUE}=== AI Analysis ===${NC}"
+        echo -e "${YELLOW}⚠️  AI Analysis is currently disabled${NC}"
+        echo -e "To enable AI analysis:"
+        echo -e "1. Edit the script and set AI_ENABLED=true"
+        echo -e "2. Add your HuggingFace API key to AI_API_KEY"
+        echo -e "3. Restart the script"
+        return 0
+    fi
+
+    if [ -z "$AI_API_KEY" ]; then
+        echo -e "\n${BLUE}=== AI Analysis ===${NC}"
+        echo -e "${YELLOW}⚠️  AI Analysis skipped: No API key provided${NC}"
+        echo -e "To enable AI analysis:"
+        echo -e "1. Get your API key from https://huggingface.co/settings/tokens"
+        echo -e "2. Add it to the script by setting AI_API_KEY='your-api-key'"
+        echo -e "3. Restart the script"
+        return 0
+    fi
+
+    echo -e "\n${BLUE}=== AI Analysis ===${NC}"
+    echo -e "Analyzing system status with AI..."
+    
+    # Show progress bar
+    echo -e "Preparing data for AI analysis..."
+    show_progress 1 4
+    
+    # Prepare the prompt with detailed context
+    local prompt="You are an expert MyVestaCP system administrator. Your task is to analyze the following comprehensive system status report and provide specific, actionable solutions for MyVestaCP on Debian 12.
+
+Please provide your analysis in this exact format:
+
+1. Critical Issues (if any):
+   - List each critical issue with specific details from the report
+   - Provide the exact command to fix it
+   - Include a brief explanation of why this is critical
+
+2. Medium Issues (if any):
+   - List each medium issue with specific details from the report
+   - Provide the exact command to fix it
+   - Include a brief explanation of the impact
+
+3. Low Issues (if any):
+   - List each low issue with specific details from the report
+   - Provide the exact command to fix it
+   - Include a brief explanation of why it should be addressed
+
+Important guidelines:
+- Analyze the detailed system information provided below
+- Focus ONLY on MyVestaCP-specific issues and solutions
+- Provide ONLY commands that are relevant to the actual issues found in the detailed report
+- Pay attention to module configuration status - do not suggest fixes for disabled modules
+- Do not suggest updates or installations if the system is already up to date
+- Do not include IP addresses or specific values in commands
+- Keep explanations brief but informative
+- Maximum 2-3 commands per issue
+- Only include issues that have a clear, actionable solution
+- Use v-* commands when available instead of direct system commands
+- Consider the context of each issue (e.g., if a service is already running, don't suggest starting it)
+- Reference specific metrics from the detailed system information when relevant
+
+The following is the comprehensive system status report to analyze:\n\n"
+    
+    # Add system status information
+    prompt+="System Status: $status\n"
+    prompt+="Risk Level: $risk_level\n"
+    prompt+="Summary: $summary\n\n"
+    
+    # Add detailed system information for better AI analysis
+    prompt+="Detailed System Information:\n"
+    
+    # Add detailed report information
+    for module in "${!detailed_report[@]}"; do
+        prompt+="$module: ${detailed_report[$module]}\n"
+    done
+    
+    # Add information about disabled modules for context
+    prompt+="\nModule Configuration Status:\n"
+    [ "$CHECK_SYSTEM_RESOURCES" = true ] && prompt+="System Resources: ENABLED\n" || prompt+="System Resources: DISABLED\n"
+    [ "$CHECK_MYVESTACP_SERVICES" = true ] && prompt+="MyVestaCP Services: ENABLED\n" || prompt+="MyVestaCP Services: DISABLED\n"
+    [ "$CHECK_PHP" = true ] && prompt+="PHP-FPM: ENABLED\n" || prompt+="PHP-FPM: DISABLED\n"
+    [ "$CHECK_MYSQL" = true ] && prompt+="MySQL: ENABLED\n" || prompt+="MySQL: DISABLED\n"
+    [ "$CHECK_CLAMAV" = true ] && prompt+="ClamAV: ENABLED\n" || prompt+="ClamAV: DISABLED\n"
+    [ "$CHECK_FAIL2BAN" = true ] && prompt+="Fail2Ban: ENABLED\n" || prompt+="Fail2Ban: DISABLED\n"
+    [ "$CHECK_EMAIL" = true ] && prompt+="Email: ENABLED\n" || prompt+="Email: DISABLED\n"
+    [ "$CHECK_SSL" = true ] && prompt+="SSL: ENABLED\n" || prompt+="SSL: DISABLED\n"
+    [ "$CHECK_BACKUP" = true ] && prompt+="Backup: ENABLED\n" || prompt+="Backup: DISABLED\n"
+    
+    prompt+="\n"
+    
+    # Add affected modules with more context
+    prompt+="Affected Modules and Issues:\n"
+    if [ ${#critical_modules_found[@]} -gt 0 ]; then
+        prompt+="Critical Issues (Require immediate attention):\n"
+        for module in "${critical_modules_found[@]}"; do
+            prompt+="- $module\n"
+        done
+    fi
+    if [ ${#medium_modules_found[@]} -gt 0 ]; then
+        prompt+="Medium Issues (Should be addressed soon):\n"
+        for module in "${medium_modules_found[@]}"; do
+            prompt+="- $module\n"
+        done
+    fi
+    if [ ${#low_modules_found[@]} -gt 0 ]; then
+        prompt+="Low Issues (Monitor and address when possible):\n"
+        for module in "${low_modules_found[@]}"; do
+            prompt+="- $module\n"
+        done
+    fi
+
+    show_progress 2 4
+    echo -e "\nSending data to AI model..."
+    
+    # Create a temporary file for the JSON payload
+    local temp_json=$(mktemp)
+    
+    # Use jq to create a properly formatted JSON payload
+    jq -n \
+        --arg prompt "$prompt" \
+        --arg max_length "$AI_MAX_LENGTH" \
+        '{
+            "inputs": $prompt,
+            "parameters": {
+                "max_length": ($max_length | tonumber),
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "return_full_text": false
+            }
+        }' > "$temp_json"
+    
+    # Make API request with timeout
+    local response
+    response=$(timeout 30 curl -s -X POST \
+        -H "Authorization: Bearer $AI_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d @"$temp_json" \
+        "https://api-inference.huggingface.co/models/$AI_MODEL")
+    
+    # Clean up the temporary file
+    rm -f "$temp_json"
+    
+    local curl_exit_code=$?
+    show_progress 3 4
+    echo -e "\nProcessing AI response..."
+
+    # Check for various error conditions
+    if [ $curl_exit_code -eq 124 ]; then
+        AI_LAST_ERROR="AI Analysis failed: Request timed out after 30 seconds."
+        echo -e "${RED}$AI_LAST_ERROR${NC}"
+        ai_analysis=""
+        return 1
+    elif [ $curl_exit_code -ne 0 ]; then
+        AI_LAST_ERROR="AI Analysis failed: Curl error code $curl_exit_code."
+        echo -e "${RED}$AI_LAST_ERROR${NC}"
+        ai_analysis=""
+        return 1
+    fi
+
+    # Extract the generated text from the response
+    local generated_text
+    
+    # First check if we have any response at all
+    if [ -z "$response" ]; then
+        AI_LAST_ERROR="AI Analysis failed: Empty response from API"
+        echo -e "${RED}$AI_LAST_ERROR${NC}"
+        echo -e "${YELLOW}Debug information:${NC}"
+        echo -e "This usually indicates a network connectivity issue or API service unavailability."
+        ai_analysis=""
+        return 1
+    fi
+    
+    if echo "$response" | jq -e . >/dev/null 2>&1; then
+        # Response is valid JSON
+        if echo "$response" | jq -e '.error' >/dev/null 2>&1; then
+            # Check for specific error messages
+            local error_msg=$(echo "$response" | jq -r '.error')
+            
+            # Handle empty error messages
+            if [ -z "$error_msg" ] || [ "$error_msg" = "null" ]; then
+                AI_LAST_ERROR="AI Analysis failed: API returned an error with no message"
+                echo -e "${RED}$AI_LAST_ERROR${NC}"
+                echo -e "${YELLOW}Debug information:${NC}"
+                echo -e "Response: $(echo "$response" | head -c 200)..."
+                ai_analysis=""
+                return 1
+            fi
+            
+            if [[ "$error_msg" == *"exceeded your monthly included credits"* ]]; then
+                AI_LAST_ERROR="AI Analysis failed: Monthly API credits exceeded. Please upgrade to a PRO plan at https://huggingface.co/pricing or try again next month."
+                echo -e "${RED}$AI_LAST_ERROR${NC}"
+                echo -e "${YELLOW}To resolve this:${NC}"
+                echo -e "1. Visit https://huggingface.co/pricing to upgrade your plan"
+                echo -e "2. Or wait until your credits reset next month"
+                echo -e "3. Or temporarily disable AI analysis by setting AI_MODE='never'"
+                ai_analysis=""
+                return 1
+            elif [[ "$error_msg" == *"Model"* ]] && [[ "$error_msg" == *"is currently loading"* ]]; then
+                AI_LAST_ERROR="AI Analysis failed: Model is currently loading. Please try again in a few minutes."
+                echo -e "${RED}$AI_LAST_ERROR${NC}"
+                echo -e "${YELLOW}This is a temporary issue. The AI model is starting up.${NC}"
+                ai_analysis=""
+                return 1
+            elif [[ "$error_msg" == *"rate limit"* ]] || [[ "$error_msg" == *"too many requests"* ]]; then
+                AI_LAST_ERROR="AI Analysis failed: Rate limit exceeded. Please try again later."
+                echo -e "${RED}$AI_LAST_ERROR${NC}"
+                echo -e "${YELLOW}You've made too many requests. Wait a few minutes before trying again.${NC}"
+                ai_analysis=""
+                return 1
+            fi
+            
+            AI_LAST_ERROR="AI Analysis failed: API Error - $error_msg"
+            echo -e "${RED}$AI_LAST_ERROR${NC}"
+            ai_analysis=""
+            return 1
+        fi
+        generated_text=$(echo "$response" | jq -r 'if type=="array" then .[0].generated_text // empty else .generated_text // empty end')
+    else
+        # Response is not JSON, try to extract text directly
+        generated_text=$(echo "$response" | grep -o '"generated_text":"[^"]*"' | sed 's/"generated_text":"//;s/"$//')
+        
+        # If still no text found, check if it's an HTML error page
+        if [ -z "$generated_text" ] && echo "$response" | grep -q "<html\|<HTML"; then
+            AI_LAST_ERROR="AI Analysis failed: Received HTML error page instead of JSON response"
+            echo -e "${RED}$AI_LAST_ERROR${NC}"
+            echo -e "${YELLOW}Debug information:${NC}"
+            echo -e "This usually indicates a network issue or API endpoint problem."
+            echo -e "Response preview: $(echo "$response" | head -c 100)..."
+            ai_analysis=""
+            return 1
+        fi
+    fi
+    
+    if [ -z "$generated_text" ] || [ "$generated_text" = "null" ]; then
+        AI_LAST_ERROR="AI Analysis failed: Could not extract generated text from response. Response format: $(echo "$response" | head -c 100)..."
+        echo -e "${RED}$AI_LAST_ERROR${NC}"
+        echo -e "${YELLOW}Debug information:${NC}"
+        echo -e "Response type: $(echo "$response" | head -c 20)..."
+        echo -e "Response length: ${#response} characters"
+        echo -e "Generated text value: '$generated_text'"
+        
+        # Try to show more of the response for debugging
+        if [ ${#response} -lt 500 ]; then
+            echo -e "Full response: $response"
+        else
+            echo -e "Response preview (first 300 chars): $(echo "$response" | head -c 300)..."
+        fi
+        
+        ai_analysis=""
+        return 1
+    fi
+
+    # Store the analysis for later use in both console and email
+    ai_analysis="$generated_text"
+    
+    show_progress 4 4
+    echo -e "\n${GREEN}✓ AI Analysis completed successfully${NC}"
+    
+    # Display the analysis in the console
+    echo -e "\n${BLUE}=== AI Analysis Results ===${NC}"
+    echo -e "${YELLOW}The following recommendations are based on the system status analysis:${NC}\n"
+    
+    # Format and display the analysis with better readability
+    local formatted_analysis=$(echo "$generated_text" | sed 's/^1\. Critical Issues (if any):/\n1\. Critical Issues:/' | \
+                             sed 's/^2\. Medium Issues (if any):/\n2\. Medium Issues:/' | \
+                             sed 's/^3\. Low Issues (if any):/\n3\. Low Issues:/' | \
+                             sed 's/^- /\n  • /g')
+    
+    # Add color coding for different severity levels
+    formatted_analysis=$(echo "$formatted_analysis" | \
+                        sed "s/1\. Critical Issues:/${RED}1\. Critical Issues:${NC}/" | \
+                        sed "s/2\. Medium Issues:/${YELLOW}2\. Medium Issues:${NC}/" | \
+                        sed "s/3\. Low Issues:/${GREEN}3\. Low Issues:${NC}/")
+    
+    echo -e "$formatted_analysis"
+    echo -e "\n${BLUE}=== End of AI Analysis ===${NC}\n"
+    
+    return 0
+}
+
+# Function to show progress
+show_progress() {
+    local current=$1
+    local total=$2
+    local width=50
+    local percentage=$((current * 100 / total))
+    local completed=$((width * current / total))
+    local remaining=$((width - completed))
+    
+    # Only show progress in console
+    printf "\r["
+    printf "%${completed}s" | tr " " "="
+    printf "%${remaining}s" | tr " " " "
+    printf "] %d%%" $percentage
+    
+    if [ $current -eq $total ]; then
+        echo
+    fi
+}
+
+
+
+# Define paths
+LOG_DIR="/var/log/v-system-report"
+VESTA_LOG_DIR="/usr/local/vesta/log"
+BACKUP_DIR="/backup"
+MYVESTACP_LOG_DIR="/usr/local/myvestacp/log"
+
+# Error handling
+# Removed set -e to prevent script from exiting on errors
+# Improved error trap with more context
+trap 'echo -e "${RED}Error occurred in $0 at line $LINENO. Function: ${FUNCNAME[1]:-main}${NC}" >&2' ERR
+
+# Timeout function
+run_with_timeout() {
+    local timeout=$1
+    local command=$2
+    local output
+    
+    # Run the command with timeout
+    output=$(timeout $timeout bash -c "$command" 2>&1)
+    local exit_code=$?
+    
+    if [ $exit_code -eq 124 ]; then
+        echo -e "${RED}⚠️  Command timed out after ${timeout}s${NC}"
+        return 1
+    elif [ $exit_code -ne 0 ]; then
+        echo -e "${RED}⚠️  Command failed with exit code $exit_code${NC}"
+        return 1
+    fi
+    
+    echo "$output"
+    return 0
+}
+
+# Function to check if a log line is from last 24h
+is_recent_log() {
+    local line="$1"
+    local current_ts=$(date +%s)
+    local day_ago_ts=$((current_ts - 86400))
+    local log_ts=""
+    local log_datetime=""
+    
+    # Try different date/time formats
+    
+    # Format: YYYY-MM-DD HH:MM:SS (Exim, ClamAV, Fail2Ban standard)
+    # Changed extraction to cut for potential robustness
+    log_datetime=$(echo "$line" | cut -c 1-19 2>/dev/null)
+    
+    if [ -n "$log_datetime" ]; then
+        log_ts=$(date -d "$log_datetime" +%s 2>/dev/null)
+    fi
+    
+    # Format: MMM DD HH:MM:SS (Syslog common format) - e.g., May 20 18:49:15
+    # Keep grep as fallback for other formats if needed, but primary is YYYY-MM-DD HH:MM:SS
+    if [ -z "$log_ts" ]; then
+        log_datetime=$(echo "$line" | grep -o '^[A-Za-z]\{3\} [ 0-9]\{1,2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}')
+        if [ -n "$log_datetime" ]; then
+             local current_year=$(date +%Y)
+             # Handle dates around year change
+             if date -d "$log_datetime" +%s > $current_ts 2>/dev/null; then
+                 log_ts=$(date -d "$log_datetime $current_year year ago" +%s 2>/dev/null)
+             else
+                log_ts=$(date -d "$log_datetime" +%s 2>/dev/null)
+             fi
+        fi
+    fi
+    
+    # Format: DD-MMM-YYYY HH:MM:SS (less common)
+    if [ -z "$log_ts" ]; then
+        log_datetime=$(echo "$line" | grep -o '^[0-9]\{1,2\}-[A-Za-z]\{3\}-[0-9]\{4\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}')
+         if [ -n "$log_datetime" ]; then
+             log_ts=$(date -d "$log_datetime" +%s 2>/dev/null)
+         fi
+    fi
+    
+    # If log_ts is still empty after trying formats, try a more general approach or assume start of epoch for safety
+    if [ -z "$log_ts" ]; then
+        # As a fallback, try extracting the first two space-separated fields (date and time) and convert.
+        log_ts=$(date -d "$(echo "$line" | awk '{print $1, $2}' 2>/dev/null)" +%s 2>/dev/null)
+    fi
+
+    if [ -n "$log_ts" ] && [ "$log_ts" -ge "$day_ago_ts" ]; then
+        return 0 # True, is recent
+    else
+        return 1 # False, not recent or date extraction failed
+    fi
+}
+
+# Function to get recent log lines with timeout
+get_recent_logs() {
+    local log_file="$1"
+    local pattern="$2"
+    local count="${3:-0}"
+    local timeout="${4:-30}"  # Default timeout of 30 seconds
+    
+    if [ ! -f "$log_file" ]; then
+        echo -e "${RED}⚠️  Log file not found: $log_file${NC}"
+        return 1
+    fi
+    
+    # Use tr to remove null bytes and process the file
+    local results=()
+    while IFS= read -r line; do
+        # Remove null bytes and check if line matches pattern
+        line=$(echo "$line" | tr -d '\0')
+        if [[ "$line" == *"$pattern"* ]] && is_recent_log "$line"; then
+            results+=("$line")
+        fi
+    done < <(run_with_timeout "$timeout" "cat '$log_file' | tr -d '\0'")
+    
+    if [ "$count" -gt 0 ]; then
+        printf '%s\n' "${results[@]: -$count}"
+    else
+        printf '%s\n' "${results[@]}"
+    fi
+}
+
+# Function to check if a file was modified in the last 24 hours
+is_recent() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        local file_time=$(stat -c %Y "$file")
+        local current_time=$(date +%s)
+        local time_diff=$((current_time - file_time))
+        [ $time_diff -le 86400 ]
+    else
+        return 1
+    fi
+}
+
+# Function to get country from IP
+get_country() {
+    local ip="$1"
+    local country=$(curl -s "http://ip-api.com/json/$ip" | grep -o '"country":"[^"]*"' | cut -d'"' -f4)
+    echo "$country"
+}
+
+# Function to check system resources with timeout
+check_resources() {
+    local output=()
+    output+=("${BLUE}=== System Resources ===${NC}")
+    
+    local current_issues=0 # Local counter for this function
+
+    # CPU Section
+    output+=("${YELLOW}CPU:${NC}")
+    # Get 5-minute load average
+    local load_avg=$(run_with_timeout 5 "cat /proc/loadavg | awk '{print \$3}'")
+    # Get CPU usage percentage
+    local cpu_usage=$(run_with_timeout 5 "top -bn1 | grep 'Cpu(s)' | awk '{print \$2 + \$4}'")
+    if [ $? -eq 0 ]; then
+        local cpu_cores=$(run_with_timeout 5 "nproc")
+        if [ $? -eq 0 ]; then
+            if (( $(echo "$load_avg > $cpu_cores" | bc -l) )); then
+                output+=("${RED}⚠️  System Load (5min avg): $load_avg (High - Above CPU cores: $cpu_cores)${NC}")
+                output+=("${RED}⚠️  Current CPU Usage: ${cpu_usage}%${NC}")
+                ((current_issues++))
+            else
+                output+=("${GREEN}✓ System Load (5min avg): $load_avg (CPU cores: $cpu_cores)${NC}")
+                output+=("${GREEN}✓ Current CPU Usage: ${cpu_usage}%${NC}")
+            fi
+        fi
+    fi
+    
+    # Memory Section
+    output+=("${YELLOW}Memory:${NC}")
+    # Get total and used memory
+    local mem_info=$(run_with_timeout 5 "free -m | awk '/Mem:/ {print \$2,\$3}'")
+    if [ $? -eq 0 ]; then
+        local total_mem=$(echo "$mem_info" | awk '{print $1}')
+        local used_mem=$(echo "$mem_info" | awk '{print $2}')
+        local mem_usage=$(run_with_timeout 5 "free | awk '/Mem:/ {print int(\$3/\$2 * 100)}'")
+        if [ "$mem_usage" -gt 90 ]; then
+            output+=("${RED}⚠️  Usage: ${mem_usage}% (${used_mem}MB / ${total_mem}MB) (High)${NC}")
+            ((current_issues++))
+        else
+            output+=("${GREEN}✓ Usage: ${mem_usage}% (${used_mem}MB / ${total_mem}MB)${NC}")
+        fi
+    fi
+    
+    # Disk Section
+    output+=("${YELLOW}Disk:${NC}")
+    # Get disk usage with size information
+    local disk_info=$(run_with_timeout 5 "df -h / | awk 'NR==2 {print \$2,\$3,\$4,\$5}'")
+    if [ $? -eq 0 ]; then
+        local total_size=$(echo "$disk_info" | awk '{print $1}')
+        local used_size=$(echo "$disk_info" | awk '{print $2}')
+        local avail_size=$(echo "$disk_info" | awk '{print $3}')
+        local disk_usage=$(echo "$disk_info" | awk '{print $4}' | sed 's/%//')
+        if [ "$disk_usage" -gt 90 ]; then
+            output+=("${RED}⚠️  Usage: ${disk_usage}% (${used_size} / ${total_size}, ${avail_size} available) (High)${NC}")
+            ((current_issues++))
+        else
+            output+=("${GREEN}✓ Usage: ${disk_usage}% (${used_size} / ${total_size}, ${avail_size} available)${NC}")
+        fi
+    fi
+    
+    # Return the output as a string
+    printf "%b\n" "${output[@]}"
+    
+    # Determine issue level based on problems found in this function
+    if [ $current_issues -gt 0 ]; then
+        # Consider resource problems as medium to start, adjust if needed
+        ((medium_issues+=current_issues))
+        medium_modules_found+=("System Resources")
+        
+        # Capture detailed info for AI analysis
+        local load_avg=$(run_with_timeout 5 "cat /proc/loadavg | awk '{print \$3}'")
+        local cpu_usage=$(run_with_timeout 5 "top -bn1 | grep 'Cpu(s)' | awk '{print \$2 + \$4}'")
+        local mem_usage=$(run_with_timeout 5 "free | awk '/Mem:/ {print int(\$3/\$2 * 100)}'")
+        local disk_usage=$(run_with_timeout 5 "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'")
+        local cpu_cores=$(run_with_timeout 5 "nproc")
+        
+        detailed_report["system_resources"]="Load Average: $load_avg (CPU cores: $cpu_cores), CPU Usage: ${cpu_usage}%, Memory Usage: ${mem_usage}%, Disk Usage: ${disk_usage}%"
+        
+        return 1 # Indicates problems were found
+    else
+        # Even if no issues, capture basic metrics for AI context
+        local load_avg=$(run_with_timeout 5 "cat /proc/loadavg | awk '{print \$3}'")
+        local cpu_usage=$(run_with_timeout 5 "top -bn1 | grep 'Cpu(s)' | awk '{print \$2 + \$4}'")
+        local mem_usage=$(run_with_timeout 5 "free | awk '/Mem:/ {print int(\$3/\$2 * 100)}'")
+        local disk_usage=$(run_with_timeout 5 "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'")
+        local cpu_cores=$(run_with_timeout 5 "nproc")
+        
+        detailed_report["system_resources"]="Load Average: $load_avg (CPU cores: $cpu_cores), CPU Usage: ${cpu_usage}%, Memory Usage: ${mem_usage}%, Disk Usage: ${disk_usage}% - All within normal ranges"
+        
+        return 0 # Indicates no problems were found
+    fi
+}
+
+# Function to check MyVestaCP services with timeout
+check_myvestacp_services() {
+    printf "%b\n" "${BLUE}=== MyVestaCP Services Status ===${NC}"
+    printf "\n"  # Single space after title
+
+    sleep 0.5  # Small delay to create a loading effect
+    show_progress 1 1  # Shows a single progress bar
+    printf "\n"  # Line break after the bar
+    
+    local current_high_issues=0
+    local current_medium_issues=0
+
+    # Group services by category for better organization
+    local web_services=("apache2" "nginx")
+    local php_services=()
+    for fpm_conf in /etc/php/*/fpm/php-fpm.conf; do
+        if [ -f "$fpm_conf" ]; then
+            version=$(echo "$fpm_conf" | awk -F'/' '{print $4}')
+            php_services+=("php${version}-fpm")
+        fi
+    done
+    local mail_services=("exim4" "dovecot" "spamd")
+    local security_services=("clamav-daemon" "clamav-freshclam" "fail2ban")
+    local system_services=("bind9" "mariadb" "proftpd" "cron" "ssh")
+
+    # Function to print services in a category
+    print_category() {
+        local category="$1"
+        shift
+        local services=("$@")
+        
+        printf "%b %s:\n" "${YELLOW}" "$category"
+        for service in "${services[@]}"; do
+            if run_with_timeout 5 "systemctl is-active --quiet $service"; then
+                printf "  %b\n" "${GREEN}✓ $service${NC}"
+            else
+                printf "  %b\n" "${RED}⚠️  $service${NC}"
+                if [[ "$service" == "apache2" || "$service" == "nginx" || \
+                      "$service" == "bind9" || "$service" == "exim4" || "$service" == "dovecot" || \
+                      "$service" == "clamav-daemon" || "$service" == "clamav-freshclam" || \
+                      "$service" == "mariadb" || "$service" == "cron" || "$service" == "ssh" ]]; then
+                    ((current_high_issues++))
+                else
+                    ((current_medium_issues++))
+                fi
+            fi
+        done
+    }
+
+    # Print each category
+    print_category "Web Services" "${web_services[@]}"
+    print_category "PHP Services" "${php_services[@]}"
+    print_category "Mail Services" "${mail_services[@]}"
+    print_category "Security Services" "${security_services[@]}"
+    print_category "System Services" "${system_services[@]}"
+
+    ((high_issues+=current_high_issues))
+    ((medium_issues+=current_medium_issues))
+    
+    # Track which modules have issues and capture detailed info for AI
+    local services_details=""
+    if [ $current_high_issues -gt 0 ]; then
+        critical_modules_found+=("MyVestaCP Services")
+        services_details="Critical services down: $current_high_issues critical service(s) not running (apache2, nginx, bind9, exim4, dovecot, clamav, mariadb, cron, ssh)"
+    elif [ $current_medium_issues -gt 0 ]; then
+        medium_modules_found+=("MyVestaCP Services")
+        services_details="Medium issues: $current_medium_issues service(s) not running (PHP-FPM, proftpd, spamd, fail2ban)"
+    else
+        services_details="All MyVestaCP services running normally"
+    fi
+    
+    detailed_report["services"]="$services_details"
+    
+    if [ $((current_high_issues + current_medium_issues)) -gt 0 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Function to check single blacklist with timeout
+check_single_blacklist() {
+    local target="$1"
+    local bl="$2"
+    local result
+    
+    # Use timeout to prevent hanging
+    result=$(run_with_timeout 5 "host -t A $target.$bl 2>&1")
+    local exit_code=$?
+    
+    if [ $exit_code -eq 0 ]; then
+        # Check if the result contains an IP address (indicating listing)
+        if echo "$result" | grep -q "has address"; then
+            echo -e "${RED}⚠️  Listed on $bl${NC}"
+            return 1
+        fi
+    elif [ $exit_code -eq 124 ]; then
+        echo -e "${YELLOW}⚠️  Check failed for $bl (timeout)${NC}"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Function to check email status with timeout
+check_email_status() {
+    local output=()
+    output+=("${BLUE}=== Email Status (Today) ===${NC}")
+    
+    local current_high_issues=0
+    local current_medium_issues=0
+    local current_low_issues=0
+
+    # Define log paths
+    local mainlog="/var/log/exim4/mainlog"
+    local rejectlog="/var/log/exim4/rejectlog"
+    
+    # Get start of current day timestamp
+    local today_start=$(date -d "$(date +%Y-%m-%d) 00:00:00" +%s)
+    
+    # Get today's date in the format used in logs (YYYY-MM-DD)
+    local today=$(date "+%Y-%m-%d")
+    
+    if [ -f "$mainlog" ]; then
+        # Queue Status (still checks current queue, not log)
+        output+=("${YELLOW}Queue Status:${NC}")
+        local queue_output=$(run_with_timeout 10 "exim -bp 2>/dev/null")
+        local queue_exit_code=$?
+        
+        if [ $queue_exit_code -eq 0 ]; then
+            # Count frozen and non-frozen messages separately
+            local frozen_count=$(echo "$queue_output" | grep -c "*** frozen ***")
+            local other_count=$(echo "$queue_output" | grep -c "^[0-9]" | grep -v "*** frozen ***")
+            local total_count=$((frozen_count + other_count))
+            
+            if [ "$total_count" -gt 0 ] 2>/dev/null; then
+                echo -e "${YELLOW}⚠️  Emails in queue: $total_count${NC}"
+                # Messages in queue indicate potential problems
+                if [ "$frozen_count" -gt 0 ]; then
+                    echo -e "${RED}  - Frozen messages: $frozen_count${NC}"
+                    # Intelligent frozen message classification
+                    if [ "$frozen_count" -gt 10 ]; then
+                        ((current_high_issues++))    # >10 frozen = CRITICAL (systemic problem)
+                    elif [ "$frozen_count" -gt 3 ]; then
+                        ((current_medium_issues++))  # 4-10 frozen = MEDIUM (needs attention)
+                    else
+                        ((current_low_issues++))     # 1-3 frozen = LOW (minor issues)
+                    fi
+                fi
+                if [ "${deferred:-0}" -gt 0 ]; then
+                    echo -e "${YELLOW}  - Deferred: $deferred${NC}"
+                    # Intelligent deferred message classification
+                    if [ "$deferred" -gt 100 ]; then
+                        ((current_high_issues++))    # >100 deferred = CRITICAL (systemic problem)
+                    elif [ "$deferred" -gt 20 ]; then
+                        ((current_medium_issues++))  # 21-100 deferred = MEDIUM (needs attention)
+                    else
+                        ((current_low_issues++))     # 1-20 deferred = LOW (normal delays)
+                    fi
+                fi
+                if [ "$other_count" -gt 0 ]; then
+                    echo -e "${YELLOW}  - Other messages: $other_count${NC}"
+                    ((current_medium_issues++)) # Others in queue are medium
+                fi
+                # We won't increment global issues just for emails in queue, unless they are frozen
+                echo -e "${YELLOW}Useful commands:${NC}"
+                echo -e "  - View queue details: exim -bp"
+                echo -e "  - View specific message: exim -Mvb <message-id>"
+                echo -e "  - Remove specific message: exim -Mrm <message-id>"
+                echo -e "  - Remove all messages: exim -bp | awk '/^[[:space:]]*[0-9]+[mhd]/{print \$3}' | xargs exim -Mrm"
+                echo -e "  - Thaw frozen messages: exim -Mt <message-id>"
+            else
+                echo -e "${GREEN}✓ No emails in queue${NC}"
+            fi
+        else
+            echo -e "${RED}⚠️  Failed to check email queue (exit code $queue_exit_code)${NC}"
+            ((current_medium_issues++)) # Failure to check queue is a medium problem
+        fi
+        
+        # Email Statistics (Today)
+        echo -e "\n${YELLOW}Email Statistics (Today):${NC}"
+        echo -e "Processing logs for today... This may take a few moments."
+        
+        # Initialize counters for log analysis (we won't use these for global issues directly)
+        local completed=0
+        local deferred_log=0 # Rename to avoid conflict with queue variable
+        local failed_log=0   # Rename
+        local spoofed_log=0  # Rename
+        local rejected_log=0 # Rename
+        local frozen_log=0   # Rename
+        local auth_failures_log=0 # Rename
+        local tls_errors_log=0 # Rename
+        local smtp_timeouts_log=0 # Rename
+        
+        # Process mainlog for today's entries
+        echo -e "\nProcessing main log for $today..."
+        if [ -f "$mainlog" ]; then
+            # Use grep to filter lines starting with today's date
+            local mainlog_content=$(run_with_timeout 60 "grep -a '^$today' '$mainlog' | tr -d '\0'")
+            local mainlog_exit_code=$?
+            
+            if [ $mainlog_exit_code -eq 0 ]; then
+                if [ -n "$mainlog_content" ]; then
+                    local total_lines=$(echo "$mainlog_content" | wc -l)
+                    echo -e "Found $total_lines relevant lines in main log for today."
+                    local current_line=0
+                    
+                    while IFS= read -r line; do
+                        ((current_line++))
+                        if [ $((current_line % 100)) -eq 0 ]; then
+                            show_progress $current_line $total_lines
+                        fi
+                        
+                        # Extract timestamp from line
+                        local log_date=$(echo "$line" | grep -o '^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}')
+                        if [ -n "$log_date" ]; then
+                            # Convert log date to timestamp
+                            local log_ts=$(date -d "$log_date" +%s 2>/dev/null)
+                            
+                            # Only process if timestamp is valid and from today
+                            if [ -n "$log_ts" ] && [ "$log_ts" -ge "$today_start" ]; then
+                                # Process lines for today
+                                case "$line" in
+                                    # Successful delivery patterns
+                                    *" Completed"*) ((completed++)) ;; # Just for statistics, not an issue
+                                    # Defer patterns
+                                    *"=="*"defer"*|*"== "*"defer"*|*" == "*"defer"*|*"**"*"retry time not reached"*|*"** "*"retry time not reached"*|*" ** "*"retry time not reached"*|*"defer"*"temporary failure"*|*"defer"*"temporarily"*|*"defer"*"retry"*|*"defer"*"later"*|*"defer"*"queue"*) ((deferred_log++)) ;; # Count for statistics only
+                                    # Failure patterns
+                                    *"**"*"unknown user"*|*"**"*"connection refused"*|*"** "*"unknown user"*|*"** "*"connection refused"*|*" ** "*"unknown user"*|*" ** "*"connection refused"*) ((failed_log++)) ;; # Count for statistics only
+                                    # Frozen state (already counted in queue, this is redundant for recent logs, but keep for older logs if needed)
+                                    *"frozen"*) ((frozen_log++)) ;; # Already handled by queue count
+                                    # Authentication failures
+                                    *"dovecot_login authenticator failed"*|*"dovecot_plain authenticator failed"*) ((auth_failures_log++)) ;; # Count for statistics only
+                                    # TLS and timeout errors
+                                    *"TLS error"*) ((tls_errors_log++)) ;; # Count for statistics only
+                                    *"SMTP command timeout"*) ((smtp_timeouts_log++)) ;; # Count for statistics only
+                                    # Spoofing attempts and other rejections (mainlog)
+                                    *"rejected"*"SPF"*|*"rejected"*"DMARC"*|*"rejected"*"sender verification"*|*"rejected by Spamhaus"*) ((spoofed_log++)) ;; # Count for statistics only
+                                    *"rejected"*) ((rejected_log++)) ;; # Count for statistics only
+                                esac
+                            fi
+                        fi
+                    done <<< "$mainlog_content"
+                    # Show final progress
+                    show_progress $total_lines $total_lines
+                    echo -e "\n"
+                else
+                    echo -e "${YELLOW}⚠️  Main log processed for $today but no entries found.${NC}"
+                fi
+            else
+                echo -e "${RED}⚠️  Failed to read main log content for $today (grep command exit code $mainlog_exit_code). Check file permissions or content.${NC}"
+                ((current_medium_issues++)) # Failure to read log is a medium problem
+            fi
+        else
+            echo -e "${RED}⚠️  Main log file not found: $mainlog${NC}"
+            ((current_medium_issues++)) # Not finding the log is a medium problem
+        fi
+        
+        # Process rejectlog for today's entries
+        # We don't need to count rejections here if we already count them in mainlog, or we decide where to count
+        # To simplify, we'll only count the patterns we're interested in from mainlog
+        # local rejected_from_rejectlog=0 # Count only from rejectlog to avoid double counting
+        
+        # Evaluate email health based on collected statistics
+        # Set reasonable thresholds for what constitutes real problems
+        local total_emails=$((completed + failed_log + deferred_log))
+        
+        # Critical issues (high priority)
+        if [ "${frozen_count:-0}" -gt 0 ]; then
+            # Use the same intelligent classification as above
+            if [ "$frozen_count" -gt 10 ]; then
+                ((current_high_issues++))    # >10 frozen = CRITICAL (systemic problem)
+            elif [ "$frozen_count" -gt 3 ]; then
+                ((current_medium_issues++))  # 4-10 frozen = MEDIUM (needs attention)  
+            else
+                ((current_low_issues++))     # 1-3 frozen = LOW (minor issues)
+            fi
+        fi
+        
+        # Medium issues (require attention)
+        if [ "$total_emails" -gt 0 ]; then
+            # Calculate failure rate
+            local failure_rate=0
+            if [ "$total_emails" -gt 0 ]; then
+                failure_rate=$(( (failed_log * 100) / total_emails ))
+            fi
+            
+            # High failure rate (>20%) is a medium issue
+            if [ "$failure_rate" -gt 20 ]; then
+                ((current_medium_issues++))
+            fi
+            
+            # High defer rate (>30%) is a medium issue
+            local defer_rate=0
+            if [ "$total_emails" -gt 0 ]; then
+                defer_rate=$(( (deferred_log * 100) / total_emails ))
+            fi
+            if [ "$defer_rate" -gt 30 ]; then
+                ((current_medium_issues++))
+            fi
+        fi
+        
+        # Excessive errors indicate problems
+        if [ "${failed_log:-0}" -gt 50 ]; then
+            ((current_medium_issues++))  # Too many failures
+        fi
+        if [ "${deferred_log:-0}" -gt 100 ]; then
+            ((current_medium_issues++))  # Too many deferrals
+        fi
+        if [ "${tls_errors_log:-0}" -gt 10 ]; then
+            ((current_medium_issues++))  # Too many TLS errors
+        fi
+        if [ "${smtp_timeouts_log:-0}" -gt 50 ]; then
+            ((current_medium_issues++))  # Too many timeouts
+        fi
+        
+        # Low issues (minor problems)
+        if [ "${auth_failures_log:-0}" -gt 500 ]; then
+            ((current_low_issues++))  # Excessive auth failures might indicate brute force
+        fi
+        
+        # Display statistics based on log analysis
+        echo -e "${GREEN}✓ Successfully delivered: ${completed:-0}${NC}"
+        if [ "${failed_log:-0}" -gt 0 ]; then
+            echo -e "${YELLOW}⚠️  Failed deliveries (today): $failed_log${NC}" # Change to yellow, already counted as medium issues
+        else
+            echo -e "${GREEN}✓ Failed deliveries (today): 0${NC}"
+        fi
+        if [ "${spoofed_log:-0}" -gt 0 ]; then
+            echo -e "${YELLOW}⚠️  Spoofing attempts (today): $spoofed_log${NC}" # Change to yellow, already counted as medium issues
+        else
+            echo -e "${GREEN}✓ Spoofing attempts (today): 0${NC}"
+        fi
+        if [ "${rejected_log:-0}" -gt 0 ]; then
+            echo -e "${YELLOW}⚠️  Rejected emails (today): $rejected_log${NC}" # Change to yellow, already counted as medium issues
+        else
+            echo -e "${GREEN}✓ Rejected emails (today): 0${NC}"
+        fi
+        if [ "${frozen_log:-0}" -gt 0 ]; then
+            echo -e "${RED}⚠️  Frozen messages in log (today): $frozen_log${NC}" # Keep red if appears in logs, indicates persistence
+        else
+            echo -e "${GREEN}✓ Frozen messages in log (today): 0${NC}"
+        fi
+        if [ "${deferred_log:-0}" -gt 0 ]; then
+            echo -e "${YELLOW}⚠️  Deferred deliveries (today): $deferred_log${NC}" # Change to yellow, already counted as medium issues
+        else
+            echo -e "${GREEN}✓ Deferred deliveries (today): 0${NC}"
+        fi
+        if [ "${auth_failures_log:-0}" -gt 0 ]; then
+            echo -e "${YELLOW}⚠️  Authentication failures (today): $auth_failures_log${NC}" # Change to yellow, already counted as low issues
+        else
+            echo -e "${GREEN}✓ Authentication failures (today): 0${NC}"
+        fi
+        if [ "${tls_errors_log:-0}" -gt 0 ]; then
+            echo -e "${YELLOW}⚠️  TLS errors (today): $tls_errors_log${NC}" # Change to yellow, already counted as medium issues
+        else
+            echo -e "${GREEN}✓ TLS errors (today): 0${NC}"
+        fi
+        if [ "${smtp_timeouts_log:-0}" -gt 0 ]; then
+            echo -e "${YELLOW}⚠️  SMTP timeouts (today): $smtp_timeouts_log${NC}" # Change to yellow, already counted as medium issues
+        else
+            echo -e "${GREEN}✓ SMTP timeouts (today): 0${NC}"
+        fi
+    else
+        echo -e "${RED}⚠️  Email log not found${NC}"
+        ((current_medium_issues++)) # Not finding the email log is a medium problem
+    fi
+
+    # Add local issues to global counters (only add 1 for low_issues if there are auth failures)
+    ((high_issues+=current_high_issues))
+    ((medium_issues+=current_medium_issues))
+    if [ "${auth_failures_log:-0}" -gt 0 ]; then
+        ((low_issues++))
+    fi
+
+    # Track which modules have issues and capture detailed info for AI analysis
+    local email_details=""
+    if [ $current_high_issues -gt 0 ]; then
+        critical_modules_found+=("Exim4")
+        email_details="Critical email issues: "
+        if [ "${frozen_count:-0}" -gt 10 ]; then
+            email_details+="$frozen_count frozen messages in queue (systemic problem), "
+        fi
+        if [ "${deferred:-0}" -gt 100 ]; then
+            email_details+="$deferred deferred messages in queue (systemic problem), "
+        fi
+        email_details+="Service may be experiencing significant problems"
+    elif [ $current_medium_issues -gt 0 ]; then
+        medium_modules_found+=("Exim4")
+        email_details="Email issues detected: "
+        if [ "${frozen_count:-0}" -gt 3 ] && [ "${frozen_count:-0}" -le 10 ]; then
+            email_details+="$frozen_count frozen messages in queue (needs attention), "
+        fi
+        if [ "${deferred:-0}" -gt 20 ] && [ "${deferred:-0}" -le 100 ]; then
+            email_details+="$deferred deferred messages in queue (needs attention), "
+        fi
+        if [ "${failed_log:-0}" -gt 50 ]; then
+            email_details+="High failure rate ($failed_log failures), "
+        fi
+        if [ "${deferred_log:-0}" -gt 100 ]; then
+            email_details+="High defer rate ($deferred_log deferrals), "
+        fi
+        if [ "${tls_errors_log:-0}" -gt 10 ]; then
+            email_details+="TLS issues ($tls_errors_log errors), "
+        fi
+        if [ "${smtp_timeouts_log:-0}" -gt 50 ]; then
+            email_details+="SMTP timeout issues ($smtp_timeouts_log timeouts), "
+        fi
+        email_details+="System performance degraded"
+    elif [ $current_low_issues -gt 0 ]; then
+        low_modules_found+=("Exim4")
+        email_details="Email system has minor issues: "
+        if [ "${frozen_count:-0}" -gt 0 ] && [ "${frozen_count:-0}" -le 3 ]; then
+            email_details+="$frozen_count frozen messages in queue (minor issues), "
+        fi
+        if [ "${deferred:-0}" -gt 0 ] && [ "${deferred:-0}" -le 20 ]; then
+            email_details+="$deferred deferred messages in queue (normal delays), "
+        fi
+        if [ "${auth_failures_log:-0}" -gt 500 ]; then
+            email_details+="Excessive authentication failures (${auth_failures_log:-0} today) - possible brute force attempts"
+        else
+            email_details+="Minor configuration or performance issues"
+        fi
+    else
+        email_details="Email system functioning normally: ${completed:-0} successful deliveries today, ${rejected_log:-0} spam/invalid emails rejected, ${auth_failures_log:-0} auth failures (normal activity)"
+    fi
+    
+    detailed_report["email"]="$email_details"
+
+    if [ $((current_high_issues + current_medium_issues + current_low_issues)) -gt 0 ]; then
+        return 1 # Indicates problems were found
+    else
+        return 0 # Indicates no problems were found
+    fi
+}
+
+# Function to check SSL status with timeout
+check_ssl_status() {
+    echo -e "${BLUE}=== SSL Status ===${NC}"
+    
+    local has_issues=0
+    local needs_renewal=0
+    local ssl_status=""
+    local current_high_issues=0
+    local current_medium_issues=0
+    local current_low_issues=0
+    
+    echo -e "Processing SSL certificates... This may take a few moments."
+    
+    # Check Let's Encrypt Status first
+    echo -e "\n${YELLOW}Let's Encrypt Status:${NC}"
+    if [ -f "/usr/local/vesta/log/letsencrypt.log" ]; then
+        local errors=$(run_with_timeout 5 "grep -a 'error\|warning\|fatal' '/usr/local/vesta/log/letsencrypt.log' | tail -n 3")
+        if [ $? -eq 0 ] && [ -n "$errors" ]; then
+            echo -e "${RED}⚠️  Issues found:${NC}"
+            echo "$errors" | while read -r line; do
+                if [ -n "$line" ]; then
+                    echo -e "  - $line"
+                fi
+            done
+            ((current_medium_issues++))
+        else
+            echo -e "${GREEN}✓ No recent errors${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Log file not found${NC}"
+    fi
+    
+    # Function to check certificate expiration with timeout
+    check_cert_expiration() {
+        local domain=$1
+        local cert_info=$(run_with_timeout 10 "openssl s_client -connect ${domain}:443 -servername ${domain} </dev/null 2>/dev/null | openssl x509 -noout -dates 2>/dev/null")
+        local exit_code=$?
+        if [ $exit_code -eq 0 ] && [ -n "$cert_info" ]; then
+            local not_after=$(echo "$cert_info" | grep "notAfter" | cut -d= -f2)
+            local not_after_ts=$(date -d "$not_after" +%s 2>/dev/null)
+            local current_ts=$(date +%s)
+            
+            if [ -n "$not_after_ts" ]; then
+                 local days_left=$(( (not_after_ts - current_ts) / 86400 ))
+                 echo "$days_left"
+            else
+                echo "-1"
+            fi
+        else
+            echo "-1"
+        fi
+    }
+    
+    echo -e "\n${YELLOW}Checking SSL Certificates:${NC}"
+    
+    # Get all users and their domains with timeout
+    local users_list=$(run_with_timeout 30 "v-list-users 2>/dev/null")
+    if [ $? -eq 0 ] && [ -n "$users_list" ]; then
+        echo "$users_list" | while IFS= read -r line; do
+            if [[ $line =~ ^[A-Za-z0-9_]+[[:space:]]+.* ]] && [[ "$line" != "USER "* ]]; then
+                local user=$(echo "$line" | awk '{print $1}')
+                
+                local domains_list=$(run_with_timeout 30 "v-list-web-domains $user 2>/dev/null")
+                if [ $? -eq 0 ] && [ -n "$domains_list" ]; then
+                    echo "$domains_list" | grep -v "^---" | grep -v "^DOMAIN" | while IFS= read -r domain_line; do
+                        if [ -n "$domain_line" ]; then
+                            local domain=$(echo "$domain_line" | awk '{print $1}')
+                            
+                            if [ -n "$domain" ] && [ "$domain" != "------" ] && [ "$domain" != "DOMAIN" ]; then
+                                if run_with_timeout 5 "host $domain >/dev/null 2>&1"; then
+                                    local days_left=$(check_cert_expiration "$domain")
+                                    # Check if days_left is a number before making numeric comparisons
+                                    if [ -n "$days_left" ] && [[ "$days_left" =~ ^-?[0-9]+$ ]]; then
+                                        if [ "$days_left" -gt 0 ]; then
+                                            if [ "$days_left" -le 7 ]; then
+                                                echo -e "${RED}⚠️  $domain expires in $days_left days${NC}"
+                                                ((needs_renewal++))
+                                                ((current_high_issues++))  # ≤7 days = CRITICAL
+                                            elif [ "$days_left" -le 15 ]; then
+                                                echo -e "${YELLOW}⚠️  $domain expires in $days_left days${NC}"
+                                                ((needs_renewal++))
+                                                ((current_medium_issues++))  # 8-15 days = MEDIUM
+                                            elif [ "$days_left" -le 30 ]; then
+                                                echo -e "${YELLOW}⚠️  $domain expires in $days_left days${NC}"
+                                                ((needs_renewal++))
+                                                ((current_low_issues++))  # 16-30 days = LOW
+                                            else
+                                                echo -e "${GREEN}✓ $domain valid for $days_left days${NC}"
+                                            fi
+                                        elif [ -n "$days_left" ] && [[ "$days_left" =~ ^-?[0-9]+$ ]] && [ "$days_left" -eq 0 ]; then
+                                            echo -e "${RED}⚠️  $domain SSL certificate has expired today${NC}"
+                                            ((current_high_issues++))
+                                            ((needs_renewal++))
+                                        else
+                                            echo -e "${YELLOW}⚠️  Could not get SSL certificate info for $domain or check failed${NC}"
+                                            ((current_medium_issues++))
+                                        fi
+                                    fi
+                                else
+                                    echo -e "${YELLOW}⚠️  Could not resolve domain $domain to check SSL${NC}"
+                                    ((current_medium_issues++))
+                                fi
+                            fi
+                        fi
+                    done
+                else
+                    echo -e "${RED}⚠️  Could not list web domains for user $user${NC}"
+                    ((current_medium_issues++))
+                fi
+            fi
+        done
+    else
+        echo -e "${RED}⚠️  Could not list users${NC}"
+        ((current_medium_issues++))
+    fi
+    
+    # Check Vesta Control Panel SSL
+    local vesta_domain=$(run_with_timeout 5 "hostname -f")
+    if [ $? -eq 0 ] && [ -n "$vesta_domain" ]; then
+         if run_with_timeout 5 "host $vesta_domain >/dev/null 2>&1"; then
+            local days_left=$(check_cert_expiration "$vesta_domain")
+            # Check if days_left is a number before making numeric comparisons
+            if [ -n "$days_left" ] && [[ "$days_left" =~ ^-?[0-9]+$ ]]; then
+                if [ "$days_left" -gt 0 ]; then
+                    if [ "$days_left" -le 7 ]; then
+                        echo -e "${RED}⚠️  Vesta Control Panel ($vesta_domain) expires in $days_left days${NC}"
+                        ((needs_renewal++))
+                        ((current_high_issues++))  # ≤7 days = CRITICAL
+                    elif [ "$days_left" -le 15 ]; then
+                        echo -e "${YELLOW}⚠️  Vesta Control Panel ($vesta_domain) expires in $days_left days${NC}"
+                        ((needs_renewal++))
+                        ((current_medium_issues++))  # 8-15 days = MEDIUM
+                    elif [ "$days_left" -le 30 ]; then
+                        echo -e "${YELLOW}⚠️  Vesta Control Panel ($vesta_domain) expires in $days_left days${NC}"
+                        ((needs_renewal++))
+                        ((current_low_issues++))  # 16-30 days = LOW
+                    else
+                        echo -e "${GREEN}✓ Vesta Control Panel ($vesta_domain) valid for $days_left days${NC}"
+                    fi
+                elif [ -n "$days_left" ] && [[ "$days_left" =~ ^-?[0-9]+$ ]] && [ "$days_left" -eq 0 ]; then
+                     echo -e "${RED}⚠️  Vesta Control Panel ($vesta_domain) SSL certificate has expired today${NC}"
+                     ((current_high_issues++)) # Expired Vesta certificate is a critical issue
+                     ((needs_renewal++))
+                else
+                    echo -e "${YELLOW}⚠️  Could not get Vesta Control Panel SSL certificate info or check failed${NC}"
+                    ((current_medium_issues++)) # Failure to get Vesta info is a medium issue
+                fi
+            fi
+         else
+             echo -e "${YELLOW}⚠️  Could not resolve Vesta Control Panel domain $vesta_domain to check SSL${NC}"
+             ((current_medium_issues++)) # Failure to resolve Vesta domain is a medium issue
+         fi
+    else
+        echo -e "${RED}⚠️  Could not determine Vesta Control Panel domain${NC}"
+        ((current_medium_issues++)) # Failure to determine Vesta domain is a medium issue
+    fi
+
+    # Summary at the end
+    if [ -n "$needs_renewal" ] && [[ "$needs_renewal" =~ ^[0-9]+$ ]] && [ "$needs_renewal" -eq 0 ]; then
+        ssl_status="${GREEN}✓ All SSL certificates are valid${NC}"
+    else
+        if [ -z "$needs_renewal" ] || ! [[ "$needs_renewal" =~ ^[0-9]+$ ]]; then
+             ssl_status="${YELLOW}⚠️  Could not determine renewal needs status${NC}"
+             ((current_medium_issues++))
+        elif [ "$needs_renewal" -gt 0 ]; then
+             ssl_status="${RED}⚠️  $needs_renewal certificates need renewal soon${NC}"
+        fi
+    fi
+    
+    echo -e "\n$ssl_status"
+    
+    # Track which modules have issues and capture detailed info for AI analysis
+    local ssl_details=""
+    if [ $current_high_issues -gt 0 ]; then
+        critical_modules_found+=("SSL")
+        ssl_details="Critical SSL issues: Certificates expiring within 7 days or already expired"
+    elif [ $current_medium_issues -gt 0 ]; then
+        medium_modules_found+=("SSL")
+        if [ -n "$needs_renewal" ] && [[ "$needs_renewal" =~ ^[0-9]+$ ]] && [ "$needs_renewal" -gt 0 ]; then
+            ssl_details="SSL certificates requiring attention: $needs_renewal certificate(s) expiring within 8-15 days"
+        else
+            ssl_details="SSL configuration issues detected"
+        fi
+    elif [ $current_low_issues -gt 0 ]; then
+        low_modules_found+=("SSL")
+        ssl_details="SSL certificates need monitoring: $needs_renewal certificate(s) expiring within 16-30 days"
+    else
+        ssl_details="All SSL certificates are valid and properly configured"
+    fi
+    
+    detailed_report["ssl"]="$ssl_details"
+    
+    # Add local issues to global counters
+    ((high_issues+=current_high_issues))
+    ((medium_issues+=current_medium_issues))
+    ((low_issues+=current_low_issues))
+    
+    if [ $((current_high_issues + current_medium_issues + current_low_issues)) -gt 0 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Function to check PHP-FPM status with timeout
+check_php_status() {
+    local output=()
+    output+=("${BLUE}=== PHP-FPM Status ===${NC}")
+    
+    # Detect installed PHP versions
+    local php_versions=()
+    while IFS= read -r version; do
+        if [[ "$version" =~ ^php[0-9]+\.[0-9]+$ ]]; then
+            # Extract version number (e.g., "php7.4" -> "7.4")
+            version=${version#php}
+            php_versions+=("$version")
+        fi
+    done < <(ls /etc/php/*/fpm/php-fpm.conf 2>/dev/null | grep -o 'php[0-9]\+\.[0-9]\+' | sort -u)
+    
+    # If no versions found, try alternative detection method
+    if [ ${#php_versions[@]} -eq 0 ]; then
+        while IFS= read -r version; do
+            if [[ "$version" =~ ^php[0-9]+\.[0-9]+$ ]]; then
+                version=${version#php}
+                php_versions+=("$version")
+            fi
+        done < <(ls /etc/php/*/fpm/ 2>/dev/null | grep -o 'php[0-9]\+\.[0-9]\+' | sort -u)
+    fi
+    
+    # If still no versions found, try one more method
+    if [ ${#php_versions[@]} -eq 0 ]; then
+        while IFS= read -r version; do
+            if [[ "$version" =~ ^php[0-9]+\.[0-9]+$ ]]; then
+                version=${version#php}
+                php_versions+=("$version")
+            fi
+        done < <(ls /var/log/php*-fpm.log 2>/dev/null | grep -o 'php[0-9]\+\.[0-9]\+' | sort -u)
+    fi
+    
+    if [ ${#php_versions[@]} -eq 0 ]; then
+        output+=("${YELLOW}⚠️  No PHP versions detected${NC}")
+        ((current_medium_issues++))
+        return 1
+    fi
+    
+    local current_medium_issues=0
+    local current_high_issues=0
+    local current_low_issues=0
+    
+    # Get start of current day timestamp
+    local today_start=$(date -d "$(date +%Y-%m-%d) 00:00:00" +%s)
+    
+    echo -e "Processing PHP logs... This may take a few moments."
+    local total_versions=${#php_versions[@]}
+    local current_version=0
+    
+    for version in "${php_versions[@]}"; do
+        ((current_version++))
+        show_progress $current_version $total_versions
+        output+=("${YELLOW}PHP $version:${NC}")
+        local log_file="/var/log/php${version}-fpm.log"
+        
+        if [ -f "$log_file" ]; then
+            # Get all log entries and process them
+            local log_content=$(run_with_timeout 5 "cat '$log_file' 2>/dev/null")
+            local grep_exit_code=$?
+            
+            if [ $grep_exit_code -eq 0 ] && [ -n "$log_content" ]; then
+                # Initialize counters for this PHP version
+                local max_children_count=0
+                local error_count=0
+                local warning_count=0
+                local memory_issues=0
+                local timeout_issues=0
+                local connection_issues=0
+                local zombie_processes=0
+                
+                local max_children_pools=()
+                local error_messages=()
+                local warning_messages=()
+                local memory_messages=()
+                local timeout_messages=()
+                local connection_messages=()
+                local zombie_messages=()
+                
+                # Process each line
+                while IFS= read -r line; do
+                    # Extract timestamp from line
+                    local log_date=$(echo "$line" | grep -o '^[0-9]\{2\}-[A-Za-z]\{3\}-[0-9]\{4\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}')
+                    if [ -n "$log_date" ]; then
+                        # Convert log date to timestamp
+                        local log_ts=$(date -d "$log_date" +%s 2>/dev/null)
+                        
+                        # Only process if timestamp is valid and from today
+                        if [ -n "$log_ts" ] && [ "$log_ts" -ge "$today_start" ]; then
+                            # Check for max_children issues
+                            if [[ "$line" =~ max_children[[:space:]]+setting ]]; then
+                                ((max_children_count++))
+                                # Extract pool name
+                                local pool=$(echo "$line" | grep -o '\[pool [^]]*\]' | sed 's/\[pool //;s/\]//')
+                                if [ -n "$pool" ]; then
+                                    max_children_pools+=("$pool|$log_date")
+                                fi
+                            fi
+                            
+                            # Check for memory issues
+                            if [[ "$line" =~ "Allowed memory size" ]] || [[ "$line" =~ "memory_limit" ]] || [[ "$line" =~ "Out of memory" ]]; then
+                                ((memory_issues++))
+                                memory_messages+=("$line")
+                            fi
+                            
+                            # Check for timeout issues
+                            if [[ "$line" =~ "Maximum execution time" ]] || [[ "$line" =~ "max_execution_time" ]] || [[ "$line" =~ "timeout" ]]; then
+                                ((timeout_issues++))
+                                timeout_messages+=("$line")
+                            fi
+                            
+                            # Check for connection issues
+                            if [[ "$line" =~ "Connection refused" ]] || [[ "$line" =~ "Connection timed out" ]] || [[ "$line" =~ "Connection reset" ]]; then
+                                ((connection_issues++))
+                                connection_messages+=("$line")
+                            fi
+                            
+                            # Check for zombie processes
+                            if [[ "$line" =~ "zombie" ]] || [[ "$line" =~ "defunct" ]]; then
+                                ((zombie_processes++))
+                                zombie_messages+=("$line")
+                            fi
+                            
+                            # Check for errors
+                            if [[ "$line" =~ ERROR|FATAL ]]; then
+                                ((error_count++))
+                                error_messages+=("$line")
+                            fi
+                            
+                            # Check for warnings (excluding max_children)
+                            if [[ "$line" =~ WARNING ]] && ! [[ "$line" =~ max_children[[:space:]]+setting ]]; then
+                                ((warning_count++))
+                                warning_messages+=("$line")
+                            fi
+                        fi
+                    fi
+                done <<< "$log_content"
+                
+                # Display results
+                if [ "$max_children_count" -gt 0 ] || [ "$error_count" -gt 0 ] || [ "$warning_count" -gt 0 ] || [ "$memory_issues" -gt 0 ] || [ "$timeout_issues" -gt 0 ] || [ "$connection_issues" -gt 0 ] || [ "$zombie_processes" -gt 0 ]; then
+                    if [ "$max_children_count" -gt 0 ]; then
+                        output+=("${YELLOW}⚠️  Performance issues:${NC}")
+                        # Group by pool and show last occurrence
+                        declare -A pool_last_occurrence
+                        declare -A pool_count
+                        
+                        for pool_info in "${max_children_pools[@]}"; do
+                            IFS='|' read -r pool date <<< "$pool_info"
+                            pool_last_occurrence["$pool"]="$date"
+                            ((pool_count["$pool"]++))
+                        done
+                        
+                        for pool in "${!pool_last_occurrence[@]}"; do
+                            output+=("  - Pool '$pool':")
+                            output+=("    * Reached max_children limit ${pool_count[$pool]} times")
+                            output+=("    * Last occurrence: [${pool_last_occurrence[$pool]}]")
+                        done
+                        ((current_medium_issues++))
+                    fi
+                    
+                    if [ "$memory_issues" -gt 0 ]; then
+                        output+=("${RED}⚠️  Memory issues: $memory_issues${NC}")
+                        output+=("  Last memory issues:")
+                        for ((i=${#memory_messages[@]}-1; i>=0 && i>=${#memory_messages[@]}-3; i--)); do
+                            output+=("  - ${memory_messages[$i]}")
+                        done
+                        ((current_high_issues++))
+                    fi
+                    
+                    if [ "$timeout_issues" -gt 0 ]; then
+                        output+=("${YELLOW}⚠️  Timeout issues: $timeout_issues${NC}")
+                        output+=("  Last timeout issues:")
+                        for ((i=${#timeout_messages[@]}-1; i>=0 && i>=${#timeout_messages[@]}-3; i--)); do
+                            output+=("  - ${timeout_messages[$i]}")
+                        done
+                        ((current_medium_issues++))
+                    fi
+                    
+                    if [ "$connection_issues" -gt 0 ]; then
+                        output+=("${YELLOW}⚠️  Connection issues: $connection_issues${NC}")
+                        output+=("  Last connection issues:")
+                        for ((i=${#connection_messages[@]}-1; i>=0 && i>=${#connection_messages[@]}-3; i--)); do
+                            output+=("  - ${connection_messages[$i]}")
+                        done
+                        ((current_medium_issues++))
+                    fi
+                    
+                    if [ "$zombie_processes" -gt 0 ]; then
+                        output+=("${RED}⚠️  Zombie processes detected: $zombie_processes${NC}")
+                        output+=("  Last zombie process reports:")
+                        for ((i=${#zombie_messages[@]}-1; i>=0 && i>=${#zombie_messages[@]}-3; i--)); do
+                            output+=("  - ${zombie_messages[$i]}")
+                        done
+                        ((current_high_issues++))
+                    fi
+                    
+                    if [ "$error_count" -gt 0 ]; then
+                        output+=("${RED}⚠️  Errors: $error_count${NC}")
+                        output+=("  Last errors:")
+                        for ((i=${#error_messages[@]}-1; i>=0 && i>=${#error_messages[@]}-3; i--)); do
+                            output+=("  - ${error_messages[$i]}")
+                        done
+                        ((current_high_issues++))
+                    fi
+                    
+                    if [ "$warning_count" -gt 0 ]; then
+                        output+=("${YELLOW}⚠️  Warnings: $warning_count${NC}")
+                        output+=("  Last warnings:")
+                        for ((i=${#warning_messages[@]}-1; i>=0 && i>=${#warning_messages[@]}-3; i--)); do
+                            output+=("  - ${warning_messages[$i]}")
+                        done
+                        ((current_medium_issues++))
+                    fi
+                else
+                    output+=("${GREEN}✓ No issues today${NC}")
+                fi
+            else
+                output+=("${YELLOW}⚠️  Could not read log file${NC}")
+                ((current_medium_issues++))
+            fi
+        else
+            output+=("${YELLOW}⚠️  Log file not found${NC}")
+            ((current_medium_issues++))
+        fi
+    done
+    
+    if [ $current_medium_issues -eq 0 ] && [ $current_high_issues -eq 0 ]; then
+        output+=("${GREEN}✓ All PHP versions running without issues${NC}")
+    fi
+
+    # Return the output as a string
+    printf "%b\n" "${output[@]}"
+
+    # Add local issues to global counters
+    ((high_issues+=current_high_issues))
+    ((medium_issues+=current_medium_issues))
+    ((low_issues+=current_low_issues))
+
+    # Track which modules have issues and capture detailed info for AI
+    local php_details=""
+    if [ $current_high_issues -gt 0 ]; then
+        critical_modules_found+=("PHP-FPM")
+        php_details="Critical issues found across ${#php_versions[@]} PHP version(s): Memory issues, zombie processes, or critical errors detected"
+    elif [ $current_medium_issues -gt 0 ]; then
+        medium_modules_found+=("PHP-FPM")
+        php_details="Medium issues found across ${#php_versions[@]} PHP version(s): Performance issues (max_children reached), timeout issues, or warnings detected"
+    elif [ $current_low_issues -gt 0 ]; then
+        low_modules_found+=("PHP-FPM")
+        php_details="Low issues found across ${#php_versions[@]} PHP version(s): Minor warnings or connection issues"
+    else
+        php_details="No issues found across ${#php_versions[@]} PHP version(s): $(printf '%s ' "${php_versions[@]}")"
+    fi
+    
+    detailed_report["php"]="$php_details"
+
+    if [ $((current_high_issues + current_medium_issues + current_low_issues)) -gt 0 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Function to check MySQL status with timeout
+check_mysql_status() {
+    local output=()
+    output+=("${BLUE}=== MySQL Status ===${NC}")
+    
+    local current_high_issues=0
+    local current_medium_issues=0
+    local current_low_issues=0
+
+    # Error Log
+    output+=("${YELLOW}Error Log:${NC}")
+    if [ -f "/var/log/mysql/error.log" ]; then
+        # Get start of current day timestamp
+        local today_start=$(date -d "$(date +%Y-%m-%d) 00:00:00" +%s)
+        
+        # Get all log entries and process them, removing null bytes
+        local log_content=$(run_with_timeout 5 "cat '/var/log/mysql/error.log' 2>/dev/null | tr -d '\0'")
+        
+        if [ -n "$log_content" ]; then
+            # Initialize counters and arrays
+            local crashed_tables=()
+            local timeout_dbs=()
+            local access_denied_errors=()
+            local connection_errors=()
+            
+            # Count total lines for progress bar
+            local total_lines=$(echo "$log_content" | wc -l)
+            echo -e "Processing MySQL log... Found $total_lines lines to analyze."
+            local current_line=0
+            
+            # Process each line
+            while IFS= read -r line; do
+                ((current_line++))
+                if [ $((current_line % 100)) -eq 0 ] || [ $current_line -eq $total_lines ]; then
+                    show_progress $current_line $total_lines
+                fi
+                
+                # Remove any remaining null bytes from the line
+                line=$(echo "$line" | tr -d '\0')
+                
+                # Extract timestamp from line (MySQL format: YYYY-MM-DD HH:MM:SS)
+                local log_date=$(echo "$line" | grep -o '^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}')
+                if [ -n "$log_date" ]; then
+                    # Convert log date to timestamp
+                    local log_ts=$(date -d "$log_date" +%s 2>/dev/null)
+                    
+                    # Only process if timestamp is valid and from today
+                    if [ -n "$log_ts" ] && [ "$log_ts" -ge "$today_start" ]; then
+                        # Check for table crashes
+                        if [[ "$line" =~ Table.*is[[:space:]]+marked[[:space:]]+as[[:space:]]+crashed ]]; then
+                            local table=""
+                            local db=""
+                            
+                            # Try to extract table name and database from different formats
+                            if [[ "$line" =~ Table[[:space:]]+\'\./([^/]+)/([^\']+)\' ]]; then
+                                # Format: Table './database/table'
+                                db="${BASH_REMATCH[1]}"
+                                table="${BASH_REMATCH[2]}"
+                            elif [[ "$line" =~ Table[[:space:]]+\'([^\']+)\' ]]; then
+                                # Format: Table 'table'
+                                table="${BASH_REMATCH[1]}"
+                                # Try to extract database from the table name if it contains a prefix
+                                if [[ "$table" =~ ^([a-zA-Z0-9_]+)_ ]]; then
+                                    db="${BASH_REMATCH[1]}"
+                                fi
+                            fi
+                            
+                            if [ -n "$table" ]; then
+                                crashed_tables+=("$table|$db|$log_date")
+                            fi
+                        fi
+                        
+                        # Check for connection timeouts and aborted connections
+                        if [[ "$line" =~ Aborted[[:space:]]+connection.*Got[[:space:]]+timeout[[:space:]]+reading[[:space:]]+communication[[:space:]]+packets ]] || \
+                           [[ "$line" =~ Aborted[[:space:]]+connection.*Got[[:space:]]+an[[:space:]]+error[[:space:]]+reading[[:space:]]+communication[[:space:]]+packets ]]; then
+                            local db=$(echo "$line" | grep -o "db: '[^']*'" | sed "s/db: '//;s/'//")
+                            local user=$(echo "$line" | grep -o "user: '[^']*'" | sed "s/user: '//;s/'//")
+                            if [ -n "$db" ] && [ -n "$user" ]; then
+                                timeout_dbs+=("$db|$user|$log_date")
+                            fi
+                        fi
+                        
+                        # Check for access denied errors
+                        if [[ "$line" =~ Access[[:space:]]+denied ]]; then
+                            local user=$(echo "$line" | grep -o "user '[^']*'" | sed "s/user '//;s/'//")
+                            if [ -n "$user" ]; then
+                                access_denied_errors+=("$user|$log_date")
+                            fi
+                        fi
+                        
+                        # Check for general connection errors
+                        if [[ "$line" =~ "Connection refused" ]] || [[ "$line" =~ "Connection timed out" ]] || [[ "$line" =~ "Connection reset" ]]; then
+                            connection_errors+=("$line|$log_date")
+                        fi
+                    fi
+                fi
+            done <<< "$log_content"
+            echo -e "\n" # Add newline after progress bar
+            
+            # Process and display crashed tables
+            if [ ${#crashed_tables[@]} -gt 0 ]; then
+                output+=("\n${RED}⚠️  Crashed Tables Found:${NC}")
+                # Group by table name
+                declare -A table_crashes
+                declare -A table_last_crash
+                declare -A table_db
+                
+                for table_info in "${crashed_tables[@]}"; do
+                    IFS='|' read -r table db date <<< "$table_info"
+                    ((table_crashes[$table]++))
+                    table_last_crash[$table]="$date"
+                    table_db[$table]="$db"
+                done
+                
+                for table in "${!table_crashes[@]}"; do
+                    output+=("  - Table '$table':")
+                    if [ -n "${table_db[$table]}" ]; then
+                        output+=("    * Database: ${table_db[$table]}")
+                    fi
+                    output+=("    * Crash count: ${table_crashes[$table]}")
+                    output+=("    * Last crash: ${table_last_crash[$table]}")
+                    output+=("    * Recommended actions:")
+                    if [ -n "${table_db[$table]}" ]; then
+                        output+=("      1. Connect to MySQL: mysql -u root -p")
+                        output+=("      2. Select database: USE ${table_db[$table]};")
+                        output+=("      3. Repair table: REPAIR TABLE \`$table\`;")
+                        output+=("      4. Check table: CHECK TABLE \`$table\`;")
+                        output+=("      5. Optimize table: OPTIMIZE TABLE \`$table\`;")
+                    else
+                        output+=("      1. Connect to MySQL: mysql -u root -p")
+                        output+=("      2. Find the database containing this table:")
+                        output+=("         SELECT TABLE_SCHEMA FROM information_schema.TABLES WHERE TABLE_NAME = '$table';")
+                        output+=("      3. Select the database: USE <database_name>;")
+                        output+=("      4. Repair table: REPAIR TABLE \`$table\`;")
+                        output+=("      5. Check table: CHECK TABLE \`$table\`;")
+                        output+=("      6. Optimize table: OPTIMIZE TABLE \`$table\`;")
+                    fi
+                done
+                ((current_high_issues++))
+            fi
+            
+            # Process and display connection timeouts
+            if [ ${#timeout_dbs[@]} -gt 0 ]; then
+                output+=("\n${YELLOW}⚠️  Connection Timeouts:${NC}")
+                # Group by database and user
+                declare -A db_timeouts
+                declare -A db_last_timeout
+                declare -A db_user_timeouts
+                
+                for db_info in "${timeout_dbs[@]}"; do
+                    IFS='|' read -r db user date <<< "$db_info"
+                    local key="$db|$user"
+                    ((db_timeouts[$db]++))
+                    ((db_user_timeouts[$key]++))
+                    db_last_timeout[$key]="$date"
+                done
+                
+                # First show database totals
+                output+=("  Database Totals:")
+                for db in "${!db_timeouts[@]}"; do
+                    output+=("  - Database '$db':")
+                    output+=("    * Total timeouts: ${db_timeouts[$db]}")
+                    
+                    # Add severity based on number of timeouts per database
+                    if [ "${db_timeouts[$db]}" -gt 100 ]; then
+                        output+=("    * ${RED}Severity: Critical (High number of timeouts)${NC}")
+                        ((current_high_issues++))
+                    elif [ "${db_timeouts[$db]}" -gt 10 ]; then
+                        output+=("    * ${YELLOW}Severity: Medium (Multiple timeouts)${NC}")
+                        ((current_medium_issues++))
+                    else
+                        output+=("    * ${GREEN}Severity: Low (Few timeouts)${NC}")
+                        ((current_low_issues++))
+                    fi
+                done
+                
+                # Then show detailed user breakdown
+                output+=("\n  User Breakdown:")
+                for key in "${!db_user_timeouts[@]}"; do
+                    IFS='|' read -r db user <<< "$key"
+                    output+=("  - Database '$db' (User: '$user'):")
+                    output+=("    * Timeout count: ${db_user_timeouts[$key]}")
+                    output+=("    * Last timeout: ${db_last_timeout[$key]}")
+                done
+            fi
+            
+            # Process and display access denied errors
+            if [ ${#access_denied_errors[@]} -gt 0 ]; then
+                output+=("\n${YELLOW}⚠️  Access Denied Errors:${NC}")
+                # Group by user and database
+                declare -A user_denials
+                declare -A user_last_denial
+                declare -A db_user_denials
+                
+                for user_info in "${access_denied_errors[@]}"; do
+                    IFS='|' read -r user date <<< "$user_info"
+                    # Extract database from user if available (format: user@database)
+                    local db=""
+                    if [[ "$user" =~ @ ]]; then
+                        db=$(echo "$user" | cut -d'@' -f2)
+                        user=$(echo "$user" | cut -d'@' -f1)
+                    fi
+                    
+                    if [ -n "$db" ]; then
+                        local key="$db|$user"
+                        ((db_user_denials[$key]++))
+                    fi
+                    ((user_denials[$user]++))
+                    user_last_denial[$user]="$date"
+                done
+                
+                # First show user totals
+                output+=("  User Totals:")
+                for user in "${!user_denials[@]}"; do
+                    output+=("  - User '$user':")
+                    output+=("    * Total denials: ${user_denials[$user]}")
+                    output+=("    * Last denial: ${user_last_denial[$user]}")
+                    
+                    # Add severity based on number of denials per user
+                    if [ "${user_denials[$user]}" -gt 50 ]; then
+                        output+=("    * ${RED}Severity: Critical (High number of attempts)${NC}")
+                        ((current_high_issues++))
+                    elif [ "${user_denials[$user]}" -gt 10 ]; then
+                        output+=("    * ${YELLOW}Severity: Medium (Multiple attempts)${NC}")
+                        ((current_medium_issues++))
+                    else
+                        output+=("    * ${GREEN}Severity: Low (Few attempts)${NC}")
+                        ((current_low_issues++))
+                    fi
+                done
+                
+                # Then show database-specific breakdown if available
+                if [ ${#db_user_denials[@]} -gt 0 ]; then
+                    output+=("\n  Database-Specific Breakdown:")
+                    for key in "${!db_user_denials[@]}"; do
+                        IFS='|' read -r db user <<< "$key"
+                        output+=("  - Database '$db' (User: '$user'):")
+                        output+=("    * Denial count: ${db_user_denials[$key]}")
+                    done
+                fi
+            fi
+            
+            # Process and display general connection errors
+            if [ ${#connection_errors[@]} -gt 0 ]; then
+                output+=("\n${YELLOW}⚠️  General Connection Errors:${NC}")
+                # Show last 5 connection errors
+                for ((i=${#connection_errors[@]}-1; i>=0 && i>=${#connection_errors[@]}-5; i--)); do
+                    IFS='|' read -r error date <<< "${connection_errors[$i]}"
+                    output+=("  - [$date] $error")
+                done
+                ((current_medium_issues++))
+            fi
+            
+            # If no errors found
+            if [ ${#crashed_tables[@]} -eq 0 ] && [ ${#timeout_dbs[@]} -eq 0 ] && [ ${#access_denied_errors[@]} -eq 0 ] && [ ${#connection_errors[@]} -eq 0 ]; then
+                output+=("${GREEN}✓ No recent errors${NC}")
+            fi
+        else
+            output+=("${GREEN}✓ No errors found today${NC}")
+        fi
+    else
+        output+=("${RED}⚠️  Log file not found${NC}")
+        ((current_medium_issues++))
+    fi
+    
+    # Service Status
+    output+=("\n${YELLOW}Service Status:${NC}")
+    if run_with_timeout 5 "systemctl is-active --quiet mariadb"; then
+        output+=("${GREEN}✓ Service is running${NC}")
+    else
+        output+=("${RED}⚠️  Service is not running${NC}")
+        ((current_high_issues++))
+    fi
+
+    # Print all output at once
+    printf "%b\n" "${output[@]}"
+
+    # Add local issues to global counters
+    ((high_issues+=current_high_issues))
+    ((medium_issues+=current_medium_issues))
+    ((low_issues+=current_low_issues))
+
+    # Track which modules have issues and capture detailed info for AI
+    local mysql_details=""
+    if [ $current_high_issues -gt 0 ]; then
+        critical_modules_found+=("MySQL")
+        mysql_details="Critical issues found: "
+        if [ ${#crashed_tables[@]} -gt 0 ]; then
+            mysql_details+="${#crashed_tables[@]} crashed tables, "
+        fi
+        mysql_details+="Service status: $(systemctl is-active mariadb 2>/dev/null || echo 'inactive')"
+    elif [ $current_medium_issues -gt 0 ]; then
+        medium_modules_found+=("MySQL")
+        mysql_details="Medium issues found: "
+        if [ ${#timeout_dbs[@]} -gt 0 ]; then
+            # Count unique databases with timeouts
+            local unique_dbs=()
+            for db_info in "${timeout_dbs[@]}"; do
+                IFS='|' read -r db user date <<< "$db_info"
+                if [[ ! " ${unique_dbs[@]} " =~ " ${db} " ]]; then
+                    unique_dbs+=("$db")
+                fi
+            done
+            mysql_details+="${#timeout_dbs[@]} connection timeouts affecting ${#unique_dbs[@]} database(s), "
+        fi
+        if [ ${#access_denied_errors[@]} -gt 0 ]; then
+            mysql_details+="${#access_denied_errors[@]} access denied errors, "
+        fi
+        mysql_details+="Service status: $(systemctl is-active mariadb 2>/dev/null || echo 'inactive')"
+    elif [ $current_low_issues -gt 0 ]; then
+        low_modules_found+=("MySQL")
+        mysql_details="Low issues found: Minor connection problems, Service status: $(systemctl is-active mariadb 2>/dev/null || echo 'inactive')"
+    else
+        mysql_details="No issues found, Service status: $(systemctl is-active mariadb 2>/dev/null || echo 'inactive')"
+    fi
+    
+    detailed_report["mysql"]="$mysql_details"
+
+    if [ $((current_high_issues + current_medium_issues + current_low_issues)) -gt 0 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Function to check ClamAV status with timeout
+check_clamav_status() {
+    local output=()
+    output+=("${BLUE}=== ClamAV Status ===${NC}")
+    
+    local current_high_issues=0
+    local current_medium_issues=0
+    local current_low_issues=0
+    
+    # Get start of current day timestamp
+    local today_start=$(date -d "$(date +%Y-%m-%d) 00:00:00" +%s)
+    
+    # Get today's date in the format used in logs (YYYY-MM-DD)
+    local today=$(date "+%Y-%m-%d")
+    
+    echo -e "Processing ClamAV logs... This may take a few moments."
+    
+    # Service Status
+    local clamav_running=false
+    local freshclam_running=false
+    
+    if run_with_timeout 5 "systemctl is-active --quiet clamav-daemon"; then
+        clamav_running=true
+    else
+        ((current_high_issues++))
+    fi
+    
+    if run_with_timeout 5 "systemctl is-active --quiet clamav-freshclam"; then
+        freshclam_running=true
+    else
+        ((current_high_issues++))
+    fi
+    
+    # Scan Results
+    local last_scan=""
+    local scans=0
+    local infections=0
+    local resolved_infections=0
+    local unresolved_infections=0
+    local infection_details=()
+    
+    if [ -f "/var/log/clamav/clamav.log" ]; then
+        # Get all log entries and process them
+        local log_content=$(run_with_timeout 5 "cat '/var/log/clamav/clamav.log' 2>/dev/null | tr -d '\0'")
+        
+        if [ -n "$log_content" ]; then
+            # Count total lines for progress bar
+            local total_lines=$(echo "$log_content" | wc -l)
+            echo -e "Found $total_lines lines to analyze in ClamAV log."
+            local current_line=0
+            
+            # Process each line
+            while IFS= read -r line; do
+                ((current_line++))
+                if [ $((current_line % 100)) -eq 0 ] || [ $current_line -eq $total_lines ]; then
+                    show_progress $current_line $total_lines
+                fi
+                
+                # Extract timestamp from line
+                local log_date=$(echo "$line" | grep -o '^[A-Za-z]\{3\} [A-Za-z]\{3\} [0-9]\{1,2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\} [0-9]\{4\}' 2>/dev/null)
+                if [ -n "$log_date" ]; then
+                    # Convert log date to timestamp
+                    local log_ts=$(date -d "$log_date" +%s 2>/dev/null)
+                    
+                    # Only process if timestamp is valid and from today
+                    if [ -n "$log_ts" ] && [ "$log_ts" -ge "$today_start" ]; then
+                        if [[ "$line" =~ scan ]]; then
+                            ((scans++))
+                            last_scan="$log_date"
+                        fi
+                        
+                        # Check for actual malware infections, excluding normal system messages
+                        if [[ "$line" =~ (found|suspicious|infected|malware|virus) ]] && 
+                           ! [[ "$line" =~ (Database.*(modification|status)|SelfCheck|Reading.databases|Database.correctly.reloaded|Activating.the.newly.loaded.database) ]]; then
+                            ((infections++))
+                            infection_details+=("$line")
+                            
+                            # Check if infection was resolved (removed, moved, quarantined)
+                            if [[ "$line" =~ removed|moved|quarantined|cleaned|deleted ]]; then
+                                ((resolved_infections++))
+                            else
+                                ((unresolved_infections++))
+                            fi
+                        fi
+                    fi
+                fi
+            done <<< "$log_content"
+        fi
+    else
+        ((current_medium_issues++))
+    fi
+    
+    # Database Updates and Status Verification
+    local updates=0
+    local database_reloads=0
+    local database_errors=0
+    local last_database_status=""
+    local database_age_days=0
+    local quarantine_files=0
+    local scan_performance_issues=0
+    
+    # Check freshclam.log for updates
+    if [ -f "/var/log/clamav/freshclam.log" ]; then
+        local log_content=$(run_with_timeout 5 "cat '/var/log/clamav/freshclam.log' 2>/dev/null | tr -d '\0'")
+        
+        if [ -n "$log_content" ]; then
+            # Process each line
+            while IFS= read -r line; do
+                # Extract timestamp from line
+                local log_date=$(echo "$line" | grep -o '^[A-Za-z]\{3\} [A-Za-z]\{3\} [0-9]\{1,2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\} [0-9]\{4\}' 2>/dev/null)
+                if [ -n "$log_date" ]; then
+                    # Convert log date to timestamp
+                    local log_ts=$(date -d "$log_date" +%s 2>/dev/null)
+                    
+                    # Only process if timestamp is valid and from today
+                    if [ -n "$log_ts" ] && [ "$log_ts" -ge "$today_start" ]; then
+                        if [[ "$line" =~ database.*updated|database.*available[[:space:]]+for[[:space:]]+update ]]; then
+                            ((updates++))
+                        fi
+                    fi
+                fi
+            done <<< "$log_content"
+        fi
+    else
+            ((current_medium_issues++))
+        fi
+    
+    # Check clamav.log for database status and reload operations
+    if [ -f "/var/log/clamav/clamav.log" ]; then
+        local clamav_log_content=$(run_with_timeout 5 "cat '/var/log/clamav/clamav.log' 2>/dev/null | tr -d '\0'")
+        
+        if [ -n "$clamav_log_content" ]; then
+            # Process each line for database status
+            while IFS= read -r line; do
+                # Extract timestamp from line
+                local log_date=$(echo "$line" | grep -o '^[A-Za-z]\{3\} [A-Za-z]\{3\} [0-9]\{1,2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\} [0-9]\{4\}' 2>/dev/null)
+                if [ -n "$log_date" ]; then
+                    # Convert log date to timestamp
+                    local log_ts=$(date -d "$log_date" +%s 2>/dev/null)
+                    
+                    # Only process if timestamp is valid and from today
+                    if [ -n "$log_ts" ] && [ "$log_ts" -ge "$today_start" ]; then
+                        # Check for database modification and reload
+                        if [[ "$line" =~ Database.modification.detected ]]; then
+                            ((database_reloads++))
+                        fi
+                        
+                        # Check for successful database reload
+                        if [[ "$line" =~ Database.correctly.reloaded ]]; then
+                            last_database_status="reloaded successfully"
+                        fi
+                        
+                        # Check for database status OK
+                        if [[ "$line" =~ Database.status.OK ]]; then
+                            last_database_status="status OK"
+                        fi
+                        
+                        # Check for database errors
+                        if [[ "$line" =~ (database.*error|database.*failed|database.*corrupt) ]]; then
+                            ((database_errors++))
+                            last_database_status="error detected"
+                        fi
+                    fi
+                fi
+            done <<< "$clamav_log_content"
+        fi
+    fi
+    
+    # Check database age and quarantine
+    if [ -f "/var/lib/clamav/daily.cvd" ] || [ -f "/var/lib/clamav/daily.cld" ]; then
+        local db_file="/var/lib/clamav/daily.cvd"
+        [ -f "/var/lib/clamav/daily.cld" ] && db_file="/var/lib/clamav/daily.cld"
+        
+        local db_timestamp=$(stat -c %Y "$db_file" 2>/dev/null)
+        if [ -n "$db_timestamp" ] && [[ "$db_timestamp" =~ ^[0-9]+$ ]]; then
+            local current_timestamp=$(date +%s)
+            database_age_days=$(( (current_timestamp - db_timestamp) / 86400 ))
+        else
+            database_age_days=0
+        fi
+    else
+        database_age_days=0
+    fi
+    
+    # Check quarantine directory
+    if [ -d "/var/lib/clamav/quarantine" ]; then
+        quarantine_files=$(find /var/lib/clamav/quarantine -type f 2>/dev/null | wc -l)
+    elif [ -d "/tmp/clamav-quarantine" ]; then
+        quarantine_files=$(find /tmp/clamav-quarantine -type f 2>/dev/null | wc -l)
+    fi
+    
+    # Check for slow scan performance (if scans took unusually long)
+    if [ "$scans" -gt 0 ] && [ -f "/var/log/clamav/clamav.log" ]; then
+        local slow_scans=$(grep -c "scan.*took.*[0-9]\{3,\}\.[0-9].*seconds" /var/log/clamav/clamav.log 2>/dev/null || echo 0)
+        if [ "$slow_scans" -gt 5 ]; then
+            scan_performance_issues=1
+        fi
+    fi
+    
+    # Evaluate database health
+    if [ "$database_errors" -gt 0 ]; then
+        ((current_high_issues++))  # Database corruption is critical
+    elif [ -n "$database_age_days" ] && [[ "$database_age_days" =~ ^[0-9]+$ ]] && [ "$database_age_days" -gt 7 ]; then
+        ((current_medium_issues++))  # Database older than 7 days
+    elif [ "$updates" -eq 0 ] && [ "$database_reloads" -eq 0 ] && [ -n "$database_age_days" ] && [[ "$database_age_days" =~ ^[0-9]+$ ]] && [ "$database_age_days" -gt 1 ]; then
+        ((current_medium_issues++))  # No updates or activity today and database is old
+    fi
+    
+    # Performance and quarantine issues
+    if [ "$scan_performance_issues" -eq 1 ]; then
+        ((current_low_issues++))  # Performance issues are low priority
+    fi
+    
+    # Display organized status
+    if $clamav_running; then
+        output+=("${GREEN}✓ ClamAV running${NC}")
+    else
+        output+=("${RED}⚠️  ClamAV not running${NC}")
+    fi
+    
+    if $freshclam_running; then
+        output+=("${GREEN}✓ FreshClam running${NC}")
+    else
+        output+=("${RED}⚠️  FreshClam not running${NC}")
+    fi
+    
+    # Database status display
+    if [ "$database_errors" -gt 0 ]; then
+        output+=("${RED}⚠️  Database errors detected: $database_errors${NC}")
+    elif [ -n "$database_age_days" ] && [[ "$database_age_days" =~ ^[0-9]+$ ]] && [ "$database_age_days" -gt 7 ]; then
+        output+=("${RED}⚠️  Database is $database_age_days days old (outdated)${NC}")
+    elif [ "$updates" -gt 0 ]; then
+        output+=("${GREEN}✓ FreshClam Updates today: $updates${NC}")
+    elif [ "$database_reloads" -gt 0 ]; then
+        output+=("${GREEN}✓ Database reloads today: $database_reloads${NC}")
+        if [ -n "$last_database_status" ]; then
+            output+=("${GREEN}✓ Last database status: $last_database_status${NC}")
+        fi
+    else
+        if [ -n "$database_age_days" ] && [[ "$database_age_days" =~ ^[0-9]+$ ]] && [ "$database_age_days" -gt 1 ]; then
+            output+=("${YELLOW}⚠️  No updates today (database is $database_age_days days old)${NC}")
+        else
+            output+=("${GREEN}✓ Database is current (updated today)${NC}")
+        fi
+    fi
+    
+    # Additional status information
+    if [ -n "$database_age_days" ] && [[ "$database_age_days" =~ ^[0-9]+$ ]] && [ "$database_age_days" -gt 0 ] && [ "$database_age_days" -le 7 ]; then
+        output+=("${GREEN}✓ Database age: $database_age_days days${NC}")
+    fi
+    
+    if [ "$quarantine_files" -gt 0 ]; then
+        output+=("${YELLOW}ℹ️  Files in quarantine: $quarantine_files${NC}")
+    fi
+    
+    if [ "$scan_performance_issues" -eq 1 ]; then
+        output+=("${YELLOW}⚠️  Performance: Some scans took longer than expected${NC}")
+    fi
+    
+    # Determine issue severity based on infection status
+    if [ "$unresolved_infections" -gt 0 ]; then
+        ((current_high_issues++))  # Unresolved infections are CRITICAL
+    elif [ "$resolved_infections" -gt 0 ]; then
+        ((current_low_issues++))   # Resolved infections are LOW (system working)
+    fi
+    
+    if [ "$infections" -gt 0 ] 2>/dev/null; then
+        if [ "$unresolved_infections" -gt 0 ]; then
+            output+=("${RED}⚠️  CRITICAL: $unresolved_infections unresolved infections detected today!${NC}")
+            if [ "$resolved_infections" -gt 0 ]; then
+                output+=("${YELLOW}ℹ️  Additionally: $resolved_infections infections were successfully resolved${NC}")
+            fi
+        else
+            output+=("${YELLOW}⚠️  Infections detected and resolved today: $infections${NC}")
+        fi
+        
+        output+=("${YELLOW}Recent detections:${NC}")
+        
+        # Show last 3 infection details
+        if [ ${#infection_details[@]} -gt 0 ]; then
+            local count=0
+            local total=${#infection_details[@]}
+            local start_index=$((total > 3 ? total - 3 : 0))
+            
+            for ((i=start_index; i<total && count<3; i++)); do
+                local detail="${infection_details[$i]}"
+                if [ -n "$detail" ]; then
+                    # Color code based on resolution status
+                    if [[ "$detail" =~ removed|moved|quarantined|cleaned|deleted ]]; then
+                        output+=("  ${GREEN}✓ $detail${NC}")
+                    else
+                        output+=("  ${RED}⚠️  $detail${NC}")
+                    fi
+                    ((count++))
+                fi
+            done
+        else
+            output+=("  - No detailed infection information available")
+        fi
+    else
+        if [ -n "$last_scan" ]; then
+            output+=("${GREEN}✓ No infections detected (Last scan: $last_scan)${NC}")
+        else
+            output+=("${GREEN}✓ No infections detected${NC}")
+        fi
+        output+=("${GREEN}✓ Total scans today: $scans${NC}")
+    fi
+    
+    # Print all output at once
+    printf "%b\n" "${output[@]}"
+
+    # Add local issues to global counters
+    ((high_issues+=current_high_issues))
+    ((medium_issues+=current_medium_issues))
+    ((low_issues+=current_low_issues))
+
+    # Track which modules have issues and capture detailed info for AI
+    local clamav_details=""
+    if [ $current_high_issues -gt 0 ]; then
+        critical_modules_found+=("ClamAV")
+        if [ "$unresolved_infections" -gt 0 ]; then
+            clamav_details="Critical: $unresolved_infections unresolved malware infections detected today - Immediate action required"
+        elif [ "$database_errors" -gt 0 ]; then
+            clamav_details="Critical: $database_errors database errors detected - Antivirus database corrupted or failed to load"
+        else
+            clamav_details="Critical: ClamAV or FreshClam services not running - Antivirus protection disabled"
+        fi
+    elif [ $current_medium_issues -gt 0 ]; then
+        medium_modules_found+=("ClamAV")
+        if [ -n "$database_age_days" ] && [[ "$database_age_days" =~ ^[0-9]+$ ]] && [ "$database_age_days" -gt 7 ]; then
+            clamav_details="Medium issues: Database is $database_age_days days old - Antivirus signatures outdated"
+        else
+            clamav_details="Medium issues: No database updates or activity today - Database may be outdated ($database_age_days days old)"
+        fi
+    elif [ $current_low_issues -gt 0 ]; then
+        low_modules_found+=("ClamAV")
+        if [ "$resolved_infections" -gt 0 ]; then
+            clamav_details="Low: $resolved_infections malware infections detected and successfully resolved today - System working properly"
+        elif [ "$scan_performance_issues" -eq 1 ]; then
+            clamav_details="Low: Performance issues detected - Some scans taking longer than expected"
+        else
+            clamav_details="Low issues: Minor ClamAV configuration or log issues"
+        fi
+    else
+        local db_activity=""
+        if [ "$updates" -gt 0 ]; then
+            db_activity="$updates database updates"
+        elif [ "$database_reloads" -gt 0 ]; then
+            db_activity="$database_reloads database reloads ($last_database_status)"
+        else
+            db_activity="database status stable"
+        fi
+        
+        local additional_info=""
+        if [ -n "$database_age_days" ] && [[ "$database_age_days" =~ ^[0-9]+$ ]] && [ "$database_age_days" -gt 0 ]; then
+            additional_info=", database age: $database_age_days days"
+        fi
+        if [ "$quarantine_files" -gt 0 ]; then
+            additional_info="$additional_info, quarantine: $quarantine_files files"
+        fi
+        
+        clamav_details="ClamAV functioning normally: $scans scans performed today, $db_activity$additional_info, no infections detected"
+    fi
+    
+    detailed_report["clamav"]="$clamav_details"
+
+    if [ $((current_high_issues + current_medium_issues + current_low_issues)) -gt 0 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Function to check backup status
+check_backup_status() {
+    local backup_log="/usr/local/vesta/log/backup_summary.log"
+    local has_issues=0
+    local backup_status=""
+    
+    echo -e "Processing backup logs... This may take a few moments."
+    
+    if [ -f "$backup_log" ]; then
+        local log_content=$(run_with_timeout 10 "tail -n 50 '$backup_log' 2>/dev/null | tr -d '\0'")
+        local tail_exit_code=$?
+        
+        if [ $tail_exit_code -ne 0 ]; then
+            backup_status="${RED}⚠️  Failed to read backup log ($tail_exit_code)${NC}"
+            ((high_issues++))
+            return 1
+        fi
+
+        local last_summary_date=""
+        local overall_status=""
+        local failed_backups_section=0
+        local individual_failures_found=0
+        local failure_reason=""
+
+        local reversed_content=$(echo "$log_content" | tac)
+
+        while IFS= read -r line; do
+            if [[ "$line" =~ Backup[[:space:]]+Summary[[:space:]]+-[[:space:]]+(.*) ]]; then
+                local date_str=$(echo "$line" | sed -E 's/.*-[[:space:]]+(.*)/\1/')
+                local reformatted_date=$(echo "$date_str" | awk '{ print $2 " " $3 ", " $NF " " $4 " " $5 }')
+                last_summary_date=$(date -d "$reformatted_date" "+%Y-%m-%d %H:%M:%S" 2>/dev/null)
+                break
+            fi
+        done <<< "$reversed_content"
+        
+        # Initialize processing_failed_section
+        local processing_failed_section=0
+        
+        while IFS= read -r line; do
+            if [[ "$line" =~ Overall[[:space:]]+Status:[[:space:]]+(SUCCESS|FAILED) ]]; then
+                overall_status=$(echo "$line" | sed -E 's/.*Status:[[:space:]]+(SUCCESS|FAILED)/\1/')
+                continue
+            fi
+
+            if [[ "$line" =~ Failed[[:space:]]+Backups: ]]; then
+                processing_failed_section=1
+                continue
+            fi
+
+            if [ $processing_failed_section -eq 1 ]; then
+                if [[ -z "$line" ]] || [[ "$line" =~ Summary[[:space:]]+-[[:space:]]+.* ]]; then
+                    processing_failed_section=0
+                    break
+                fi
+                if [[ "$line" =~ ^-[[:space:]]+([^[:space:]].*)$ ]] && ! [[ "$line" =~ ^-[[:space:]]+None$ ]]; then
+                    individual_failures_found=1
+                    failure_reason=$(echo "$line" | sed 's/^-[[:space:]]*//')
+                    break
+                fi
+            fi
+        done <<< "$log_content"
+    else
+        backup_status="${RED}⚠️  Backup log file not found: $backup_log${NC}"
+        ((high_issues++))
+        return 1
+    fi
+    
+    if [ -z "$last_summary_date" ]; then
+        backup_status="${YELLOW}⚠️  Could not find last backup summary date in log${NC}"
+        ((has_issues++))
+    else
+        local summary_ts=$(date -d "$last_summary_date" +%s 2>/dev/null)
+        local current_ts=$(date +%s)
+        local days_since_summary=$(( (current_ts - summary_ts) / 86400 ))
+
+        if [ -z "$overall_status" ]; then
+            backup_status="${YELLOW}⚠️  Could not find overall backup status in log. Last summary date: $last_summary_date${NC}"
+            ((has_issues++))
+        elif [ "$overall_status" = "SUCCESS" ]; then
+            if [ $individual_failures_found -eq 1 ]; then
+                backup_status="${YELLOW}⚠️  Last backup summary: $last_summary_date (SUCCESS with failures: $failure_reason)${NC}"
+                ((medium_issues++))
+            else
+                backup_status="${GREEN}✓ Last backup summary: $last_summary_date (SUCCESS)${NC}"
+            fi
+
+            if [ $days_since_summary -gt 7 ]; then
+                backup_status="${YELLOW}⚠️  Warning: Last successful backup summary was $days_since_summary days ago${NC}"
+                ((low_issues++))
+                low_modules_found+=("Backup")
+            fi
+        else
+            backup_status="${RED}⚠️  Last backup summary: $last_summary_date (FAILED: $failure_reason)${NC}"
+            ((high_issues++))
+        fi
+    fi
+    
+    echo "$backup_status"
+    return $has_issues
+}
+
+# Initialize global variables for MyVestacpPanel
+declare -g myvesta_attempts=0
+declare -g myvesta_failed=0
+declare -g myvesta_bans=0
+
+# Function to check for failed login attempts in nginx logs
+check_failed_logins() {
+    local nginx_log="/var/log/vesta/nginx-access.log"
+    local auth_log="/usr/local/vesta/log/auth.log"  # Caminho correto do auth.log do Vesta
+    local fail2ban_log="/var/log/fail2ban.log"
+    local total_attempts=0
+    local failed_attempts=0
+    local failed_ips=0
+    local banned_ips=0
+    
+    # Get today's date in the format used in logs (YYYY-MM-DD)
+    local today=$(date "+%Y-%m-%d")
+    
+    # Initialize MyVestacpPanel counters
+    service_attempts["MyVestacpPanel"]=0
+    service_bans["MyVestacpPanel"]=0
+    service_unbans["MyVestacpPanel"]=0
+    
+    # Check auth log for today's attempts
+    if [ -f "$auth_log" ]; then
+        # Get all login attempts for today with increased timeout
+        local auth_content=$(run_with_timeout 10 "cat '$auth_log' 2>/dev/null")
+        if [ $? -eq 0 ] && [ -n "$auth_content" ]; then
+            # Count all login attempts (successful and failed)
+            local total_attempts=$(echo "$auth_content" | grep -a "^$today.*\(successfully logged in\|failed to logged in\|failed to login\)" | wc -l)
+            
+            # Count only failed attempts - Fix: Include both "failed to login" and "failed to logged in"
+            local failed_attempts=$(echo "$auth_content" | grep -a "^$today.*\(failed to logged in\|failed to login\)" | wc -l)
+            
+            # Extract IPs that failed login today - Fix: Get IP from the correct position
+            local failed_ips=$(echo "$auth_content" | grep -a "^$today.*\(failed to logged in\|failed to login\)" | awk '{print $4}' | sort -u)
+            local unique_failed_ips=$(echo "$failed_ips" | wc -l)
+
+            # Check which of these failed IPs were actually banned today in fail2ban.log
+            if [ -f "$fail2ban_log" ] && [ -n "$failed_ips" ]; then
+                # Get today's date in the format used in fail2ban.log
+                local today=$(date "+%Y-%m-%d")
+                
+                # First, get all bans from today
+                local bans=$(run_with_timeout 10 "grep -a '^$today.*Ban' '$fail2ban_log'")
+                if [ $? -eq 0 ] && [ -n "$bans" ]; then
+                    # Count total bans found
+                    local total_bans=$(echo "$bans" | wc -l)
+                    
+                    # Now check which of the IPs that failed in auth.log were banned
+                    while IFS= read -r ip; do
+                        if [ -n "$ip" ]; then
+                            if echo "$bans" | grep -q "Ban $ip"; then
+                                ((banned_ips++))
+                            fi
+                        fi
+                    done <<< "$failed_ips"
+                fi
+            fi
+        fi
+    fi
+    
+    # Store values in global variables
+    myvesta_attempts=$total_attempts
+    myvesta_failed=$failed_attempts
+    myvesta_bans=$banned_ips
+    
+    # Add to MyVestacp Panel counters
+    if [ "$total_attempts" -gt 0 ]; then
+        service_attempts["MyVestacpPanel"]=$failed_attempts  # Use failed attempts instead of total attempts
+        service_bans["MyVestacpPanel"]=$banned_ips
+        service_unbans["MyVestacpPanel"]=$banned_ips  # Unbans should match bans for MyVestacpPanel
+    fi
+}
+
+# Function to check Fail2Ban status with timeout
+check_fail2ban_status() {
+    echo -e "${BLUE}=== Fail2Ban Status (Today) ===${NC}"
+    
+    local fail2ban_log="/var/log/fail2ban.log"
+    local current_high_issues=0
+    local current_medium_issues=0
+    local current_low_issues=0
+
+    # Get start of current day timestamp
+    local today_start=$(date -d "$(date +%Y-%m-%d) 00:00:00" +%s)
+    
+    # Get today's date in the format used in logs (YYYY-MM-DD)
+    local today=$(date "+%Y-%m-%d")
+
+    # Check service status
+    echo -e "\n${YELLOW}Service Status:${NC}"
+    if run_with_timeout 5 "systemctl is-active --quiet fail2ban"; then
+        echo -e "${GREEN}✓ Fail2Ban service is running${NC}"
+    else
+        echo -e "${RED}⚠️  Fail2Ban service is not running${NC}"
+        ((current_high_issues++))
+    fi
+
+    # Initialize counters
+    local total_attempts=0
+    local total_bans=0
+    local total_unbans=0
+
+    # Initialize service counters
+    declare -A service_attempts
+    declare -A service_bans
+    declare -A service_unbans
+
+    # Check for failed login attempts and add to MyVestacp Panel counters
+    check_failed_logins
+
+    # Check log file for today's activity
+    echo -e "\n${YELLOW}Today's Activity:${NC}"
+    if [ -f "$fail2ban_log" ]; then
+        echo -e "Processing log for today ($today)..."
+        
+        # Optimization: Use grep with -m to limit results and process in chunks
+        local log_content
+        log_content=$(run_with_timeout 30 "grep -a '^$today.*Found\\|^$today.*Ban\\|^$today.*Unban' '$fail2ban_log' | tr -d '\0'")
+        local grep_exit_code=$?
+
+        if [ $grep_exit_code -eq 0 ]; then
+            local total_lines=$(echo "$log_content" | wc -l)
+            
+            if [ "$total_lines" -gt 0 ]; then
+                echo -e "Found $total_lines relevant lines to process..."
+                local current_line=0
+                
+                # Process filtered lines in a single pass
+                while IFS= read -r line; do
+                    ((current_line++))
+                    if [ $((current_line % 100)) -eq 0 ] || [ $current_line -eq $total_lines ]; then
+                        show_progress $current_line $total_lines
+                    fi
+                    
+                    # Extract timestamp from line
+                    local log_date=$(echo "$line" | grep -o '^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}')
+                    if [ -n "$log_date" ]; then
+                        # Convert log date to timestamp
+                        local log_ts=$(date -d "$log_date" +%s 2>/dev/null)
+                        
+                        # Only process if timestamp is valid and from today
+                        if [ -n "$log_ts" ] && [ "$log_ts" -ge "$today_start" ]; then
+                            # Check if the line contains relevant activity (Found, Ban, Unban) and the expected structure
+                            local log_jail_name=""
+                            # Pattern: Date Time,ms fail2ban.filter/actions [PID]: INFO/NOTICE [jailname] ...
+                            if [[ "$line" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]+[[:space:]]+fail2ban.(filter|actions)[[:space:]]+\[[0-9]+\]:[[:space:]]+(INFO|NOTICE)[[:space:]]+\[([^]]+)\] ]]; then
+                                log_jail_name="${BASH_REMATCH[3]}" # Capture group 3 contains the jail name
+                            fi
+
+                            # If a jail name was extracted, proceed with counting
+                            if [ -n "$log_jail_name" ]; then
+                                # Remove leading/trailing whitespace from the extracted jail name
+                                log_jail_name=$(echo "$log_jail_name" | xargs)
+
+                                # Check if the extracted and cleaned jail name is one of the VestaCP jails (including -iptables)
+                                local is_vesta_jail=false
+                                case "$log_jail_name" in
+                                    "dovecot" | "dovecot-iptables" | \
+                                    "exim" | "exim-iptables" | \
+                                    "ssh" | "ssh-iptables" | \
+                                    "sshd")
+                                        is_vesta_jail=true
+                                        ;;
+                                    *)
+                                        # Not a known VestaCP jail, skip this line for counting
+                                        ;;
+                                esac
+
+                                if [ "$is_vesta_jail" = true ]; then
+                                    # Extract IP address if present
+                                    local ip=""
+                                    if [[ "$line" =~ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) ]]; then
+                                        ip="${BASH_REMATCH[1]}"
+                                    fi
+
+                                    # Use the cleaned and validated jail name as the key for counting
+                                    local current_jail_key="$log_jail_name"
+
+                                    # Count attempts only if IP is found and line contains "Found"
+                                    if [ -n "$ip" ] && [[ "$line" =~ Found ]]; then
+                                        ((service_attempts[$current_jail_key]++))
+                                        ((total_attempts++))
+                                    fi
+
+                                    # Count bans only if IP is found and line contains "Ban"
+                                    if [ -n "$ip" ] && [[ "$line" =~ Ban ]]; then
+                                        ((service_bans[$current_jail_key]++))
+                                        ((total_bans++))
+                                    fi
+
+                                    # Count unbans only if IP is found and line contains "Unban"
+                                    if [ -n "$ip" ] && [[ "$line" =~ Unban ]]; then
+                                        ((service_unbans[$current_jail_key]++))
+                                        ((total_unbans++))
+                                    fi
+                                fi
+                            fi
+                        fi
+                    fi
+                done <<< "$log_content"
+                echo -e "\n" # Add newline after progress bar
+
+                # Display results by service
+                echo -e "${GREEN}✓ Log file processed successfully.${NC}"
+                echo -e "\n${YELLOW}Activity by Service:${NC}"
+
+                # Hardcoded list of known VestaCP Fail2Ban jails (use the names as they appear in logs/status without PID)
+                local all_vesta_jails=("dovecot" "exim" "ssh" "MyVestacpPanel")
+                
+                # Reset totals before summing
+                total_attempts=0
+                total_bans=0
+                total_unbans=0
+                
+                # Iterate over all known jails to display status using the jail name as key
+                for service_key in "${all_vesta_jails[@]}"; do
+                    # Determine the display name (remove -iptables for cleaner output)
+                    local display_name="${service_key%-iptables}"
+                    # Check both with and without -iptables suffix
+                    local iptables_key="${service_key}-iptables"
+                    
+                    # Initialize counters for this service
+                    local service_attempts_count=0
+                    local service_bans_count=0
+                    local service_unbans_count=0
+                    
+                    # Add counts from both versions of the jail name
+                    if [ -n "${service_attempts[$service_key]}" ]; then
+                        service_attempts_count=$((service_attempts_count + service_attempts[$service_key]))
+                    fi
+                    if [ -n "${service_attempts[$iptables_key]}" ]; then
+                        service_attempts_count=$((service_attempts_count + service_attempts[$iptables_key]))
+                    fi
+                    
+                    if [ -n "${service_bans[$service_key]}" ]; then
+                        service_bans_count=$((service_bans_count + service_bans[$service_key]))
+                    fi
+                    if [ -n "${service_bans[$iptables_key]}" ]; then
+                        service_bans_count=$((service_bans_count + service_bans[$iptables_key]))
+                    fi
+                    
+                    if [ -n "${service_unbans[$service_key]}" ]; then
+                        service_unbans_count=$((service_unbans_count + service_unbans[$service_key]))
+                    fi
+                    if [ -n "${service_unbans[$iptables_key]}" ]; then
+                        service_unbans_count=$((service_unbans_count + service_unbans[$iptables_key]))
+                    fi
+
+                    # Add to totals
+                    total_attempts=$((total_attempts + service_attempts_count))
+                    total_bans=$((total_bans + service_bans_count))
+                    total_unbans=$((total_unbans + service_unbans_count))
+
+                    # Always display the service and its counts (will show 0 if no activity found)
+                    echo -e "\n${BLUE}$display_name:${NC}"
+                    if [ "$display_name" = "MyVestacpPanel" ]; then
+                        echo -e "  Attempts: ${YELLOW}$myvesta_attempts${NC}"
+                        echo -e "  Failed: ${RED}$myvesta_failed${NC}"
+                        echo -e "  Bans: ${RED}$myvesta_bans${NC}"
+                        # Add MyVestacpPanel to totals
+                        total_attempts=$((total_attempts + myvesta_attempts))
+                        total_bans=$((total_bans + myvesta_bans))
+                        total_unbans=$((total_unbans + myvesta_bans)) # Unbans match bans for MyVestacpPanel
+                    else
+                        echo -e "  Attempts: ${YELLOW}$service_attempts_count${NC}"
+                        echo -e "  Bans: ${RED}$service_bans_count${NC}"
+                        echo -e "  Unbans: ${GREEN}$service_unbans_count${NC}"
+                    fi
+                done
+
+                # Show totals
+                echo -e "\n${YELLOW}Total Activity:${NC}"
+                echo -e "  Total Attempts: ${YELLOW}$total_attempts${NC}"
+                echo -e "  Total Bans: ${RED}$total_bans${NC}"
+                echo -e "  Total Unbans: ${GREEN}$total_unbans${NC}"
+            else
+                echo -e "${YELLOW}⚠️  No relevant entries found in Fail2Ban log for today.${NC}"
+                ((current_medium_issues++))
+            fi
+        else
+            echo -e "${RED}⚠️  Failed to read Fail2Ban log file. Exit code: $grep_exit_code${NC}"
+            ((current_medium_issues++))
+        fi
+    else
+        echo -e "${RED}⚠️  Fail2Ban log file not found${NC}"
+        ((current_medium_issues++))
+    fi
+
+    # Add local issues to global counters
+    ((high_issues+=current_high_issues))
+    ((medium_issues+=current_medium_issues))
+    ((low_issues+=current_low_issues))
+    
+    # Track which modules have issues and capture detailed info for AI analysis
+    local fail2ban_details=""
+    if [ $current_high_issues -gt 0 ]; then
+        critical_modules_found+=("Fail2Ban")
+        fail2ban_details="Critical: Fail2Ban service not running - Security monitoring disabled"
+    elif [ $current_medium_issues -gt 0 ]; then
+        medium_modules_found+=("Fail2Ban")
+        fail2ban_details="Medium issues: Problems reading Fail2Ban logs or configuration"
+    else
+        fail2ban_details="Fail2Ban functioning normally: $total_attempts total attempts, $total_bans bans, $total_unbans unbans today. MyVestaCP Panel: $myvesta_failed failed logins, $myvesta_bans bans"
+    fi
+    
+    detailed_report["fail2ban"]="$fail2ban_details"
+}
+
+# Function to run checks with error handling
+run_check() {
+    local check_name=$1
+    local check_function=$2
+    local check_issues=0
+
+    # Add a single newline before each check except the first one
+    if [ "$check_name" != "System Resources" ]; then
+        echo -e "\n"
+    fi
+
+    # Only show "Running..." message for certain checks and only in console
+    if [ "$check_name" != "Backup Status" ] && [ "$check_name" != "Vesta Services" ] && [ "$check_name" != "System Resources" ]; then
+        log_console "Running $check_name check..."
+    fi
+    
+    # Run the check directly without capturing output
+    $check_function
+    
+    return $?
+}
+
+# Function to show configuration status
+show_config_status() {
+    echo -e "${BLUE}=== Current Configuration Status ===${NC}"
+    
+    # System checks status in the same order as configuration variables
+    [ "$CHECK_SYSTEM_RESOURCES" = true ] && echo -e "System Resources: ${GREEN}Enabled${NC}" || echo -e "System Resources: ${RED}Disabled${NC}"
+    [ "$CHECK_MYVESTACP_SERVICES" = true ] && echo -e "Vesta Services: ${GREEN}Enabled${NC}" || echo -e "Vesta Services: ${RED}Disabled${NC}"
+    [ "$CHECK_PHP" = true ] && echo -e "PHP Status: ${GREEN}Enabled${NC}" || echo -e "PHP Status: ${RED}Disabled${NC}"
+    [ "$CHECK_MYSQL" = true ] && echo -e "MySQL Status: ${GREEN}Enabled${NC}" || echo -e "MySQL Status: ${RED}Disabled${NC}"
+    [ "$CHECK_CLAMAV" = true ] && echo -e "ClamAV Status: ${GREEN}Enabled${NC}" || echo -e "ClamAV Status: ${RED}Disabled${NC}"
+    [ "$CHECK_FAIL2BAN" = true ] && echo -e "Fail2Ban Status: ${GREEN}Enabled${NC}" || echo -e "Fail2Ban Status: ${RED}Disabled${NC}"
+    [ "$CHECK_EMAIL" = true ] && echo -e "Email Status: ${GREEN}Enabled${NC}" || echo -e "Email Status: ${RED}Disabled${NC}"
+    [ "$CHECK_SSL" = true ] && echo -e "SSL Status: ${GREEN}Enabled${NC}" || echo -e "SSL Status: ${RED}Disabled${NC}"
+    [ "$CHECK_BACKUP" = true ] && echo -e "Backup Status: ${GREEN}Enabled${NC}" || echo -e "Backup Status: ${RED}Disabled${NC}"
+    [ "$SEND_EMAIL_REPORT" = true ] && echo -e "Email Reports: ${GREEN}Enabled${NC}" || echo -e "Email Reports: ${RED}Disabled${NC}"
+    [ "$AI_ENABLED" = true ] && echo -e "AI Analysis: ${GREEN}Enabled${NC}" || echo -e "AI Analysis: ${RED}Disabled${NC}"
+}
+
+# Function to handle command line arguments
+handle_args() {
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --enable-all)
+                CHECK_SYSTEM_RESOURCES=true
+                CHECK_MYVESTACP_SERVICES=true
+                CHECK_PHP=true
+                CHECK_MYSQL=true
+                CHECK_CLAMAV=true
+                CHECK_FAIL2BAN=true
+                CHECK_EMAIL=true
+                CHECK_SSL=true
+                CHECK_BACKUP=true
+                ;;
+            --disable-all)
+                CHECK_SYSTEM_RESOURCES=false
+                CHECK_MYVESTACP_SERVICES=false
+                CHECK_PHP=false
+                CHECK_MYSQL=false
+                CHECK_CLAMAV=false
+                CHECK_FAIL2BAN=false
+                CHECK_EMAIL=false
+                CHECK_SSL=false
+                CHECK_BACKUP=false
+                ;;
+            --enable=*)
+                section="${1#*=}"
+                case "$section" in
+                    system-resources) CHECK_SYSTEM_RESOURCES=true ;;
+                    myvestacp-services) CHECK_MYVESTACP_SERVICES=true ;;
+                    php) CHECK_PHP=true ;;
+                    mysql) CHECK_MYSQL=true ;;
+                    clamav) CHECK_CLAMAV=true ;;
+                    fail2ban) CHECK_FAIL2BAN=true ;;
+                    email) CHECK_EMAIL=true ;;
+                    ssl) CHECK_SSL=true ;;
+                    backup) CHECK_BACKUP=true ;;
+                    *) echo -e "${RED}Unknown section: $section${NC}" ;;
+                esac
+                ;;
+            --disable=*)
+                section="${1#*=}"
+                case "$section" in
+                    system-resources) CHECK_SYSTEM_RESOURCES=false ;;
+                    myvestacp-services) CHECK_MYVESTACP_SERVICES=false ;;
+                    php) CHECK_PHP=false ;;
+                    mysql) CHECK_MYSQL=false ;;
+                    clamav) CHECK_CLAMAV=false ;;
+                    fail2ban) CHECK_FAIL2BAN=false ;;
+                    email) CHECK_EMAIL=false ;;
+                    ssl) CHECK_SSL=false ;;
+                    backup) CHECK_BACKUP=false ;;
+                    *) echo -e "${RED}Unknown section: $section${NC}" ;;
+                esac
+                ;;
+            --help)
+                echo -e "${BLUE}Usage: $0 [options]${NC}"
+                echo -e "Options:"
+                echo -e "  --enable-all           Enable all checks"
+                echo -e "  --disable-all          Disable all checks"
+                echo -e "  --enable=section       Enable specific section"
+                echo -e "  --disable=section      Disable specific section"
+                echo -e "\nAvailable sections:"
+                echo -e "  system-resources"
+                echo -e "  myvestacp-services"
+                echo -e "  php"
+                echo -e "  mysql"
+                echo -e "  clamav"
+                echo -e "  fail2ban"
+                echo -e "  email"
+                echo -e "  ssl"
+                echo -e "  backup"
+                exit 0
+                ;;
+            *)
+                echo -e "${RED}Unknown option: $1${NC}"
+                echo -e "Use --help for usage information"
+                exit 1
+                ;;
+        esac
+        shift
+    done
+}
+
+# Handle command line arguments
+handle_args "$@"
+
+# Function to send email report
+send_email_report() {
+    # Safety checks for required variables
+    if [ -z "$status" ]; then
+        status="${YELLOW}⚠️ Unknown${NC}"
+    fi
+    if [ -z "$risk_level" ]; then
+        risk_level="${YELLOW}Unknown${NC}"
+    fi
+    if [ -z "$summary" ]; then
+        summary="System status could not be determined"
+    fi
+    if [ -z "$high_issues" ]; then
+        high_issues=0
+    fi
+    if [ -z "$medium_issues" ]; then
+        medium_issues=0
+    fi
+    if [ -z "$low_issues" ]; then
+        low_issues=0
+    fi
+    
+    local admin_email=$(grep 'CONTACT' /usr/local/vesta/data/users/admin/user.conf | cut -f 2 -d \')
+    local email_subject="MyVestaCP System Report - $(hostname)"
+    
+    # Check if admin email was found
+    if [ -z "$admin_email" ]; then
+        echo -e "${RED}⚠️  Could not find admin email address${NC}"
+        log_email_status "Failed" "unknown" "sendmail" "Admin email not found in user.conf"
+        return 1
+    fi
+    
+    # Prepare email content with HTML template
+    local email_content="<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>MyVestaCP System Report - $(hostname)</title>
+</head>
+<body style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #212529; line-height: 1.5;'>
+    <div style='max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;'>
+        <!-- Header -->
+        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 30px 25px; text-align: center;'>
+            <h1 style='margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;'>MyVestaCP System Report</h1>
+            <p style='margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;'>$(hostname) • $(date '+%Y-%m-%d %H:%M')</p>
+        </div>
+        
+        <!-- Status Overview -->
+        <div style='padding: 25px;'>"
+    
+    # Create status card with clean design
+    local status_color="#28a745"
+    local status_bg="#d4edda"
+    local status_icon="✓"
+    local status_text="Healthy"
+    
+    if [[ "$status" == *"Critical"* ]]; then
+        status_color="#dc3545"
+        status_bg="#f8d7da"
+        status_icon="⚠️"
+        status_text="Critical"
+    elif [[ "$status" == *"Needs Attention"* ]] || [[ "$status" == *"Minor Issues"* ]]; then
+        status_color="#fd7e14"
+        status_bg="#fff3cd"
+        status_icon="⚠️"
+        status_text="Needs Attention"
+    fi
+    
+    # Remove ANSI color codes and clean up the text
+    local clean_risk_level=$(echo "$risk_level" | sed 's/\\033\[[0-9;]*m//g' | sed 's/\x1b\[[0-9;]*m//g' | sed 's/\\n/\n/g')
+    local clean_summary=$(echo "$summary" | sed 's/\\033\[[0-9;]*m//g' | sed 's/\x1b\[[0-9;]*m//g' | sed 's/\\n/\n/g')
+    
+    email_content+="<div style='background-color: $status_bg; border: 1px solid $status_color; border-radius: 8px; padding: 20px; margin-bottom: 25px;'>
+                <div style='display: flex; align-items: center; margin-bottom: 12px;'>
+                    <span style='font-size: 24px; margin-right: 12px;'>$status_icon</span>
+                    <h2 style='margin: 0; color: $status_color; font-size: 22px; font-weight: 600;'>System $status_text</h2>
+                </div>
+                <div style='color: #495057; font-size: 15px;'>
+                    <div style='margin-bottom: 8px;'><strong>Risk Level:</strong> $clean_risk_level</div>
+                    <div><strong>Summary:</strong> $clean_summary</div>
+                </div>
+            </div>"
+    
+    # Add detailed summary if any issues are found
+    if [ ${#critical_modules_found[@]} -gt 0 ] || [ ${#medium_modules_found[@]} -gt 0 ] || [ ${#low_modules_found[@]} -gt 0 ]; then
+        email_content+="<!-- Issues Section -->
+            <div style='margin-bottom: 25px;'>
+                <h3 style='color: #343a40; margin: 0 0 20px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;'>Issues Detected</h3>"
+        
+        if [ ${#critical_modules_found[@]} -gt 0 ]; then
+        email_content+="<div style='margin-bottom: 20px;'>
+                <div style='background-color: #f8d7da; border-radius: 8px; padding: 16px; border-left: 4px solid #dc3545;'>
+                    <h4 style='color: #721c24; margin: 0 0 12px 0; font-size: 16px; font-weight: 600; display: flex; align-items: center;'>
+                        <span style='margin-right: 8px;'>🚨</span> Critical Issues
+                    </h4>
+                    <div style='display: grid; gap: 8px;'>"
+            for module in "${critical_modules_found[@]}"; do
+                email_content+="<div style='background-color: #ffffff; padding: 12px; border-radius: 6px; color: #721c24; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>$module</div>"
+            done
+            email_content+="</div></div></div>"
+        fi
+        
+        if [ ${#medium_modules_found[@]} -gt 0 ]; then
+            email_content+="<div style='margin-bottom: 20px;'>
+                <div style='background-color: #fff3cd; border-radius: 8px; padding: 16px; border-left: 4px solid #fd7e14;'>
+                    <h4 style='color: #856404; margin: 0 0 12px 0; font-size: 16px; font-weight: 600; display: flex; align-items: center;'>
+                        <span style='margin-right: 8px;'>⚠️</span> Medium Issues
+                    </h4>
+                    <div style='display: grid; gap: 8px;'>"
+            for module in "${medium_modules_found[@]}"; do
+                email_content+="<div style='background-color: #ffffff; padding: 12px; border-radius: 6px; color: #856404; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>$module</div>"
+            done
+            email_content+="</div></div></div>"
+        fi
+        
+        if [ ${#low_modules_found[@]} -gt 0 ]; then
+            email_content+="<div style='margin-bottom: 20px;'>
+                <div style='background-color: #d1ecf1; border-radius: 8px; padding: 16px; border-left: 4px solid #17a2b8;'>
+                    <h4 style='color: #0c5460; margin: 0 0 12px 0; font-size: 16px; font-weight: 600; display: flex; align-items: center;'>
+                        <span style='margin-right: 8px;'>ℹ️</span> Low Priority Issues
+                    </h4>
+                    <div style='display: grid; gap: 8px;'>"
+            for module in "${low_modules_found[@]}"; do
+                email_content+="<div style='background-color: #ffffff; padding: 12px; border-radius: 6px; color: #0c5460; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>$module</div>"
+            done
+            email_content+="</div></div></div>"
+        fi
+        
+        # Add detailed system information - always show all modules in console order
+        email_content+="<!-- System Details Section -->
+            <div style='margin-bottom: 25px;'>
+                <h3 style='color: #343a40; margin: 0 0 20px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;'>System Details</h3>
+                <div style='background-color: #f8f9fa; border-radius: 8px; padding: 20px;'>"
+        
+        # Define modules in console order with their configuration status
+        local modules_order=(
+            "system_resources:System Resources:🖥️:CHECK_SYSTEM_RESOURCES"
+            "services:MyVestaCP Services:⚙️:CHECK_MYVESTACP_SERVICES"
+            "php:PHP-FPM:🐘:CHECK_PHP"
+            "mysql:MySQL Database:🗄️:CHECK_MYSQL"
+            "clamav:ClamAV Antivirus:🦠:CHECK_CLAMAV"
+            "fail2ban:Fail2Ban Security:🛡️:CHECK_FAIL2BAN"
+            "email:Email System:📧:CHECK_EMAIL"
+            "ssl:SSL Certificates:🔒:CHECK_SSL"
+            "backup:Backup System:💾:CHECK_BACKUP"
+        )
+        
+        for module_info in "${modules_order[@]}"; do
+            IFS=':' read -r module_key module_display_name module_icon config_var <<< "$module_info"
+            
+            # Check if module is enabled
+            local is_enabled=false
+            case "$config_var" in
+                "CHECK_SYSTEM_RESOURCES") [ "$CHECK_SYSTEM_RESOURCES" = true ] && is_enabled=true ;;
+                "CHECK_MYVESTACP_SERVICES") [ "$CHECK_MYVESTACP_SERVICES" = true ] && is_enabled=true ;;
+                "CHECK_PHP") [ "$CHECK_PHP" = true ] && is_enabled=true ;;
+                "CHECK_MYSQL") [ "$CHECK_MYSQL" = true ] && is_enabled=true ;;
+                "CHECK_CLAMAV") [ "$CHECK_CLAMAV" = true ] && is_enabled=true ;;
+                "CHECK_FAIL2BAN") [ "$CHECK_FAIL2BAN" = true ] && is_enabled=true ;;
+                "CHECK_EMAIL") [ "$CHECK_EMAIL" = true ] && is_enabled=true ;;
+                "CHECK_SSL") [ "$CHECK_SSL" = true ] && is_enabled=true ;;
+                "CHECK_BACKUP") [ "$CHECK_BACKUP" = true ] && is_enabled=true ;;
+            esac
+            
+            local module_content=""
+            local border_color="#6c757d"
+            local bg_color="#ffffff"
+            local text_color="#495057"
+            
+            if [ "$is_enabled" = true ]; then
+                # Module is enabled, determine status color based on issues
+                local module_status="healthy"
+                
+                # Check if module has critical issues
+                for critical_module in "${critical_modules_found[@]}"; do
+                    if [[ "$critical_module" == *"$module_display_name"* ]] || [[ "$critical_module" == "$module_key"* ]] || [[ "$critical_module" == "System Resources"* && "$module_key" == "system_resources" ]] || [[ "$critical_module" == "MyVestaCP Services"* && "$module_key" == "services" ]] || [[ "$critical_module" == "PHP-FPM"* && "$module_key" == "php" ]] || [[ "$critical_module" == "MySQL"* && "$module_key" == "mysql" ]] || [[ "$critical_module" == "ClamAV"* && "$module_key" == "clamav" ]] || [[ "$critical_module" == "Fail2Ban"* && "$module_key" == "fail2ban" ]] || [[ "$critical_module" == "Exim4"* && "$module_key" == "email" ]] || [[ "$critical_module" == "SSL"* && "$module_key" == "ssl" ]] || [[ "$critical_module" == "Backup"* && "$module_key" == "backup" ]]; then
+                        module_status="critical"
+                        break
+                    fi
+                done
+                
+                # Check if module has medium issues (only if not critical)
+                if [ "$module_status" = "healthy" ]; then
+                    for medium_module in "${medium_modules_found[@]}"; do
+                        if [[ "$medium_module" == *"$module_display_name"* ]] || [[ "$medium_module" == "$module_key"* ]] || [[ "$medium_module" == "System Resources"* && "$module_key" == "system_resources" ]] || [[ "$medium_module" == "MyVestaCP Services"* && "$module_key" == "services" ]] || [[ "$medium_module" == "PHP-FPM"* && "$module_key" == "php" ]] || [[ "$medium_module" == "MySQL"* && "$module_key" == "mysql" ]] || [[ "$medium_module" == "ClamAV"* && "$module_key" == "clamav" ]] || [[ "$medium_module" == "Fail2Ban"* && "$module_key" == "fail2ban" ]] || [[ "$medium_module" == "Exim4"* && "$module_key" == "email" ]] || [[ "$medium_module" == "SSL"* && "$module_key" == "ssl" ]] || [[ "$medium_module" == "Backup"* && "$module_key" == "backup" ]]; then
+                            module_status="medium"
+                            break
+                        fi
+                    done
+                fi
+                
+                # Check if module has low issues (only if not critical or medium)
+                if [ "$module_status" = "healthy" ]; then
+                    for low_module in "${low_modules_found[@]}"; do
+                        if [[ "$low_module" == *"$module_display_name"* ]] || [[ "$low_module" == "$module_key"* ]] || [[ "$low_module" == "System Resources"* && "$module_key" == "system_resources" ]] || [[ "$low_module" == "MyVestaCP Services"* && "$module_key" == "services" ]] || [[ "$low_module" == "PHP-FPM"* && "$module_key" == "php" ]] || [[ "$low_module" == "MySQL"* && "$module_key" == "mysql" ]] || [[ "$low_module" == "ClamAV"* && "$module_key" == "clamav" ]] || [[ "$low_module" == "Fail2Ban"* && "$module_key" == "fail2ban" ]] || [[ "$low_module" == "Exim4"* && "$module_key" == "email" ]] || [[ "$low_module" == "SSL"* && "$module_key" == "ssl" ]] || [[ "$low_module" == "Backup"* && "$module_key" == "backup" ]]; then
+                            module_status="low"
+                            break
+                        fi
+                    done
+                fi
+                
+                # Set colors based on status
+                case "$module_status" in
+                    "critical")
+                        border_color="#dc3545"  # Red
+                        bg_color="#fff5f5"
+                        text_color="#721c24"
+                        ;;
+                    "medium")
+                        border_color="#fd7e14"  # Orange/Yellow
+                        bg_color="#fff8f0"
+                        text_color="#856404"
+                        ;;
+                    "low")
+                        border_color="#6c757d"  # Gray
+                        bg_color="#f8f9fa"
+                        text_color="#495057"
+                        ;;
+                    "healthy")
+                        border_color="#28a745"  # Green
+                        bg_color="#f8fff9"
+                        text_color="#155724"
+                        ;;
+                esac
+                
+                # Module is enabled, show detailed report if available
+                if [ -n "${detailed_report[$module_key]}" ]; then
+                    module_content="${detailed_report[$module_key]}"
+                else
+                    module_content="Module scan completed - No detailed information available"
+                fi
+            else
+                # Module is disabled
+                module_content="Module scan deactivated"
+                border_color="#dc3545"  # Red for disabled
+                bg_color="#fff5f5"
+                text_color="#721c24"
+            fi
+            
+            email_content+="<div style='background-color: $bg_color; margin-bottom: 12px; padding: 16px; border-radius: 6px; border-left: 4px solid $border_color; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
+                <div style='color: $text_color; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center;'>
+                    <span style='margin-right: 8px;'>$module_icon</span>
+                    $module_display_name
+                </div>
+                <div style='color: #6c757d; font-size: 14px; line-height: 1.4;'>$module_content</div>
+            </div>"
+        done
+        
+        email_content+="</div></div>"
+        
+            email_content+="</div>"
+        else
+            email_content+="<!-- All Systems Healthy -->
+                <div style='margin-bottom: 25px;'>
+                    <div style='background-color: #d4edda; border-radius: 8px; padding: 25px; text-align: center; border-left: 4px solid #28a745;'>
+                        <div style='font-size: 48px; margin-bottom: 15px;'>✅</div>
+                        <h3 style='color: #155724; margin: 0 0 10px 0; font-size: 22px; font-weight: 600;'>All Systems Healthy</h3>
+                        <p style='color: #155724; margin: 0; font-size: 16px; opacity: 0.8;'>No issues detected across all monitored modules</p>
+                    </div>
+        </div>"
+    fi
+    
+    # Add AI analysis section - always show regardless of AI_ENABLED status
+    email_content+="<!-- AI Analysis Section -->
+        <div style='margin-bottom: 25px;'>
+            <h3 style='color: #343a40; margin: 0 0 20px 0; font-size: 20px; font-weight: 600; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; display: flex; align-items: center;'>
+                <span style='margin-right: 10px;'>🤖</span> AI Analysis
+            </h3>"
+    
+    if [ "$AI_ENABLED" = false ]; then
+        # AI is completely disabled
+        email_content+="<div style='background-color: #f8d7da; border-radius: 8px; padding: 20px; border-left: 4px solid #dc3545;'>
+            <div style='color: #721c24; margin-bottom: 10px;'>
+                <strong>❌ AI Analysis Disabled</strong><br>
+                AI Analysis is currently disabled in the system configuration.<br><br>
+                <strong>To enable AI Analysis:</strong><br>
+                • Set AI_ENABLED=true in the script configuration<br>
+                • Add your HuggingFace API key to AI_API_KEY<br>
+                • Choose AI_MODE: 'auto', 'always', or 'never'<br><br>
+                <small style='color: #856404;'>Note: AI Analysis is in BETA mode and should be used as a recommendation tool only.</small>
+            </div>
+        </div>"
+    else
+        # AI is enabled, show status
+        email_content+="<div style='background-color: #e3f2fd; border-radius: 8px; padding: 20px; border-left: 4px solid #2196F3;'>"
+        
+        if [ -n "$AI_LAST_ERROR" ]; then
+            # Error occurred during AI analysis - show specific error
+            local error_type="General Error"
+            local error_color="#c62828"
+            local error_bg="#ffebee"
+            local error_icon="⚠️"
+            
+            # Determine error type for better styling
+            if [[ "$AI_LAST_ERROR" == *"exceeded your monthly included credits"* ]]; then
+                error_type="Credits Exceeded"
+                error_icon="💳"
+            elif [[ "$AI_LAST_ERROR" == *"timed out"* ]]; then
+                error_type="Connection Timeout"
+                error_icon="⏱️"
+            elif [[ "$AI_LAST_ERROR" == *"API key"* ]]; then
+                error_type="API Key Error"
+                error_icon="🔑"
+            elif [[ "$AI_LAST_ERROR" == *"Curl error"* ]]; then
+                error_type="Network Error"
+                error_icon="🌐"
+            fi
+            
+            email_content+="<div style='background-color: $error_bg; border-radius: 6px; padding: 15px; margin-bottom: 15px;'>
+                <div style='color: $error_color; margin-bottom: 10px;'>
+                    <strong>$error_icon AI Analysis Error: $error_type</strong>
+                </div>
+                <div style='color: #495057; font-size: 14px; line-height: 1.4; background-color: #ffffff; padding: 12px; border-radius: 4px; border-left: 3px solid $error_color;'>
+                    $AI_LAST_ERROR
+                </div>
+            </div>"
+            
+            # Add troubleshooting tips based on error type
+            if [[ "$AI_LAST_ERROR" == *"exceeded your monthly included credits"* ]]; then
+                email_content+="<div style='color: #856404; font-size: 14px;'>
+                    <strong>💡 Troubleshooting:</strong><br>
+                    • Visit <a href='https://huggingface.co/pricing' style='color: #0066cc;'>HuggingFace Pricing</a> to upgrade your plan<br>
+                    • Or wait until your credits reset next month<br>
+                    • Or temporarily set AI_MODE='never' to disable AI analysis
+                </div>"
+            elif [[ "$AI_LAST_ERROR" == *"timed out"* ]]; then
+                email_content+="<div style='color: #856404; font-size: 14px;'>
+                    <strong>💡 Troubleshooting:</strong><br>
+                    • Check your internet connection<br>
+                    • Try running the script again later<br>
+                    • HuggingFace API may be experiencing high load
+                </div>"
+            fi
+            
+        elif [ "$AI_MODE" = "auto" ] && [ $high_issues -eq 0 ] && [ $medium_issues -eq 0 ] && [ $low_issues -eq 0 ]; then
+            # System is healthy and AI mode is auto
+            email_content+="<div style='color: #155724; margin-bottom: 10px;'>
+                <strong>ℹ️ AI Analysis Skipped (Auto Mode)</strong><br>
+                AI Analysis was not performed because:<br>
+                • AI_MODE is set to AUTO<br>
+                • No system issues were detected<br><br>
+                <small style='color: #6c757d;'>Note: AI Analysis will automatically run when issues are detected. Set AI_MODE='always' to run AI analysis on every report.</small>
+            </div>"
+        elif [ "$AI_MODE" = "never" ]; then
+            # AI analysis is disabled via mode
+            email_content+="<div style='color: #856404; margin-bottom: 10px;'>
+                <strong>⏸️ AI Analysis Disabled (Never Mode)</strong><br>
+                AI Analysis is disabled because AI_MODE is set to 'never'.<br><br>
+                <strong>To enable AI Analysis:</strong><br>
+                • Change AI_MODE to 'auto' (runs only when issues detected)<br>
+                • Or change AI_MODE to 'always' (runs on every report)<br><br>
+                <small style='color: #6c757d;'>Current configuration: AI_ENABLED=true, AI_MODE=never</small>
+            </div>"
+        elif [ -n "$ai_analysis" ] && [ "$ai_analysis" != "null" ]; then
+            # AI analysis was performed successfully
+            email_content+="<div style='color: #155724; margin-bottom: 15px;'>
+                <strong>✅ AI Analysis Completed Successfully</strong><br>
+                <small style='color: #6c757d;'>The following recommendations are based on AI analysis (BETA mode - use with caution):</small>
+            </div>"
+            
+            # Remove ANSI color codes and clean up the AI analysis text - with error handling
+            local clean_ai_analysis=""
+            if [ -n "$ai_analysis" ]; then
+                clean_ai_analysis=$(echo "$ai_analysis" | sed 's/\x1b\[[0-9;]*m//g' | sed 's/\\n/\n/g' 2>/dev/null || echo "$ai_analysis")
+            fi
+            
+            # Convert the AI analysis to proper HTML format with better styling
+            if [ -n "$clean_ai_analysis" ]; then
+                email_content+="<div style='background-color: #ffffff; border-radius: 6px; padding: 20px; border: 1px solid #dee2e6;'>"
+                
+                # Use a safer approach for HTML conversion with error handling
+                if echo "$clean_ai_analysis" | grep -q "1\. Critical Issues" 2>/dev/null; then
+                    clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/^1\. Critical Issues (if any):/<h4 style="color: #dc3545; margin: 0 0 10px 0; font-size: 16px;">🚨 Critical Issues<\/h4><ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">/' 2>/dev/null || echo "$clean_ai_analysis")
+                fi
+                if echo "$clean_ai_analysis" | grep -q "2\. Medium Issues" 2>/dev/null; then
+                    clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/^2\. Medium Issues (if any):/<\/ul><h4 style="color: #fd7e14; margin: 0 0 10px 0; font-size: 16px;">⚠️ Medium Issues<\/h4><ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">/' 2>/dev/null || echo "$clean_ai_analysis")
+                fi
+                if echo "$clean_ai_analysis" | grep -q "3\. Low Issues" 2>/dev/null; then
+                    clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/^3\. Low Issues (if any):/<\/ul><h4 style="color: #17a2b8; margin: 0 0 10px 0; font-size: 16px;">ℹ️ Low Priority Issues<\/h4><ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">/' 2>/dev/null || echo "$clean_ai_analysis")
+                fi
+                clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/^- /<li style="margin: 8px 0; padding: 8px; background-color: #f8f9fa; border-radius: 4px; border-left: 3px solid #6c757d;">• /g' 2>/dev/null || echo "$clean_ai_analysis")
+                clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/$/<\/li>/g' 2>/dev/null || echo "$clean_ai_analysis")
+            
+                email_content+="$clean_ai_analysis</ul></div>"
+        else
+                email_content+="<div style='background-color: #ffffff; border-radius: 6px; padding: 20px; border: 1px solid #dee2e6;'>
+                    <p style='color: #6c757d; margin: 0;'>AI analysis content could not be processed for email display.</p>
+                </div>"
+            fi
+        else
+            # AI enabled but no analysis performed (shouldn't happen, but handle gracefully)
+            email_content+="<div style='color: #856404; margin-bottom: 10px;'>
+                <strong>❓ AI Analysis Status Unknown</strong><br>
+                AI Analysis was enabled but no analysis was performed for this report.<br><br>
+                <strong>Current configuration:</strong><br>
+                • AI_ENABLED: true<br>
+                • AI_MODE: $AI_MODE<br>
+                • Issues detected: High=$high_issues, Medium=$medium_issues, Low=$low_issues<br><br>
+                <small style='color: #6c757d;'>This may indicate a configuration or logic issue. Please check the system logs.</small>
+            </div>"
+        fi
+        
+        email_content+="</div>"
+    fi
+    
+    email_content+="</div>"
+    
+    # Add footer
+    email_content+="        
+        <!-- Footer -->
+        <div style='background-color: #f8f9fa; padding: 25px; border-top: 1px solid #dee2e6; text-align: center;'>
+            <div style='color: #6c757d; font-size: 14px; margin-bottom: 10px;'>
+                <strong>Report generated:</strong> $(date '+%Y-%m-%d %H:%M:%S') • <strong>Server:</strong> $(hostname)
+        </div>
+            <div style='color: #868e96; font-size: 13px;'>
+                This is an automated system report from your MyVestaCP server
+            </div>
+        </div>
+    </div>
+</body>
+</html>"
+    
+    # Send email using sendmail with HTML content
+    local sendmail_result=0
+    (
+        echo "Subject: $email_subject"
+        echo "MIME-Version: 1.0"
+        echo "Content-Type: text/html; charset=UTF-8"
+        echo "From: MyVestaCP System Report <noreply@$(hostname)>"
+        echo "Reply-To: $admin_email"
+        echo "X-Mailer: MyVestaCP System Report"
+        echo "X-Priority: 1"
+        echo "X-MSMail-Priority: High"
+        echo "Importance: High"
+        echo
+        echo "$email_content"
+    ) | /usr/sbin/sendmail -f "noreply@$(hostname)" "$admin_email" 2>/dev/null
+    sendmail_result=$?
+    
+    # Log email status
+    if [ $sendmail_result -eq 0 ]; then
+        log_email_status "Success" "$admin_email" "sendmail" ""
+    else
+        log_email_status "Failed" "$admin_email" "sendmail" "Failed to send email (exit code: $sendmail_result)"
+    fi
+}
+
+# Main execution with error handling
+echo -e "${BLUE}Starting MyVestaCP System Check...${NC}"
+
+# Setup logging
+setup_logging
+log_message "Starting system check"
+
+# Execute the script with output capture
+exec 1> >(tee -a "$LOG_FILE")
+exec 2> >(tee -a "$LOG_FILE" >&2)
+
+# Show current configuration status
+show_config_status
+log_message "Configuration status displayed"
+
+# Initialize counters for issues
+high_issues=0
+medium_issues=0
+low_issues=0
+
+# Initialize arrays to track which modules have issues
+declare -a critical_modules_found=()
+declare -a medium_modules_found=()
+declare -a low_modules_found=()
+
+# Initialize detailed report for AI analysis
+declare -A detailed_report=()
+
+# Check current system status first
+if [ "$CHECK_SYSTEM_RESOURCES" = true ]; then
+    if ! run_check "System Resources" check_resources; then
+        : # Issue already counted within the function
+    fi
+fi
+
+if [ "$CHECK_MYVESTACP_SERVICES" = true ]; then
+    if ! run_check "MyVestaCP Services" check_myvestacp_services; then
+         : # Issue already counted within the function
+    fi
+fi
+
+if [ "$CHECK_PHP" = true ]; then
+    if ! run_check "PHP Status" check_php_status; then
+         : # Issue already counted within the function
+    fi
+fi
+
+if [ "$CHECK_MYSQL" = true ]; then
+    if ! run_check "MySQL Status" check_mysql_status; then
+         : # Issue already counted within the function
+    fi
+fi
+
+if [ "$CHECK_CLAMAV" = true ]; then
+    if ! run_check "ClamAV Status" check_clamav_status; then
+         : # Issue already counted within the function
+    fi
+fi
+
+# Add Fail2Ban check
+if [ "$CHECK_FAIL2BAN" = true ]; then
+    if ! run_check "Fail2Ban Status" check_fail2ban_status; then
+         : # Issue already counted within the function
+    fi
+fi
+
+# Then check last 24h activity
+echo -e "\n${BLUE}Checking last 24 hours of activity...${NC}"
+if [ "$CHECK_EMAIL" = true ]; then
+    if ! run_check "Email Status" check_email_status; then
+         : # Issue already counted within the function
+    fi
+fi
+
+# SSL Status check
+if [ "$CHECK_SSL" = true ]; then
+    if ! run_check "SSL Status" check_ssl_status; then
+         : # Issue already counted within the function
+    fi
+fi
+
+# Check backup status and store the result
+if [ "$CHECK_BACKUP" = true ]; then
+    backup_status=$(check_backup_status)
+else
+    backup_status="${YELLOW}⚠️  Backup check disabled${NC}"
+fi
+
+# Check MyVestaCP updates and version
+myvestacp_version=$(run_with_timeout 5 "cat /usr/local/vesta/version.txt 2>/dev/null")
+myvestacp_build_date=$(run_with_timeout 5 "cat /usr/local/vesta/build_date.txt 2>/dev/null")
+
+# Validate build date
+current_date=$(date +%s)
+if [ -n "$myvestacp_build_date" ]; then
+    build_date_ts=$(date -d "$myvestacp_build_date" +%s 2>/dev/null)
+    if [ $? -eq 0 ] && [ -n "$build_date_ts" ]; then
+        if [ "$build_date_ts" -gt "$current_date" ]; then
+            echo -e "${RED}⚠️  Invalid build date detected (future date)${NC}"
+            myvestacp_build_date=""
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Could not parse build date${NC}"
+        myvestacp_build_date=""
+    fi
+fi
+
+# Check for MyVestaCP updates
+myvestacp_updates=$(run_with_timeout 10 "apt-get -s upgrade 2>/dev/null | grep -i 'myvestacp' | wc -l")
+myvestacp_status=$?
+
+# Final System Health Summary
+echo -e "\n${BLUE}=== System Health Summary ===${NC}"
+
+# Display MyVestaCP status
+if [ $myvestacp_status -eq 0 ] && [ "$myvestacp_updates" -gt 0 ]; then
+     echo -e "${YELLOW}⚠️  MyVestaCP has $myvestacp_updates updates available${NC}"
+elif [ $myvestacp_status -eq 0 ]; then
+    echo -e "${GREEN}✓ MyVestaCP is up to date with version: $myvestacp_version Build date: $myvestacp_build_date${NC}"
+else
+    echo -e "${RED}⚠️  Failed to check MyVestaCP updates status${NC}"
+fi
+
+# Display backup status
+echo -e "$backup_status"
+
+# Capture backup details for AI analysis
+if [[ "$backup_status" == *"SUCCESS"* ]]; then
+    detailed_report["backup"]="Backup system functioning normally - Last successful backup completed"
+elif [[ "$backup_status" == *"FAILED"* ]]; then
+    detailed_report["backup"]="Backup system has critical issues - Last backup failed"
+elif [[ "$backup_status" == *"disabled"* ]]; then
+    detailed_report["backup"]="Backup monitoring is disabled in configuration"
+else
+    detailed_report["backup"]="Backup status unclear - May need investigation"
+fi
+
+# Determine overall status with more intelligent analysis
+status=""
+risk_level=""
+summary=""
+
+# Critical conditions (any of these makes the system critical)
+if [ $high_issues -gt 0 ]; then
+    status="${RED}⚠️ Critical${NC}"
+    risk_level="${RED}High${NC}"
+    summary="Critical issues detected: "
+    if [ $high_issues -gt 1 ]; then
+        summary+="$high_issues critical problems"
+    else
+        summary+="1 critical problem"
+    fi
+    summary+=" requiring immediate attention"
+elif [ $medium_issues -gt 100 ]; then
+    # High number of medium issues is also critical
+    status="${RED}⚠️ Critical${NC}"
+    risk_level="${RED}High${NC}"
+    summary="Critical number of issues: $medium_issues medium problems detected"
+elif [ $medium_issues -gt 0 ]; then
+    status="${YELLOW}⚠️ Needs Attention${NC}"
+    risk_level="${YELLOW}Medium${NC}"
+    summary="System needs attention: $medium_issues issues to review"
+elif [ $low_issues -gt 0 ]; then
+    status="${YELLOW}⚠️ Minor Issues${NC}"
+    risk_level="${YELLOW}Low${NC}"
+    summary="Minor issues present: $low_issues items to monitor"
+else
+    status="${GREEN}✓ Healthy${NC}"
+    risk_level="${GREEN}None${NC}"
+    summary="All systems operating normally"
+fi
+
+# Display overall status and risk level with summary
+echo -e "\nOverall System Status: $status"
+echo -e "Risk Level: $risk_level"
+echo -e "Summary: $summary"
+
+# Only show detailed issues if there are any
+if [ $high_issues -gt 0 ] || [ $medium_issues -gt 0 ] || [ $low_issues -gt 0 ]; then
+    echo -e "\nIssues Found (by priority):"
+    
+    if [ ${#critical_modules_found[@]} -gt 0 ]; then
+        echo -e "\n${RED}CRITICAL (${#critical_modules_found[@]} modules):${NC}"
+        for module in "${critical_modules_found[@]}"; do
+            echo -e "  - $module"
+        done
+    fi
+
+    if [ ${#medium_modules_found[@]} -gt 0 ]; then
+        echo -e "\n${YELLOW}MEDIUM (${#medium_modules_found[@]} modules):${NC}"
+        for module in "${medium_modules_found[@]}"; do
+            echo -e "  - $module"
+        done
+    fi
+
+    if [ ${#low_modules_found[@]} -gt 0 ]; then
+        echo -e "\n${YELLOW}LOW (${#low_modules_found[@]} modules):${NC}"
+        for module in "${low_modules_found[@]}"; do
+            echo -e "  - $module"
+        done
+    fi
+
+    # Show detailed summary with AI analysis
+    show_detailed_summary
+fi
+
+# Send email report
+echo -e "\n${BLUE}=== Sending Email Report ===${NC}"
+
+if [ "$SEND_EMAIL_REPORT" = true ]; then
+    # Temporarily disable error trap for email function to avoid false positives
+    trap - ERR
+    send_email_report
+    # Re-enable error trap
+    trap 'echo -e "${RED}Error occurred in $0 at line $LINENO. Function: ${FUNCNAME[1]:-main}${NC}" >&2' ERR
+fi
+
+# At the end of the script, before exit
+log_message "System check completed"
+log_message "================================="
+exit 0

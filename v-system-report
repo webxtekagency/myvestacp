@@ -27,9 +27,9 @@ SEND_EMAIL_REPORT=true  # Set to true to enable email notifications
 EMAIL_SUBJECT="MyVestaCP System Report - $(date '+%Y-%m-%d')"  # Default email subject with date
 
 # AI Integration Configuration
-AI_ENABLED=false  # Set to true to enable AI analysis
+AI_ENABLED=true # Set to true to enable AI analysis
 AI_MODE="auto"   # Set to "auto" (default), "always", or "never"
-AI_API_KEY="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"     # Your HuggingFace API key
+AI_API_KEY=""     # Your HuggingFace API key
 AI_MODEL="mistralai/Mixtral-8x7B-Instruct-v0.1"  # Updated to Mixtral model
 AI_MAX_LENGTH=1000  # Maximum length of the response
 
@@ -532,8 +532,19 @@ The following is the comprehensive system status report to analyze:\n\n"
         return 1
     fi
 
-    # Store the analysis for later use in both console and email
-    ai_analysis="$generated_text"
+    # Clean the AI response from any ANSI codes and unwanted characters
+    local clean_generated_text=$(echo "$generated_text" | \
+        sed -r 's/\x1B\[[0-9;]*[mGK]//g' | \
+        sed 's/\\033\[[0-9;]*m//g' | \
+        sed 's/\[0;[0-9]*m//g' | \
+        sed 's/\[1;[0-9]*m//g' | \
+        sed 's/33\[[0-9;]*m//g' | \
+        sed 's/[0-9]*\[[0-9;]*m//g' | \
+        tr -d '\0' | \
+        sed '/^$/d')
+    
+    # Store the cleaned analysis for later use in both console and email
+    ai_analysis="$clean_generated_text"
     
     show_progress 4 4
     echo -e "\n${GREEN}✓ AI Analysis completed successfully${NC}"
@@ -543,7 +554,7 @@ The following is the comprehensive system status report to analyze:\n\n"
     echo -e "${YELLOW}The following recommendations are based on the system status analysis:${NC}\n"
     
     # Format and display the analysis with better readability
-    local formatted_analysis=$(echo "$generated_text" | sed 's/^1\. Critical Issues (if any):/\n1\. Critical Issues:/' | \
+    local formatted_analysis=$(echo "$clean_generated_text" | sed 's/^1\. Critical Issues (if any):/\n1\. Critical Issues:/' | \
                              sed 's/^2\. Medium Issues (if any):/\n2\. Medium Issues:/' | \
                              sed 's/^3\. Low Issues (if any):/\n3\. Low Issues:/' | \
                              sed 's/^- /\n  • /g')
@@ -1127,9 +1138,9 @@ check_email_status() {
             ((current_medium_issues++))  # Too many timeouts
         fi
         
-        # Low issues (minor problems)
-        if [ "${auth_failures_log:-0}" -gt 500 ]; then
-            ((current_low_issues++))  # Excessive auth failures might indicate brute force
+        # Low issues (minor problems) - only flag if extremely excessive
+        if [ "${auth_failures_log:-0}" -gt 10000 ]; then
+            ((current_low_issues++))  # Extremely excessive auth failures (>10k/day) might indicate unusual activity
         fi
         
         # Display statistics based on log analysis
@@ -1179,12 +1190,10 @@ check_email_status() {
         ((current_medium_issues++)) # Not finding the email log is a medium problem
     fi
 
-    # Add local issues to global counters (only add 1 for low_issues if there are auth failures)
+    # Add local issues to global counters
     ((high_issues+=current_high_issues))
     ((medium_issues+=current_medium_issues))
-    if [ "${auth_failures_log:-0}" -gt 0 ]; then
-        ((low_issues++))
-    fi
+    ((low_issues+=current_low_issues))
 
     # Track which modules have issues and capture detailed info for AI analysis
     local email_details=""
@@ -1229,8 +1238,8 @@ check_email_status() {
         if [ "${deferred:-0}" -gt 0 ] && [ "${deferred:-0}" -le 20 ]; then
             email_details+="$deferred deferred messages in queue (normal delays), "
         fi
-        if [ "${auth_failures_log:-0}" -gt 500 ]; then
-            email_details+="Excessive authentication failures (${auth_failures_log:-0} today) - possible brute force attempts"
+        if [ "${auth_failures_log:-0}" -gt 10000 ]; then
+            email_details+="Extremely high authentication failures (${auth_failures_log:-0} today) - unusual brute force activity"
         else
             email_details+="Minor configuration or performance issues"
         fi
@@ -2791,6 +2800,16 @@ check_fail2ban_status() {
                 echo -e "  Total Attempts: ${YELLOW}$total_attempts${NC}"
                 echo -e "  Total Bans: ${RED}$total_bans${NC}"
                 echo -e "  Total Unbans: ${GREEN}$total_unbans${NC}"
+                
+                # Classify based on total attempts volume
+                if [ "$total_attempts" -gt 50000 ]; then
+                    ((current_high_issues++))  # >50k attempts = HIGH (massive coordinated attack)
+                elif [ "$total_attempts" -gt 20000 ]; then
+                    ((current_medium_issues++))  # 20k-50k attempts = MEDIUM (significant attack)
+                elif [ "$total_attempts" -gt 10000 ]; then
+                    ((current_low_issues++))  # 10k-20k attempts = LOW (elevated activity)
+                fi
+                # 0-10k attempts = Normal (typical bot activity)
             else
                 echo -e "${YELLOW}⚠️  No relevant entries found in Fail2Ban log for today.${NC}"
                 ((current_medium_issues++))
@@ -2813,10 +2832,21 @@ check_fail2ban_status() {
     local fail2ban_details=""
     if [ $current_high_issues -gt 0 ]; then
         critical_modules_found+=("Fail2Ban")
-        fail2ban_details="Critical: Fail2Ban service not running - Security monitoring disabled"
+        if [ "$total_attempts" -gt 50000 ]; then
+            fail2ban_details="Critical: Massive coordinated attack detected - $total_attempts attempts today (>50k threshold). Fail2Ban is working but system under heavy attack."
+        else
+            fail2ban_details="Critical: Fail2Ban service not running - Security monitoring disabled"
+        fi
     elif [ $current_medium_issues -gt 0 ]; then
         medium_modules_found+=("Fail2Ban")
-        fail2ban_details="Medium issues: Problems reading Fail2Ban logs or configuration"
+        if [ "$total_attempts" -gt 20000 ]; then
+            fail2ban_details="Medium: Significant attack activity - $total_attempts attempts today (20k-50k threshold). Fail2Ban is blocking but elevated monitoring recommended."
+        else
+            fail2ban_details="Medium issues: Problems reading Fail2Ban logs or configuration"
+        fi
+    elif [ $current_low_issues -gt 0 ]; then
+        low_modules_found+=("Fail2Ban")
+        fail2ban_details="Low: Elevated attack activity - $total_attempts attempts today (10k-20k threshold). Fail2Ban is handling it but worth monitoring."
     else
         fail2ban_details="Fail2Ban functioning normally: $total_attempts total attempts, $total_bans bans, $total_unbans unbans today. MyVestaCP Panel: $myvesta_failed failed logins, $myvesta_bans bans"
     fi
@@ -3323,20 +3353,87 @@ send_email_report() {
             if [ -n "$clean_ai_analysis" ]; then
                 email_content+="<div style='background-color: #ffffff; border-radius: 6px; padding: 20px; border: 1px solid #dee2e6;'>"
                 
-                # Use a safer approach for HTML conversion with error handling
-                if echo "$clean_ai_analysis" | grep -q "1\. Critical Issues" 2>/dev/null; then
-                    clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/^1\. Critical Issues (if any):/<h4 style="color: #dc3545; margin: 0 0 10px 0; font-size: 16px;">🚨 Critical Issues<\/h4><ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">/' 2>/dev/null || echo "$clean_ai_analysis")
+                # Process the AI analysis content line by line for better formatting
+                local formatted_content=""
+                local in_list=false
+                local current_section=""
+                
+                while IFS= read -r line; do
+                    # Skip empty lines
+                    if [ -z "$line" ]; then
+                        continue
+                    fi
+                    
+                    # Handle section headers
+                    if echo "$line" | grep -q "^[0-9]\. .*Issues"; then
+                        # Close previous section if open
+                        if [ "$in_list" = true ]; then
+                            formatted_content+="</ul></div>"
+                            in_list=false
+                        fi
+                        
+                        # Start new section with container
+                        if echo "$line" | grep -q "Critical"; then
+                            current_section="critical"
+                            formatted_content+="<div style='margin-bottom: 20px; border: 1px solid #dc3545; border-radius: 6px; overflow: hidden;'>"
+                            formatted_content+="<h4 style='color: #fff; background-color: #dc3545; margin: 0; padding: 12px 16px; font-size: 16px; font-weight: bold;'>🚨 Critical Issues</h4>"
+                        elif echo "$line" | grep -q "Medium"; then
+                            current_section="medium"
+                            formatted_content+="<div style='margin-bottom: 20px; border: 1px solid #fd7e14; border-radius: 6px; overflow: hidden;'>"
+                            formatted_content+="<h4 style='color: #fff; background-color: #fd7e14; margin: 0; padding: 12px 16px; font-size: 16px; font-weight: bold;'>⚠️ Medium Issues</h4>"
+                        elif echo "$line" | grep -q "Low"; then
+                            current_section="low"
+                            formatted_content+="<div style='margin-bottom: 20px; border: 1px solid #17a2b8; border-radius: 6px; overflow: hidden;'>"
+                            formatted_content+="<h4 style='color: #fff; background-color: #17a2b8; margin: 0; padding: 12px 16px; font-size: 16px; font-weight: bold;'>ℹ️ Low Priority Issues</h4>"
+                        fi
+                        
+                        # Start content area and list
+                        formatted_content+="<div style='padding: 16px;'>"
+                        formatted_content+="<ul style='list-style-type: none; padding-left: 0; margin: 0;'>"
+                        in_list=true
+                        
+                    # Handle list items (lines starting with -)
+                    elif echo "$line" | grep -q "^[[:space:]]*-"; then
+                        if [ "$in_list" = false ]; then
+                            formatted_content+="<div style='padding: 16px;'>"
+                            formatted_content+="<ul style='list-style-type: none; padding-left: 0; margin: 0;'>"
+                            in_list=true
+                        fi
+                        
+                        # Clean and format the list item
+                        local item_text=$(echo "$line" | sed 's/^[[:space:]]*-[[:space:]]*//')
+                        
+                        # Set border color based on current section
+                        local border_color="#6c757d"
+                        if [ "$current_section" = "critical" ]; then
+                            border_color="#dc3545"
+                        elif [ "$current_section" = "medium" ]; then
+                            border_color="#fd7e14"
+                        elif [ "$current_section" = "low" ]; then
+                            border_color="#17a2b8"
+                        fi
+                        
+                        formatted_content+="<li style='margin: 8px 0; padding: 12px; background-color: #f8f9fa; border-radius: 4px; border-left: 3px solid $border_color; font-size: 14px; line-height: 1.4;'>• $item_text</li>"
+                        
+                    # Handle regular text lines
+                    else
+                        # If we're in a list, treat as continuation of list item
+                        if [ "$in_list" = true ]; then
+                            # Add as continuation text within the list
+                            formatted_content+="<li style='margin: 4px 0; padding: 8px 12px; background-color: #ffffff; border-radius: 4px; font-size: 14px; line-height: 1.4; color: #666;'>$line</li>"
+                        else
+                            # Add regular paragraph
+                            formatted_content+="<p style='margin: 10px 0; font-size: 14px; line-height: 1.5; color: #333;'>$line</p>"
+                        fi
+                    fi
+                done <<< "$clean_ai_analysis"
+                
+                # Close final section if still open
+                if [ "$in_list" = true ]; then
+                    formatted_content+="</ul></div></div>"
                 fi
-                if echo "$clean_ai_analysis" | grep -q "2\. Medium Issues" 2>/dev/null; then
-                    clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/^2\. Medium Issues (if any):/<\/ul><h4 style="color: #fd7e14; margin: 0 0 10px 0; font-size: 16px;">⚠️ Medium Issues<\/h4><ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">/' 2>/dev/null || echo "$clean_ai_analysis")
-                fi
-                if echo "$clean_ai_analysis" | grep -q "3\. Low Issues" 2>/dev/null; then
-                    clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/^3\. Low Issues (if any):/<\/ul><h4 style="color: #17a2b8; margin: 0 0 10px 0; font-size: 16px;">ℹ️ Low Priority Issues<\/h4><ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px;">/' 2>/dev/null || echo "$clean_ai_analysis")
-                fi
-                clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/^- /<li style="margin: 8px 0; padding: 8px; background-color: #f8f9fa; border-radius: 4px; border-left: 3px solid #6c757d;">• /g' 2>/dev/null || echo "$clean_ai_analysis")
-                clean_ai_analysis=$(echo "$clean_ai_analysis" | sed 's/$/<\/li>/g' 2>/dev/null || echo "$clean_ai_analysis")
-            
-                email_content+="$clean_ai_analysis</ul></div>"
+                
+                email_content+="$formatted_content</div>"
         else
                 email_content+="<div style='background-color: #ffffff; border-radius: 6px; padding: 20px; border: 1px solid #dee2e6;'>
                     <p style='color: #6c757d; margin: 0;'>AI analysis content could not be processed for email display.</p>
@@ -3617,7 +3714,27 @@ if [ "$SEND_EMAIL_REPORT" = true ]; then
     trap 'echo -e "${RED}Error occurred in $0 at line $LINENO. Function: ${FUNCNAME[1]:-main}${NC}" >&2' ERR
 fi
 
+# Function to clean ANSI codes from log file
+clean_log_file() {
+    if [ -f "$LOG_FILE" ]; then
+        local temp_file="${LOG_FILE}.tmp"
+        
+        # Use sed to remove ANSI escape sequences and replace original file
+        sed -r 's/\x1B\[[0-9;]*[mGK]//g' "$LOG_FILE" > "$temp_file"
+        
+        if [ $? -eq 0 ]; then
+            mv "$temp_file" "$LOG_FILE"
+        else
+            rm -f "$temp_file" 2>/dev/null
+        fi
+    fi
+}
+
 # At the end of the script, before exit
 log_message "System check completed"
 log_message "================================="
+
+# Create clean version of log file without ANSI codes
+clean_log_file
+
 exit 0
